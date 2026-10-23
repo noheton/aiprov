@@ -10,3 +10,6 @@ migration script.
 - The repository logs its own AI-assisted work in `provenance.ttl` (`provlog log …`); please do the
   same for AI-assisted contributions, and never grant `human-confirmed`/`human-read` from an AI agent.
 - By contributing you agree to the MIT licence.
+
+AI agents and humans working with AI follow `AGENTS.md`: the session is logged in `provenance.ttl`, and CI validates the
+graph (job `provenance`; the test `tests/test_repository_provenance.py` does the same locally).

@@ -38,6 +38,10 @@ Additive; legacy graphs validate unchanged.
 - Plan bindings: `provlog log --orchestration --planned-agent ID:ROLE` ties an agent to one role
   (`aiprov:plannedBinding`); before, any planned agent could act in any planned role.
 
+- The repository adopts its own method: `AGENTS.md` (rules for AI agents; `CLAUDE.md` imports it), a pull request
+  template with an AI-assistance block, a CI job `provenance` that validates `provenance.ttl`, and a test that does the
+  same locally.
+
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.
