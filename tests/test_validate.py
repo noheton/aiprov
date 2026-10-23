@@ -3,7 +3,7 @@ import pathlib, subprocess, sys, shutil
 from rdflib import Graph
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-FIX = ROOT / "tests" / "fixtures" / "thesis-graph.ttl"
+FIX = ROOT / "tests" / "fixtures" / "example-graph.ttl"
 
 
 def run(args, cwd):
@@ -18,14 +18,14 @@ def test_schema_parses():
 
 def test_fixture_validates(tmp_path):
     shutil.copy(FIX, tmp_path / "provenance.ttl")
-    r = run(["--base", "https://nucli.de/prov/dissertation/", "validate"], tmp_path)
+    r = run(["--base", "https://example.org/prov/", "validate"], tmp_path)
     assert r.returncode == 0, r.stdout + r.stderr
 
 
 def test_ai_cannot_grant_human_rung(tmp_path):
     shutil.copy(FIX, tmp_path / "provenance.ttl")
-    r = run(["--base", "https://nucli.de/prov/dissertation/", "promote",
-             "--id", "krebs2026fair", "--to", "human-read", "--agent", "claude-fable-5-1"], tmp_path)
+    r = run(["--base", "https://example.org/prov/", "promote",
+             "--id", "src1", "--to", "human-read", "--agent", "model-x"], tmp_path)
     assert r.returncode != 0 and "human-only" in (r.stdout + r.stderr)
 
 

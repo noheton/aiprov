@@ -28,7 +28,7 @@ Two invariants are enforced by `validate`: **no parentless claim**, and **human-
 
 ## Layout
 `schema/` vocabulary · `src/aiprov/` CLI · `docs/attributes.md` attribute catalogue ·
-`tests/` with a real graph as fixture.
+`tests/` with a synthetic example graph as fixture.
 
 ## Status
 0.1.0 packages the existing skill bundle unchanged. 0.2.0 is planned with external consumers
