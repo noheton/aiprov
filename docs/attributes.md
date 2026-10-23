@@ -108,3 +108,12 @@ provider field names against current API docs before automating ingestion.*
 | `prov:actedOnBehalfOf` | agent instance → orchestrator agent | Standard PROV-O delegation |
 
 Telemetry of sub-agents is recorded only when reported; never estimate it.
+
+### Sharded logging of a multi-agent run
+
+Parallel agents must not write to one graph file (the logger rewrites the whole file). Give each agent its own copy
+of the graph that already contains the orchestration and its plan; the agent logs its sub-activity (`--informed-by`,
+`--role`), claims and promotions there and returns the file. The dispatcher then runs
+`provlog merge --from shard1.ttl shard2.ttl ...`. The plan is frozen once it is in the main graph: a shard that adds
+planned agents or roles, or end times, to an existing orchestration is refused, as is a shard that adds a validation
+failure.

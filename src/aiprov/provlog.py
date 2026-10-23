@@ -8,6 +8,8 @@ Commands:
                              (tokens, cost, model, session, tools, prompt hash)
                              and optionally the entities it generated/used.
   claim   --id ...           Add a claim bound to a parent activity + agent.
+  merge   --from SHARD...    Union per-agent shard graphs into the main graph; refuses shards that
+                             edit a frozen plan or add validation failures.
   (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
                              --informed-by/--role; agent --acted-on-behalf-of.
   validate                   Conformance: parentless claims, AI-granted
@@ -229,8 +231,8 @@ def cmd_claim(a) -> None:
     print(f"claim:{a.id} added (state {a.state})")
 
 
-def cmd_validate(a) -> None:
-    g = load()
+def validate_graph(g: Graph) -> int:
+    """Run all conformance checks on g, print them, return the number of failures."""
     fail = 0
     q1 = """SELECT ?c WHERE { ?c a aiprov:Claim .
             FILTER NOT EXISTS { ?c prov:wasGeneratedBy ?x } }"""
@@ -310,7 +312,11 @@ def cmd_validate(a) -> None:
         print("   ↳", row[0])
     for row in list(orphans) + list(unattr):
         print("   ↳", row[0])
-    sys.exit(1 if fail else 0)
+    return fail
+
+
+def cmd_validate(a) -> None:
+    sys.exit(1 if validate_graph(load()) else 0)
 
 
 def cmd_report(a) -> None:
@@ -584,6 +590,69 @@ def cmd_promote(a) -> None:
     print(f"{a.id}: {cur} -> {a.to} (logged as AuditPass, agent:{a.agent})")
 
 
+def _rung_rank(state) -> int:
+    name = canon_rung(str(state).rsplit("/", 1)[-1])
+    return LADDER.index(name) if name in LADDER else -1
+
+
+def _fail_lines(g: Graph) -> set:
+    import contextlib, io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        validate_graph(g)
+    return {ln for ln in buf.getvalue().splitlines() if ln.startswith("[FAIL]")}
+
+
+def cmd_merge(a) -> None:
+    """Union shard graphs into the main graph (append-only), refusing shards that edit a frozen
+    plan or introduce a validation failure. Verification states are normalised to the highest rung."""
+    from rdflib import BNode
+    g = load()
+    frozen_props = (AIPROV.plannedAgent, AIPROV.plannedRole, PROV.endedAtTime)
+    base_fail = _fail_lines(g)
+    merged, rejected = [], []
+    for path in a.from_:
+        shard = Graph(); shard.parse(path, format="turtle")
+        new = [t for t in shard if t not in g]
+        orchestrations = set(g.subjects(RDF.type, AIPROV.Orchestration))
+        why = None
+        if any(isinstance(x, BNode) for t in new for x in t):
+            why = "blank nodes are not merged"
+        for s_, p_, o_ in new:
+            if why is None and s_ in orchestrations and (p_ in frozen_props or (p_ == PROV.wasInformedBy and o_ == s_)):
+                why = f"edits the frozen plan or timing of {str(s_).rsplit('/', 1)[-1]}"
+        if why is None:
+            cand = Graph(); cand += g
+            for prefix, uri in g.namespaces():  # the validate queries use these prefixes
+                cand.bind(prefix, uri)
+            for t in new:
+                cand.add(t)
+            added = _fail_lines(cand) - base_fail
+            if added:
+                why = "validation: " + "; ".join(sorted(added))
+        if why:
+            rejected.append((path, why)); continue
+        for t in new:
+            g.add(t)
+        merged.append((path, len(new)))
+    for node in set(g.subjects(AIPROV.verificationState, None)):
+        states = list(g.objects(node, AIPROV.verificationState))
+        if len(states) > 1:
+            keep = max(states, key=_rung_rank)
+            for st in states:
+                if st != keep:
+                    g.remove((node, AIPROV.verificationState, st))
+    if merged and not a.dry_run:
+        save(g)
+    for path, n in merged:
+        print(f"merged {path}: {n} new triples")
+    for path, why in rejected:
+        print(f"REJECTED {path}: {why}")
+    if a.dry_run:
+        print("dry run: nothing written")
+    sys.exit(1 if rejected else 0)
+
+
 def cmd_extract(a) -> None:
     import collections
     from rdflib import URIRef
@@ -677,6 +746,10 @@ def main() -> None:
 
     sub.add_parser("validate"); sub.add_parser("report")
 
+    s = sub.add_parser("merge", help="union shard graphs into the main graph")
+    s.add_argument("--from", dest="from_", nargs="+", required=True, metavar="SHARD.ttl")
+    s.add_argument("--dry-run", action="store_true")
+
     s = sub.add_parser("search")
     s.add_argument("--query", required=True)
     s.add_argument("--rows", type=int, default=5)
@@ -709,7 +782,7 @@ def main() -> None:
 
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
-     "claim": cmd_claim, "validate": cmd_validate, "report": cmd_report,
+     "claim": cmd_claim, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 

@@ -23,6 +23,12 @@ Additive; legacy graphs validate unchanged.
   cannot be informed by itself, and omitting `--agent`/`--role` no longer bypasses a declared plan (logger and
   validator).
 
+- `provlog merge --from SHARD...` for sharded logging: each agent of a run writes into its own copy of the graph
+  (parallel writers to one file overwrite each other); the dispatcher unions the shards, append-only. A shard is
+  refused if it edits the plan or timing of an orchestration already in the main graph, contains blank nodes, or
+  introduces any new `validate` failure; accepted shards are still merged. Verification states are normalised to the
+  highest rung, because `promote` in a second shard leaves the older state behind in the union. `--dry-run` writes nothing.
+
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.
