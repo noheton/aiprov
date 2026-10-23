@@ -105,9 +105,13 @@ def plan_violation(g: Graph, base: str, parent, agent, role) -> "str | None":
     """Why a sub-activity of an orchestration breaks the plan, or None. Only declared lists bind."""
     agents = set(g.objects(parent, AIPROV.plannedAgent))
     roles = {str(r) for r in g.objects(parent, AIPROV.plannedRole)}
-    if agents and agent is not None and ns(base, "agent")[agent] not in agents:
+    if agents and agent is None:
+        return "the orchestration declares planned agents, so --agent is required"
+    if agents and ns(base, "agent")[agent] not in agents:
         return f"agent {agent} is not among the planned agents of the orchestration"
-    if roles and role is not None and role not in roles:
+    if roles and role is None:
+        return "the orchestration declares planned roles, so --role is required"
+    if roles and role not in roles:
         return f"role {role} is not among the planned roles of the orchestration"
     return None
 
@@ -132,6 +136,11 @@ def cmd_log(a) -> None:
     act = ns(a.base, "activity")[a.activity]
     cls = {"authoring": AIPROV.AuthoringPass, "audit": AIPROV.AuditPass,
            "build": AIPROV.Build, "repair": AIPROV.Repair}.get(a.pass_, PROV.Activity)
+    if a.informed_by == a.activity:
+        sys.exit("--informed-by: an activity cannot be informed by itself")
+    if (a.orchestration or a.informed_by or (act, RDF.type, AIPROV.Orchestration) in g) \
+            and (act, PROV.endedAtTime, None) in g:
+        sys.exit(f"activity {a.activity} is already logged; the graph is append-only, use a new id")
     if a.orchestration:
         cls = AIPROV.Orchestration
     elif a.planned_role or a.planned_agent:
@@ -279,14 +288,25 @@ def cmd_validate(a) -> None:
     unplanned_role = list(g.query("""SELECT ?a ?r WHERE { ?a prov:wasInformedBy ?o ; aiprov:role ?r .
             ?o a aiprov:Orchestration ; aiprov:plannedRole ?anyr .
             FILTER NOT EXISTS { ?o aiprov:plannedRole ?r } }"""))
-    unplanned = unplanned_agent + unplanned_role
+    missing_agent = list(g.query("""SELECT ?a WHERE { ?a prov:wasInformedBy ?o .
+            ?o a aiprov:Orchestration ; aiprov:plannedAgent ?x .
+            FILTER NOT EXISTS { ?a prov:wasAssociatedWith ?ag } }"""))
+    missing_role = list(g.query("""SELECT ?a WHERE { ?a prov:wasInformedBy ?o .
+            ?o a aiprov:Orchestration ; aiprov:plannedRole ?x .
+            FILTER NOT EXISTS { ?a aiprov:role ?r } }"""))
+    unplanned = unplanned_agent + unplanned_role + missing_agent + missing_role
     print(f"[{'FAIL' if unplanned else ' OK '}] sub-activities outside the orchestration plan: {len(unplanned)}")
     fail += len(unplanned)
+    reclosed = list(g.query("""SELECT ?o WHERE { ?o a aiprov:Orchestration ; prov:endedAtTime ?t1, ?t2 .
+            FILTER(?t1 < ?t2) }""")) + list(g.query("""SELECT ?o WHERE { ?o a aiprov:Orchestration ;
+            prov:wasInformedBy ?o }"""))
+    print(f"[{'FAIL' if reclosed else ' OK '}] orchestrations logged twice or informed by themselves: {len(reclosed)}")
+    fail += len(reclosed)
     early = list(g.query("""SELECT ?a ?o WHERE { ?a prov:wasInformedBy ?o ; prov:endedAtTime ?at .
             ?o a aiprov:Orchestration ; prov:endedAtTime ?ot . FILTER(?at < ?ot) }"""))
     print(f"[{'FAIL' if early else ' OK '}] sub-activities logged before their orchestration: {len(early)}")
     fail += len(early)
-    for row in list(dangling) + list(unplanned) + list(early):
+    for row in list(dangling) + list(unplanned) + list(reclosed) + list(early):
         print("   ↳", row[0])
     for row in list(orphans) + list(unattr):
         print("   ↳", row[0])

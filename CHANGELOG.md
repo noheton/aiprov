@@ -18,6 +18,10 @@ Additive; legacy graphs validate unchanged.
 - `validate`: dangling `wasInformedBy`, sub-activities outside the plan, sub-activities logged before their
   orchestration (all FAIL). `report`: sub-activities and reported tokens per orchestration, so a cascade is not
   counted as many independent AI activities.
+- Found by a multi-agent review of this change (three lenses, adversarial verification) and fixed: re-logging an
+  orchestration or any activity linked to one is refused (it widened the plan and made valid runs fail), an activity
+  cannot be informed by itself, and omitting `--agent`/`--role` no longer bypasses a declared plan (logger and
+  validator).
 
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);

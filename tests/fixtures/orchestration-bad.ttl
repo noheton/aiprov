@@ -4,7 +4,8 @@
 @prefix agent: <https://example.org/prov/agent/> .
 @prefix act: <https://example.org/prov/activity/> .
 
-# Synthetic. Three ways a hand-edited graph can break an orchestration plan.
+# Synthetic. Ways a hand-edited graph can break an orchestration plan: late sub-activity,
+# unplanned role, dangling link, omitted agent/role, orchestration logged twice.
 agent:orch a aiprov:AIAgent .
 agent:w1 a aiprov:AIAgent ; prov:actedOnBehalfOf agent:orch .
 act:o1 a aiprov:Orchestration ; prov:endedAtTime "2026-10-23T12:00:00+00:00"^^xsd:dateTime ;
@@ -15,3 +16,7 @@ act:wrongrole a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T12:30:00+00:
     prov:wasInformedBy act:o1 ; prov:wasAssociatedWith agent:w1 ; aiprov:role "other" .
 act:dangling a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T12:40:00+00:00"^^xsd:dateTime ;
     prov:wasInformedBy act:ghost ; prov:wasAssociatedWith agent:w1 .
+act:bare a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T12:50:00+00:00"^^xsd:dateTime ;
+    prov:wasInformedBy act:o1 .
+act:o2 a aiprov:Orchestration ; prov:wasAssociatedWith agent:orch ;
+    prov:endedAtTime "2026-10-23T13:00:00+00:00"^^xsd:dateTime, "2026-10-23T13:05:00+00:00"^^xsd:dateTime .

@@ -68,5 +68,24 @@ def test_validator_catches_a_hand_edited_graph(tmp_path):
     out = r.stdout
     assert r.returncode == 1
     assert "[FAIL] wasInformedBy targets that are not logged activities: 1" in out
-    assert "[FAIL] sub-activities outside the orchestration plan: 1" in out
+    assert "[FAIL] sub-activities outside the orchestration plan: 3" in out  # wrong role, no agent, no role
+    assert "[FAIL] orchestrations logged twice or informed by themselves: 1" in out
     assert "[FAIL] sub-activities logged before their orchestration: 1" in out
+
+
+def test_omitting_agent_or_role_does_not_bypass_the_plan(tmp_path):
+    setup(tmp_path); plan(tmp_path)
+    r = run(["log", "--activity", "bare", "--informed-by", "o1"], tmp_path)
+    assert r.returncode != 0 and "--agent is required" in (r.stdout + r.stderr)
+    r = run(["log", "--activity", "bare", "--informed-by", "o1", "--agent", "rev1"], tmp_path)
+    assert r.returncode != 0 and "--role is required" in (r.stdout + r.stderr)
+
+
+def test_orchestrations_cannot_be_relogged_or_loop(tmp_path):
+    setup(tmp_path); plan(tmp_path)
+    r = run(["log", "--activity", "o1", "--orchestration", "--planned-agent", "stray"], tmp_path)
+    assert r.returncode != 0 and "already logged" in (r.stdout + r.stderr)
+    r = run(["log", "--activity", "o1"], tmp_path)
+    assert r.returncode != 0 and "already logged" in (r.stdout + r.stderr)
+    r = run(["log", "--activity", "o1", "--informed-by", "o1"], tmp_path)
+    assert r.returncode != 0 and "cannot be informed by itself" in (r.stdout + r.stderr)
