@@ -8,6 +8,17 @@ First packaged release. Content identical to the aiprov skill bundle generalised
 - `aiprov-dashboard`: self-contained HTML ledger from a graph.
 - Namespace `https://w3id.org/aiprov/ns#` (w3id registration pending at release time).
 
+## Unreleased — orchestration (multi-agent runs)
+Additive; legacy graphs validate unchanged.
+- Schema: `aiprov:Orchestration` (a `prov:Activity`), `aiprov:plannedRole`, `aiprov:plannedAgent`, `aiprov:role`.
+  Delegation uses PROV-O: `prov:actedOnBehalfOf` (agent → orchestrator), `prov:wasInformedBy` (sub-activity → orchestration).
+- `provlog agent --acted-on-behalf-of`; `provlog log --orchestration --planned-role --planned-agent`,
+  `--informed-by`, `--role`. The logger refuses planned agents that are not registered yet and sub-activities
+  outside the declared plan (agent or role).
+- `validate`: dangling `wasInformedBy`, sub-activities outside the plan, sub-activities logged before their
+  orchestration (all FAIL). `report`: sub-activities and reported tokens per orchestration, so a cascade is not
+  counted as many independent AI activities.
+
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.

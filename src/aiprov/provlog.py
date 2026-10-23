@@ -8,6 +8,8 @@ Commands:
                              (tokens, cost, model, session, tools, prompt hash)
                              and optionally the entities it generated/used.
   claim   --id ...           Add a claim bound to a parent activity + agent.
+  (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
+                             --informed-by/--role; agent --acted-on-behalf-of.
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
@@ -93,8 +95,21 @@ def cmd_agent(a) -> None:
         v = getattr(a, key, None)
         if v is not None:
             g.add((s, prop, Literal(v, datatype=dt)))
+    if getattr(a, "acted_on_behalf_of", None):
+        g.add((s, PROV.actedOnBehalfOf, ns(a.base, "agent")[a.acted_on_behalf_of]))
     save(g)
     print(f"agent:{a.id} registered ({a.type})")
+
+
+def plan_violation(g: Graph, base: str, parent, agent, role) -> "str | None":
+    """Why a sub-activity of an orchestration breaks the plan, or None. Only declared lists bind."""
+    agents = set(g.objects(parent, AIPROV.plannedAgent))
+    roles = {str(r) for r in g.objects(parent, AIPROV.plannedRole)}
+    if agents and agent is not None and ns(base, "agent")[agent] not in agents:
+        return f"agent {agent} is not among the planned agents of the orchestration"
+    if roles and role is not None and role not in roles:
+        return f"role {role} is not among the planned roles of the orchestration"
+    return None
 
 
 ACT_ATTRS = [  # (cli key, property, xsd type)
@@ -117,6 +132,27 @@ def cmd_log(a) -> None:
     act = ns(a.base, "activity")[a.activity]
     cls = {"authoring": AIPROV.AuthoringPass, "audit": AIPROV.AuditPass,
            "build": AIPROV.Build, "repair": AIPROV.Repair}.get(a.pass_, PROV.Activity)
+    if a.orchestration:
+        cls = AIPROV.Orchestration
+    elif a.planned_role or a.planned_agent:
+        sys.exit("--planned-role/--planned-agent need --orchestration")
+    for pa in a.planned_agent or []:
+        if (ns(a.base, "agent")[pa], RDF.type, None) not in g:
+            sys.exit(f"planned agent {pa} is not registered; register agents before the orchestration")
+    if a.informed_by:
+        parent = ns(a.base, "activity")[a.informed_by]
+        if (parent, PROV.endedAtTime, None) not in g:
+            sys.exit(f"--informed-by: activity {a.informed_by} is not logged")
+        why = plan_violation(g, a.base, parent, a.agent, a.role) if (parent, RDF.type, AIPROV.Orchestration) in g else None
+        if why:
+            sys.exit("refused: " + why)
+        g.add((act, PROV.wasInformedBy, parent))
+    for r in a.planned_role or []:
+        g.add((act, AIPROV.plannedRole, Literal(r)))
+    for pa in a.planned_agent or []:
+        g.add((act, AIPROV.plannedAgent, ns(a.base, "agent")[pa]))
+    if a.role:
+        g.add((act, AIPROV.role, Literal(a.role)))
     g.add((act, RDF.type, cls))
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
@@ -232,6 +268,26 @@ def cmd_validate(a) -> None:
             FILTER NOT EXISTS { ?act prov:wasAssociatedWith ?ag } }"""
     anon = set(r[0] for r in g.query(q4))
     print(f"[{'WARN' if anon else ' OK '}] activities without agent: {len(anon)}")
+    # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
+    dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
+            FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
+    print(f"[{'FAIL' if dangling else ' OK '}] wasInformedBy targets that are not logged activities: {len(dangling)}")
+    fail += len(dangling)
+    unplanned_agent = list(g.query("""SELECT ?a ?ag WHERE { ?a prov:wasInformedBy ?o ;
+            prov:wasAssociatedWith ?ag . ?o a aiprov:Orchestration ; aiprov:plannedAgent ?any .
+            FILTER NOT EXISTS { ?o aiprov:plannedAgent ?ag } }"""))
+    unplanned_role = list(g.query("""SELECT ?a ?r WHERE { ?a prov:wasInformedBy ?o ; aiprov:role ?r .
+            ?o a aiprov:Orchestration ; aiprov:plannedRole ?anyr .
+            FILTER NOT EXISTS { ?o aiprov:plannedRole ?r } }"""))
+    unplanned = unplanned_agent + unplanned_role
+    print(f"[{'FAIL' if unplanned else ' OK '}] sub-activities outside the orchestration plan: {len(unplanned)}")
+    fail += len(unplanned)
+    early = list(g.query("""SELECT ?a ?o WHERE { ?a prov:wasInformedBy ?o ; prov:endedAtTime ?at .
+            ?o a aiprov:Orchestration ; prov:endedAtTime ?ot . FILTER(?at < ?ot) }"""))
+    print(f"[{'FAIL' if early else ' OK '}] sub-activities logged before their orchestration: {len(early)}")
+    fail += len(early)
+    for row in list(dangling) + list(unplanned) + list(early):
+        print("   ↳", row[0])
     for row in list(orphans) + list(unattr):
         print("   ↳", row[0])
     sys.exit(1 if fail else 0)
@@ -268,6 +324,14 @@ def cmd_report(a) -> None:
     order = lambda r: LADDER.index(r) if r in LADDER else 99
     for r in sorted(agg, key=order):
         print(f"   {r:24s} {agg[r]}")
+    roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
+    if roots:
+        print("-- orchestration --")
+        for o in sorted(roots, key=str):
+            subs = set(g.subjects(PROV.wasInformedBy, o))
+            tok = [int(t) for s_ in subs for t in g.objects(s_, AIPROV.totalTokens)]
+            print(f"   {str(o).rsplit('/',1)[-1]:24s} {len(subs)} sub-activities, "
+                  + (f"{sum(tok)} tokens reported by {len(tok)}" if tok else "no tokens reported"))
 
 
 LADDER = ["unverified", "needs-research", "reference-resolved", "ai-confirmed",
@@ -565,6 +629,8 @@ def main() -> None:
     for f in ["name", "model", "model_version", "provider", "endpoint", "context_window",
               "knowledge_cutoff", "orcid", "affiliation"]:
         s.add_argument("--" + f.replace("_", "-"), dest=f)
+    s.add_argument("--acted-on-behalf-of", dest="acted_on_behalf_of",
+                   help="agent id this agent acts for (prov:actedOnBehalfOf), e.g. orchestrator")
 
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
@@ -576,6 +642,13 @@ def main() -> None:
     s.add_argument("--tool", action="append"); s.add_argument("--prompt-file", dest="prompt_file")
     s.add_argument("--transcript"); s.add_argument("--generated", action="append")
     s.add_argument("--used", action="append")
+    s.add_argument("--orchestration", action="store_true",
+                   help="root of a multi-agent run; log it before any sub-agent starts")
+    s.add_argument("--planned-role", dest="planned_role", action="append")
+    s.add_argument("--planned-agent", dest="planned_agent", action="append",
+                   help="agent id; must be registered already")
+    s.add_argument("--informed-by", dest="informed_by", help="activity id (prov:wasInformedBy)")
+    s.add_argument("--role", help="role of this sub-activity within the orchestration")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)

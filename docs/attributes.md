@@ -94,3 +94,17 @@ are warnings (legitimate in legacy or hand-curated graphs).
 *AI note: drafted with AI assistance, verified against the Anthropic and
 OpenAI usage-object documentation and by test-run of provlog.py; review
 provider field names against current API docs before automating ingestion.*
+
+
+## Orchestration (multi-agent runs)
+
+| Term | Where | Meaning |
+|---|---|---|
+| `aiprov:Orchestration` | class, subclass of `prov:Activity` | Root of a multi-agent run, logged **before** any sub-agent starts |
+| `aiprov:plannedAgent` | Orchestration → agent | Agent instance registered beforehand (repeatable); binds sub-activities when present |
+| `aiprov:plannedRole` | Orchestration → string | Planned role (repeatable); binds `aiprov:role` of sub-activities when present |
+| `aiprov:role` | activity → string | Role of a sub-activity |
+| `prov:wasInformedBy` | sub-activity → orchestration | Standard PROV-O link |
+| `prov:actedOnBehalfOf` | agent instance → orchestrator agent | Standard PROV-O delegation |
+
+Telemetry of sub-agents is recorded only when reported; never estimate it.

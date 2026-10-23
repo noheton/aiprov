@@ -63,6 +63,16 @@ aiprov:Build            a owl:Class ; rdfs:subClassOf prov:Activity ;
 aiprov:Repair           a owl:Class ; rdfs:subClassOf prov:Activity ;
     rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en .
 
+aiprov:Orchestration    a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Orchestration"@en ;
+    rdfs:comment "Root activity of a multi-agent run. Logged before any sub-agent starts; sub-activities point to it with prov:wasInformedBy. Declares the planned roles and agents."@en .
+aiprov:plannedRole      a owl:DatatypeProperty ; rdfs:domain aiprov:Orchestration ; rdfs:range xsd:string ;
+    rdfs:comment "A role the orchestration plans to use (repeatable). If any is declared, sub-activities must name one of them in aiprov:role."@en .
+aiprov:plannedAgent     a owl:ObjectProperty ; rdfs:domain aiprov:Orchestration ; rdfs:range prov:Agent ;
+    rdfs:comment "An agent instance registered before the orchestration (repeatable). If any is declared, sub-activities must be associated with one of them."@en .
+aiprov:role             a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
+    rdfs:comment "Role of a sub-activity within an orchestration."@en .
+
 # --- Activity attributes: session & inference telemetry ---
 # Attach directly to the prov:Activity that produced/used the AI output.
 

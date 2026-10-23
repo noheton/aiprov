@@ -1,0 +1,17 @@
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix act: <https://example.org/prov/activity/> .
+
+# Synthetic. Three ways a hand-edited graph can break an orchestration plan.
+agent:orch a aiprov:AIAgent .
+agent:w1 a aiprov:AIAgent ; prov:actedOnBehalfOf agent:orch .
+act:o1 a aiprov:Orchestration ; prov:endedAtTime "2026-10-23T12:00:00+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:orch ; aiprov:plannedAgent agent:w1 ; aiprov:plannedRole "review" .
+act:early a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T11:00:00+00:00"^^xsd:dateTime ;
+    prov:wasInformedBy act:o1 ; prov:wasAssociatedWith agent:w1 ; aiprov:role "review" .
+act:wrongrole a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T12:30:00+00:00"^^xsd:dateTime ;
+    prov:wasInformedBy act:o1 ; prov:wasAssociatedWith agent:w1 ; aiprov:role "other" .
+act:dangling a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-23T12:40:00+00:00"^^xsd:dateTime ;
+    prov:wasInformedBy act:ghost ; prov:wasAssociatedWith agent:w1 .
