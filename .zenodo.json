@@ -1,0 +1,11 @@
+{
+  "title": "aiprov: domain-agnostic AI provenance over PROV-O",
+  "upload_type": "software",
+  "license": "MIT",
+  "creators": [{"name": "Krebs, Florian", "orcid": "0000-0001-6033-801X", "affiliation": "DLR Institute of Structures and Design, ZLP Augsburg"}],
+  "keywords": ["provenance", "PROV-O", "AI", "FAIR", "RDF"],
+  "related_identifiers": [
+    {"identifier": "10.48550/arXiv.2607.25637", "relation": "isDerivedFrom", "resource_type": "publication-preprint"},
+    {"identifier": "https://w3id.org/aiprov/ns", "relation": "isIdenticalTo", "scheme": "url"}
+  ]
+}

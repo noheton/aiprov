@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use aiprov, please cite both the software and the F(AI)²R paper."
+title: "aiprov: domain-agnostic AI provenance over PROV-O"
+version: 0.1.0
+date-released: 2026-10-23
+license: MIT
+repository-code: https://github.com/noheton/aiprov
+url: https://w3id.org/aiprov
+authors:
+  - family-names: Krebs
+    given-names: Florian
+    orcid: https://orcid.org/0000-0001-6033-801X
+references:
+  - type: article
+    title: "F(AI)2R: Who Did What, and Who Checked? Verifiable AI Provenance as an Executable Skill"
+    authors:
+      - family-names: Krebs
+        given-names: Florian
+    year: 2026
+    doi: 10.48550/arXiv.2607.25637

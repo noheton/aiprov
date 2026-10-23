@@ -1,0 +1,181 @@
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://nucli.de/prov/dissertation/activity/promote-krebs2026fair-source-vendored> a aiprov:AuditPass ;
+    rdfs:label "Promotion of krebs2026fair: reference-resolved -> source-vendored (vendored source.pdf sha256=6ac3f04320ff)"@en ;
+    prov:endedAtTime "2026-10-23T14:55:34.866920+00:00"^^xsd:dateTime ;
+    prov:used <https://nucli.de/prov/dissertation/source/krebs2026fair> ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/vendor-py> .
+
+<https://nucli.de/prov/dissertation/activity/verify-src-krebs2026fair> a aiprov:AuditPass ;
+    rdfs:label "DOI verification of src:krebs2026fair via openalex -> reference-resolved"@en ;
+    prov:endedAtTime "2026-10-23T14:55:29.899093+00:00"^^xsd:dateTime ;
+    prov:used <https://nucli.de/prov/dissertation/source/krebs2026fair> ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> .
+
+<https://nucli.de/prov/dissertation/agent/check-sources-py> a aiprov:ToolAgent ;
+    foaf:name "check_sources.py (repo validator)" .
+
+<https://nucli.de/prov/dissertation/agent/florian-krebs> a aiprov:HumanAgent ;
+    foaf:name "Florian Krebs" ;
+    aiprov:affiliation "DLR Institut für Bauweisen und Strukturtechnologie, ZLP Augsburg / Universität Augsburg"^^xsd:string ;
+    aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
+
+<https://nucli.de/prov/dissertation/claim/c-logging-policy> a aiprov:Claim ;
+    rdfs:label "All sessions including discuss are logged with the author's consent; transcripts stay private and are excluded from releases; only hashes are published."@en ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/discuss-2026-10-23> ;
+    aiprov:verificationState <https://nucli.de/prov/dissertation/verification/unverified> .
+
+<https://nucli.de/prov/dissertation/claim/c-prereg> a aiprov:Claim ;
+    rdfs:label "Hypotheses H1–H6 and the starting metric set were fixed before the first draft session; later metrics are dated additions."@en ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/prereg-v0.1> ;
+    aiprov:verificationState <https://nucli.de/prov/dissertation/verification/unverified> .
+
+<https://nucli.de/prov/dissertation/claim/c-prompt> a aiprov:Claim ;
+    rdfs:label "Der Rollenprompt legt Tonalität, epistemische Trennung (belegt/abgeleitet/vermutet) und eine Selbstkritik-Checkliste für jede KI-Sitzung fest."@en ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/scientific-prompt> ;
+    aiprov:verificationState <https://nucli.de/prov/dissertation/verification/unverified> .
+
+<https://nucli.de/prov/dissertation/claim/c-structure> a aiprov:Claim ;
+    rdfs:label "Die Kapitelstruktur (Fertigung → I4.0-Datenraum → aiprov → AAS-Submodell → Evaluation I/II) bildet den roten Faden von Industrie 4.0 zu Industrial AI ab."@en ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:verificationState <https://nucli.de/prov/dissertation/verification/unverified> .
+
+<https://nucli.de/prov/dissertation/entity/CLAUDE-md> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:00350948da408a0d3da93339fa1a4bb5721780bf8455660fc7875b0c5ecb741d" ;
+    aiprov:filePath "CLAUDE.md" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/entity/aiprov-issues-draft-md> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/discuss-2026-10-23> ;
+    aiprov:contentHash "sha256:d16c50bc06f6e8d9ddffda0a7f3c4288771d79ebcd9d9965cfbae87b7a53337e" ;
+    aiprov:filePath "doc/aiprov-issues-draft.md" ;
+    aiprov:gitCommit "ed45a87" .
+
+<https://nucli.de/prov/dissertation/entity/check_sources-py> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:7b1ef900d576e6d0b7eb1522f06db11e4672d0436d7a144809e8c028f063548c" ;
+    aiprov:filePath "scripts/check_sources.py" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/entity/ci-yml> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:f9f4aa257310dbdd6d23e89edc9571541631227f417bf13d9588adeeda58cf75" ;
+    aiprov:filePath ".gitea/workflows/ci.yml" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/entity/main-tex> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:f1af6de1f21452ca0e6691976ab246afd88ad28bc2f8f9d219f9359dc827bb45" ;
+    aiprov:filePath "main.tex" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/entity/metrics-py> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:08dc1a6c2d046946606fa8ab94b48f3ac7ef995eb08046e642df66b2a56cbe61" ;
+    aiprov:filePath "scripts/metrics.py" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/entity/preregistration-md> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/prereg-v0.1> ;
+    aiprov:contentHash "sha256:739f5d67d362cd3455fa64854c4394467eee60ac4c538cd41e77180094f7a7de" ;
+    aiprov:filePath "eval/preregistration.md" ;
+    aiprov:gitCommit "1054554" .
+
+<https://nucli.de/prov/dissertation/entity/scientific-writing-md> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/scientific-prompt> ;
+    aiprov:contentHash "sha256:f36b89cb85df63f0b96bf34fe85997cd6ada90a3980c04dd6fee616eb1d79631" ;
+    aiprov:filePath "prompts/scientific-writing.md" ;
+    aiprov:gitCommit "322e612" .
+
+<https://nucli.de/prov/dissertation/entity/sessions-md> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/discuss-2026-10-23> ;
+    aiprov:contentHash "sha256:cc74803c4fdf95f42f1e392d0cc35f5ba0518311d0fe625706602001800e04bc" ;
+    aiprov:filePath "doc/sessions.md" ;
+    aiprov:gitCommit "ed45a87" .
+
+<https://nucli.de/prov/dissertation/entity/vendor-py> a aiprov:Artefact ;
+    prov:wasAttributedTo <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    prov:wasGeneratedBy <https://nucli.de/prov/dissertation/activity/repo-scaffold> ;
+    aiprov:contentHash "sha256:d4e3e85311a7c9105f2d09f7ec320115265fff23fa522f12ad6982064165100a" ;
+    aiprov:filePath "scripts/vendor.py" ;
+    aiprov:gitCommit "dbf20f3" .
+
+<https://nucli.de/prov/dissertation/agent/vendor-py> a aiprov:ToolAgent ;
+    foaf:name "vendor.py (source vendoring)" .
+
+<https://nucli.de/prov/dissertation/entity/prompt-scientific-writing> a aiprov:Prompt ;
+    dcterms:source <file:///home/claude/dissertation/prompts/scientific-writing.md> ;
+    aiprov:promptHash "sha256:f36b89cb85df63f0b96bf34fe85997cd6ada90a3980c04dd6fee616eb1d79631" .
+
+<https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-discuss-thesis-setup> a aiprov:Transcript ;
+    dcterms:source <file:///home/claude/dissertation/doc/transcripts/2026-10-23-discuss-thesis-setup.md> .
+
+<https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-repo-scaffold> a aiprov:Transcript ;
+    dcterms:source <file:///home/claude/dissertation/doc/transcripts/2026-10-23-repo-scaffold.md> .
+
+<https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-scientific-prompt> a aiprov:Transcript ;
+    dcterms:source <file:///home/claude/dissertation/doc/transcripts/2026-10-23-scientific-prompt.md> .
+
+<https://nucli.de/prov/dissertation/source/sessions-md> a aiprov:Source ;
+    aiprov:filePath "doc/sessions.md" .
+
+<https://nucli.de/prov/dissertation/activity/prereg-v0.1> a aiprov:AuthoringPass ;
+    rdfs:label "Preregistration v0.1 of evaluation hypotheses and metrics (author decisions D-04..D-16)"@en ;
+    prov:endedAtTime "2026-10-23T17:24:23.966459+00:00"^^xsd:dateTime ;
+    prov:used <https://nucli.de/prov/dissertation/source/sessions-md> ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> .
+
+<https://nucli.de/prov/dissertation/activity/scientific-prompt> a aiprov:AuthoringPass ;
+    rdfs:label "Role prompt for the scientific writing/audit agent"@en ;
+    prov:endedAtTime "2026-10-23T14:58:37.055290+00:00"^^xsd:dateTime ;
+    prov:used <https://nucli.de/prov/dissertation/entity/prompt-scientific-writing> ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    aiprov:transcript <https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-scientific-prompt> ;
+    aiprov:usedTool "write" .
+
+<https://nucli.de/prov/dissertation/source/krebs2026fair> a aiprov:Source ;
+    rdfs:label "F(AI)2R: Who Did What, and Who Checked? Verifiable AI Provenance as an Executable Skill"@en ;
+    dcterms:date "2026" ;
+    dcterms:isPartOf "arXiv (Cornell University)" ;
+    aiprov:doi "https://doi.org/10.48550/arXiv.2607.25637"^^xsd:anyURI ;
+    aiprov:verificationState <https://nucli.de/prov/dissertation/verification/source-vendored> .
+
+<https://nucli.de/prov/dissertation/activity/discuss-2026-10-23> a aiprov:AuthoringPass ;
+    rdfs:label "discuss session: thesis line, provenance tooling, coordination, logging policy (condensed transcript)"@en ;
+    prov:endedAtTime "2026-10-23T15:46:07.246954+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    aiprov:transcript <https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-discuss-thesis-setup> .
+
+<https://nucli.de/prov/dissertation/activity/repo-scaffold> a aiprov:Build ;
+    rdfs:label "Repository scaffold: LaTeX skeleton, provenance tooling, source rules, CI"@en ;
+    prov:endedAtTime "2026-10-23T14:57:44.379053+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith <https://nucli.de/prov/dissertation/agent/claude-fable-5-1> ;
+    aiprov:transcript <https://nucli.de/prov/dissertation/entity/transcript-2026-10-23-repo-scaffold> ;
+    aiprov:usedTool "bash",
+        "write" .
+
+<https://nucli.de/prov/dissertation/agent/claude-fable-5-1> a aiprov:AIAgent ;
+    foaf:name "Claude Fable 5.1" ;
+    aiprov:knowledgeCutoff "2026-06-30"^^xsd:date ;
+    aiprov:model "claude-fable-5-1"^^xsd:string ;
+    aiprov:provider "Anthropic"^^xsd:string .
+
