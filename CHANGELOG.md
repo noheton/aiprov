@@ -8,7 +8,8 @@ First packaged release. Content identical to the aiprov skill bundle generalised
 - `aiprov-dashboard`: self-contained HTML ledger from a graph.
 - Namespace `https://w3id.org/aiprov/ns#` (w3id registration pending at release time).
 
-## Unreleased — orchestration (multi-agent runs)
+## 0.2.0-rc.1 — 2026-10-24
+Release candidate, pinned by the thesis repository and its verification slices. Orchestration (multi-agent runs):
 Additive; legacy graphs validate unchanged.
 - Schema: `aiprov:Orchestration` (a `prov:Activity`), `aiprov:plannedRole`, `aiprov:plannedAgent`, `aiprov:role`.
   Delegation uses PROV-O: `prov:actedOnBehalfOf` (agent → orchestrator), `prov:wasInformedBy` (sub-activity → orchestration).
