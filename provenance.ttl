@@ -173,6 +173,12 @@ agent:florian-krebs a aiprov:HumanAgent ;
     foaf:name "Florian Krebs" ;
     aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
 
+<https://w3id.org/aiprov/prov/claim/c-adopt-aiprov> a aiprov:Claim ;
+    rdfs:label "The repository validates its own provenance graph in CI (job provenance) and by a test, states rules for AI agents in AGENTS.md without internal information, and asks for an AI-assistance block in every pull request."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/c-merge-hardened> a aiprov:Claim ;
     rdfs:label "After the second review, merge refuses count-neutral regressions, unwitnessed human-only rungs, demotions, retyping, unreadable shards, and is independent of shard order; plan bindings tie an agent to a role; 22 tests pass on Python 3.10 and 3.13."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -203,6 +209,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/entity/AGENTS-md> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:contentHash "sha256:486d0e0d956fe272300422be8301905db9491a48f357fc804289de37d4a43bd8" ;
+    aiprov:filePath "AGENTS.md" ;
+    aiprov:gitCommit "1f8bf61" .
+
 <https://w3id.org/aiprov/prov/entity/CHANGELOG-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -218,6 +231,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
         "735a10e",
         "ab531da",
         "ebd9503" .
+
+<https://w3id.org/aiprov/prov/entity/CONTRIBUTING-md> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:contentHash "sha256:0c7a221241823646d404a87ad24264f815ee70573b5ba3e29551daf7b57fc4e0" ;
+    aiprov:filePath "CONTRIBUTING.md" ;
+    aiprov:gitCommit "1f8bf61" .
 
 <https://w3id.org/aiprov/prov/entity/README-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -239,6 +259,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
     aiprov:contentHash "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c" ;
     aiprov:filePath "docs/attributes.md" ;
     aiprov:gitCommit "ab531da" .
+
+<https://w3id.org/aiprov/prov/entity/ci-yml> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:contentHash "sha256:cdb6ac775d3c0a35a3d0f32548977f8d556db1cde1a7b28ecd374260d028e51f" ;
+    aiprov:filePath ".github/workflows/ci.yml" ;
+    aiprov:gitCommit "1f8bf61" .
 
 <https://w3id.org/aiprov/prov/entity/orchestration-bad-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -266,6 +293,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
         "ab531da",
         "ebd9503" .
 
+<https://w3id.org/aiprov/prov/entity/pull_request_template-md> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:contentHash "sha256:63a25b6a56d67549632206d0f2c5173706283d03ba0c0406f6632df1aaac6641" ;
+    aiprov:filePath ".github/pull_request_template.md" ;
+    aiprov:gitCommit "1f8bf61" .
+
 <https://w3id.org/aiprov/prov/entity/pyproject-toml> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0> ;
@@ -292,6 +326,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
     aiprov:filePath "tests/test_orchestration.py" ;
     aiprov:gitCommit "ab531da",
         "ebd9503" .
+
+<https://w3id.org/aiprov/prov/entity/test_repository_provenance-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
+    aiprov:contentHash "sha256:7a8e799377c714bfe3f9a38055536dca7c067e77046ab043f3cb362c679b7fe5" ;
+    aiprov:filePath "tests/test_repository_provenance.py" ;
+    aiprov:gitCommit "1f8bf61" .
 
 <https://w3id.org/aiprov/prov/entity/test_validate-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -333,12 +374,12 @@ verif:source-vendored a aiprov:VerificationState ;
     rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads."@en ;
     aiprov:ladderPosition 4 .
 
-aiprov:Build a owl:Class ;
-    rdfs:comment "Deterministic build/compile/CI activity."@en ;
-    rdfs:subClassOf prov:Activity .
-
 aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
+    rdfs:subClassOf prov:Activity .
+
+aiprov:Build a owl:Class ;
+    rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
 
 aiprov:HumanAgent a owl:Class ;
@@ -397,14 +438,20 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
         "read",
         "write" .
 
+<https://w3id.org/aiprov/prov/activity/adopt-aiprov> a aiprov:Build ;
+    rdfs:label "The repository adopts its own method: agent rules, PR template with AI block, CI job and test validating its graph"@en ;
+    prov:endedAtTime "2026-10-23T22:52:31.750188+02:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:sessionId "session_019yvoC9VtpMiBTa8hubcxSV"^^xsd:string ;
+    aiprov:usedTool "bash",
+        "edit",
+        "read",
+        "write" .
+
 verif:unverified a aiprov:VerificationState ;
     rdfs:label "unverified"@en ;
     rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
     aiprov:ladderPosition 0 .
-
-aiprov:Claim a owl:Class ;
-    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
-    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/orchestration-extension> a aiprov:AuthoringPass ;
     rdfs:label "Orchestration (multi-agent runs): schema terms, CLI flags, validator rules, report section, tests (refs #2)"@en ;
@@ -415,6 +462,10 @@ aiprov:Claim a owl:Class ;
         "edit",
         "read",
         "write" .
+
+aiprov:Claim a owl:Class ;
+    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
+    rdfs:subClassOf prov:Entity .
 
 aiprov:VerificationState a owl:Class ;
     rdfs:comment "A rung on the verification ladder. Higher position = stronger check. Rungs at position 5+ are human-only: an AI agent must never grant them."@en .
