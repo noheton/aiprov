@@ -29,6 +29,15 @@ Additive; legacy graphs validate unchanged.
   introduces any new `validate` failure; accepted shards are still merged. Verification states are normalised to the
   highest rung, because `promote` in a second shard leaves the older state behind in the union. `--dry-run` writes nothing.
 
+- Hardening of `merge` and the plan after a second multi-agent review (nine agents that logged themselves into
+  shards; 8 findings reported, 6 verified, 3 confirmed, 3 refuted): the regression check now compares the offending
+  nodes, not only the failure counts (fixing one failure while adding another is refused); a human-only rung in a
+  shard without a human promotion is refused; a shard that demotes a node, retypes an existing node, or is unreadable
+  is refused with a reason instead of crashing; states outside the ladder (`contested`) are kept; a main graph with
+  blank nodes is named as the cause; shard order does not matter.
+- Plan bindings: `provlog log --orchestration --planned-agent ID:ROLE` ties an agent to one role
+  (`aiprov:plannedBinding`); before, any planned agent could act in any planned role.
+
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.
