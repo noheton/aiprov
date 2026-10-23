@@ -25,10 +25,6 @@ aiprov:Prompt a owl:Class ;
     rdfs:comment "A versioned prompt file. Bind to activities via prov:qualifiedAssociation/prov:hadPlan or dcterms:source."@en ;
     rdfs:subClassOf prov:Plan .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 aiprov:Source a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
@@ -183,6 +179,12 @@ agent:florian-krebs a aiprov:HumanAgent ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/c-orch-review-fixed> a aiprov:Claim ;
+    rdfs:label "A review by nine agents (three lenses, a skeptic per finding) confirmed six findings and refuted none; they reduce to two defects, re-logging and plan bypass by omission, and both are fixed and covered by tests. Six further findings were reported but not verified (cap of two per lens)."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/c-orch-rules-tested> a aiprov:Claim ;
     rdfs:label "The three new validator rules fail on tests/fixtures/orchestration-bad.ttl and find nothing on graphs without orchestrations; the 8 tests pass on Python 3.10 and 3.13."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -191,10 +193,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
 
 <https://w3id.org/aiprov/prov/entity/CHANGELOG-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+    aiprov:contentHash "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c",
+        "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
     aiprov:filePath "CHANGELOG.md" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "ab531da",
+        "ebd9503" .
 
 <https://w3id.org/aiprov/prov/entity/README-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -219,17 +224,23 @@ agent:florian-krebs a aiprov:HumanAgent ;
 
 <https://w3id.org/aiprov/prov/entity/orchestration-bad-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:8b137355deac7fd785c725790c4ae06ea58a6fbfaffd046b3945aab07d5997db" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+    aiprov:contentHash "sha256:8b137355deac7fd785c725790c4ae06ea58a6fbfaffd046b3945aab07d5997db",
+        "sha256:bbebdf0fee7f9400e8c8864e9db87d25e6429662ac75908d035d56c4fc8522e5" ;
     aiprov:filePath "tests/fixtures/orchestration-bad.ttl" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "ab531da",
+        "ebd9503" .
 
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+    aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df",
+        "sha256:a26fc61b043a25e9c4c40ab0e9ea3178f6f58a6b1577e3338e8781de18d6b3b9" ;
     aiprov:filePath "src/aiprov/provlog.py" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "ab531da",
+        "ebd9503" .
 
 <https://w3id.org/aiprov/prov/entity/pyproject-toml> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -240,10 +251,13 @@ agent:florian-krebs a aiprov:HumanAgent ;
 
 <https://w3id.org/aiprov/prov/entity/test_orchestration-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:fc3890bcb9e09608a57a9987b10ff85df057886b86352f6e8e53387b833b5a47" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+    aiprov:contentHash "sha256:cdfbd6544e73e130d1c4e32a50f079cf9ce9383fc7bfe2ad040dadee6ebdad72",
+        "sha256:fc3890bcb9e09608a57a9987b10ff85df057886b86352f6e8e53387b833b5a47" ;
     aiprov:filePath "tests/test_orchestration.py" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "ab531da",
+        "ebd9503" .
 
 <https://w3id.org/aiprov/prov/entity/test_validate-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -293,14 +307,13 @@ aiprov:Build a owl:Class ;
     rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
 
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
+
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
     rdfs:subClassOf prov:Person .
-
-verif:unverified a aiprov:VerificationState ;
-    rdfs:label "unverified"@en ;
-    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
-    aiprov:ladderPosition 0 .
 
 aiprov:AIAgent a owl:Class ;
     rdfs:label "AI agent"@en ;
@@ -315,10 +328,25 @@ aiprov:Contribution a owl:Class ;
     prov:endedAtTime "2026-10-23T17:32:14.138134+00:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
+verif:unverified a aiprov:VerificationState ;
+    rdfs:label "unverified"@en ;
+    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
+    aiprov:ladderPosition 0 .
+
 agent:claude-fable-5-1 a aiprov:AIAgent ;
     foaf:name "Claude Fable 5.1" ;
     aiprov:model "claude-fable-5-1"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+<https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> a aiprov:Repair ;
+    rdfs:label "Repair after a multi-agent review: re-logging and plan-bypass defects in the orchestration extension (refs #2)"@en ;
+    prov:endedAtTime "2026-10-23T21:33:19.517510+02:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:sessionId "session_019yvoC9VtpMiBTa8hubcxSV"^^xsd:string ;
+    aiprov:usedTool "bash",
+        "edit",
+        "read",
+        "write" .
 
 aiprov:Claim a owl:Class ;
     rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
