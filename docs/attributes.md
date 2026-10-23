@@ -94,3 +94,31 @@ are warnings (legitimate in legacy or hand-curated graphs).
 *AI note: drafted with AI assistance, verified against the Anthropic and
 OpenAI usage-object documentation and by test-run of provlog.py; review
 provider field names against current API docs before automating ingestion.*
+
+
+## Orchestration (multi-agent runs)
+
+| Term | Where | Meaning |
+|---|---|---|
+| `aiprov:Orchestration` | class, subclass of `prov:Activity` | Root of a multi-agent run, logged **before** any sub-agent starts |
+| `aiprov:plannedAgent` | Orchestration → agent | Agent instance registered beforehand (repeatable); binds sub-activities when present |
+| `aiprov:plannedBinding` | Orchestration → string | `AGENT-IRI|ROLE`: the agent may act only in its bound roles (from `--planned-agent ID:ROLE`) |
+| `aiprov:plannedRole` | Orchestration → string | Planned role (repeatable); binds `aiprov:role` of sub-activities when present |
+| `aiprov:role` | activity → string | Role of a sub-activity |
+| `prov:wasInformedBy` | sub-activity → orchestration | Standard PROV-O link |
+| `prov:actedOnBehalfOf` | agent instance → orchestrator agent | Standard PROV-O delegation |
+
+Telemetry of sub-agents is recorded only when reported; never estimate it.
+
+### Sharded logging of a multi-agent run
+
+Parallel agents must not write to one graph file (the logger rewrites the whole file). Give each agent its own copy
+of the graph that already contains the orchestration and its plan; the agent logs its sub-activity (`--informed-by`,
+`--role`), claims and promotions there and returns the file. The dispatcher then runs
+`provlog merge --from shard1.ttl shard2.ttl ...`. The plan is frozen once it is in the main graph: a shard that adds
+planned agents or roles, or end times, to an existing orchestration is refused, as is a shard that adds a validation
+failure.
+
+`merge` also refuses: an unreadable shard; a shard that demotes a node below its rung in the main graph (a repair belongs
+in the main graph), retypes an existing node, or adds a human-only rung without a human promotion; and it stops if the
+main graph contains blank nodes. Verification states outside the ladder (for example `contested`) are kept as they are.

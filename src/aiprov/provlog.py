@@ -8,6 +8,10 @@ Commands:
                              (tokens, cost, model, session, tools, prompt hash)
                              and optionally the entities it generated/used.
   claim   --id ...           Add a claim bound to a parent activity + agent.
+  merge   --from SHARD...    Union per-agent shard graphs into the main graph; refuses shards that
+                             edit a frozen plan or add validation failures.
+  (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
+                             --informed-by/--role; agent --acted-on-behalf-of.
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
@@ -93,8 +97,30 @@ def cmd_agent(a) -> None:
         v = getattr(a, key, None)
         if v is not None:
             g.add((s, prop, Literal(v, datatype=dt)))
+    if getattr(a, "acted_on_behalf_of", None):
+        g.add((s, PROV.actedOnBehalfOf, ns(a.base, "agent")[a.acted_on_behalf_of]))
     save(g)
     print(f"agent:{a.id} registered ({a.type})")
+
+
+def plan_violation(g: Graph, base: str, parent, agent, role) -> "str | None":
+    """Why a sub-activity of an orchestration breaks the plan, or None. Only declared lists bind."""
+    agents = set(g.objects(parent, AIPROV.plannedAgent))
+    roles = {str(r) for r in g.objects(parent, AIPROV.plannedRole)}
+    if agents and agent is None:
+        return "the orchestration declares planned agents, so --agent is required"
+    if agents and ns(base, "agent")[agent] not in agents:
+        return f"agent {agent} is not among the planned agents of the orchestration"
+    if roles and role is None:
+        return "the orchestration declares planned roles, so --role is required"
+    if roles and role not in roles:
+        return f"role {role} is not among the planned roles of the orchestration"
+    if agent is not None and role is not None:
+        pref = str(ns(base, "agent")[agent]) + "|"
+        bound = sorted(str(b)[len(pref):] for b in g.objects(parent, AIPROV.plannedBinding) if str(b).startswith(pref))
+        if bound and role not in bound:
+            return f"agent {agent} is bound to role(s) {', '.join(bound)}, not {role}"
+    return None
 
 
 ACT_ATTRS = [  # (cli key, property, xsd type)
@@ -117,6 +143,36 @@ def cmd_log(a) -> None:
     act = ns(a.base, "activity")[a.activity]
     cls = {"authoring": AIPROV.AuthoringPass, "audit": AIPROV.AuditPass,
            "build": AIPROV.Build, "repair": AIPROV.Repair}.get(a.pass_, PROV.Activity)
+    if a.informed_by == a.activity:
+        sys.exit("--informed-by: an activity cannot be informed by itself")
+    if (a.orchestration or a.informed_by or (act, RDF.type, AIPROV.Orchestration) in g) \
+            and (act, PROV.endedAtTime, None) in g:
+        sys.exit(f"activity {a.activity} is already logged; the graph is append-only, use a new id")
+    if a.orchestration:
+        cls = AIPROV.Orchestration
+    elif a.planned_role or a.planned_agent:
+        sys.exit("--planned-role/--planned-agent need --orchestration")
+    for pa in a.planned_agent or []:
+        if (ns(a.base, "agent")[pa.partition(":")[0]], RDF.type, None) not in g:
+            sys.exit(f"planned agent {pa.partition(':')[0]} is not registered; register agents before the orchestration")
+    if a.informed_by:
+        parent = ns(a.base, "activity")[a.informed_by]
+        if (parent, PROV.endedAtTime, None) not in g:
+            sys.exit(f"--informed-by: activity {a.informed_by} is not logged")
+        why = plan_violation(g, a.base, parent, a.agent, a.role) if (parent, RDF.type, AIPROV.Orchestration) in g else None
+        if why:
+            sys.exit("refused: " + why)
+        g.add((act, PROV.wasInformedBy, parent))
+    for r in a.planned_role or []:
+        g.add((act, AIPROV.plannedRole, Literal(r)))
+    for pa in a.planned_agent or []:
+        aid, _, bound = pa.partition(":")  # ID or ID:ROLE (the agent may act only in that role)
+        g.add((act, AIPROV.plannedAgent, ns(a.base, "agent")[aid]))
+        if bound:
+            g.add((act, AIPROV.plannedRole, Literal(bound)))
+            g.add((act, AIPROV.plannedBinding, Literal(f"{ns(a.base, 'agent')[aid]}|{bound}")))
+    if a.role:
+        g.add((act, AIPROV.role, Literal(a.role)))
     g.add((act, RDF.type, cls))
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
@@ -184,8 +240,8 @@ def cmd_claim(a) -> None:
     print(f"claim:{a.id} added (state {a.state})")
 
 
-def cmd_validate(a) -> None:
-    g = load()
+def validate_graph(g: Graph) -> int:
+    """Run all conformance checks on g, print them, return the number of failures."""
     fail = 0
     q1 = """SELECT ?c WHERE { ?c a aiprov:Claim .
             FILTER NOT EXISTS { ?c prov:wasGeneratedBy ?x } }"""
@@ -232,9 +288,52 @@ def cmd_validate(a) -> None:
             FILTER NOT EXISTS { ?act prov:wasAssociatedWith ?ag } }"""
     anon = set(r[0] for r in g.query(q4))
     print(f"[{'WARN' if anon else ' OK '}] activities without agent: {len(anon)}")
-    for row in list(orphans) + list(unattr):
-        print("   ↳", row[0])
-    sys.exit(1 if fail else 0)
+    # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
+    dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
+            FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
+    print(f"[{'FAIL' if dangling else ' OK '}] wasInformedBy targets that are not logged activities: {len(dangling)}")
+    fail += len(dangling)
+    unplanned_agent = list(g.query("""SELECT ?a ?ag WHERE { ?a prov:wasInformedBy ?o ;
+            prov:wasAssociatedWith ?ag . ?o a aiprov:Orchestration ; aiprov:plannedAgent ?any .
+            FILTER NOT EXISTS { ?o aiprov:plannedAgent ?ag } }"""))
+    unplanned_role = list(g.query("""SELECT ?a ?r WHERE { ?a prov:wasInformedBy ?o ; aiprov:role ?r .
+            ?o a aiprov:Orchestration ; aiprov:plannedRole ?anyr .
+            FILTER NOT EXISTS { ?o aiprov:plannedRole ?r } }"""))
+    missing_agent = list(g.query("""SELECT ?a WHERE { ?a prov:wasInformedBy ?o .
+            ?o a aiprov:Orchestration ; aiprov:plannedAgent ?x .
+            FILTER NOT EXISTS { ?a prov:wasAssociatedWith ?ag } }"""))
+    missing_role = list(g.query("""SELECT ?a WHERE { ?a prov:wasInformedBy ?o .
+            ?o a aiprov:Orchestration ; aiprov:plannedRole ?x .
+            FILTER NOT EXISTS { ?a aiprov:role ?r } }"""))
+    wrong_binding = list(g.query("""SELECT ?a WHERE { ?a prov:wasInformedBy ?o ;
+            prov:wasAssociatedWith ?ag ; aiprov:role ?r .
+            ?o a aiprov:Orchestration ; aiprov:plannedBinding ?b0 .
+            FILTER(STRSTARTS(?b0, CONCAT(STR(?ag), "|")))
+            FILTER NOT EXISTS { ?o aiprov:plannedBinding ?b . FILTER(?b = CONCAT(STR(?ag), "|", STR(?r))) } }"""))
+    unplanned = unplanned_agent + unplanned_role + missing_agent + missing_role + wrong_binding
+    print(f"[{'FAIL' if unplanned else ' OK '}] sub-activities outside the orchestration plan: {len(unplanned)}")
+    fail += len(unplanned)
+    reclosed = list(g.query("""SELECT ?o WHERE { ?o a aiprov:Orchestration ; prov:endedAtTime ?t1, ?t2 .
+            FILTER(?t1 < ?t2) }""")) + list(g.query("""SELECT ?o WHERE { ?o a aiprov:Orchestration ;
+            prov:wasInformedBy ?o }"""))
+    print(f"[{'FAIL' if reclosed else ' OK '}] orchestrations logged twice or informed by themselves: {len(reclosed)}")
+    fail += len(reclosed)
+    early = list(g.query("""SELECT ?a ?o WHERE { ?a prov:wasInformedBy ?o ; prov:endedAtTime ?at .
+            ?o a aiprov:Orchestration ; prov:endedAtTime ?ot . FILTER(?at < ?ot) }"""))
+    print(f"[{'FAIL' if early else ' OK '}] sub-activities logged before their orchestration: {len(early)}")
+    fail += len(early)
+    for kind, rows in (("parentless claim", orphans), ("unattributed claim", unattr),
+                       ("human-only rung granted by an AI agent", bad), ("source without reference", noref),
+                       ("human-only rung without human promotion", unwit),
+                       ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
+                       ("orchestration logged twice", reclosed), ("logged before its orchestration", early)):
+        for row in rows:
+            print("   ↳", kind + ":", row[0])
+    return fail
+
+
+def cmd_validate(a) -> None:
+    sys.exit(1 if validate_graph(load()) else 0)
 
 
 def cmd_report(a) -> None:
@@ -268,6 +367,14 @@ def cmd_report(a) -> None:
     order = lambda r: LADDER.index(r) if r in LADDER else 99
     for r in sorted(agg, key=order):
         print(f"   {r:24s} {agg[r]}")
+    roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
+    if roots:
+        print("-- orchestration --")
+        for o in sorted(roots, key=str):
+            subs = set(g.subjects(PROV.wasInformedBy, o))
+            tok = [int(t) for s_ in subs for t in g.objects(s_, AIPROV.totalTokens)]
+            print(f"   {str(o).rsplit('/',1)[-1]:24s} {len(subs)} sub-activities, "
+                  + (f"{sum(tok)} tokens reported by {len(tok)}" if tok else "no tokens reported"))
 
 
 LADDER = ["unverified", "needs-research", "reference-resolved", "ai-confirmed",
@@ -500,6 +607,90 @@ def cmd_promote(a) -> None:
     print(f"{a.id}: {cur} -> {a.to} (logged as AuditPass, agent:{a.agent})")
 
 
+def _rung_rank(state) -> int:
+    name = canon_rung(str(state).rsplit("/", 1)[-1])
+    return LADDER.index(name) if name in LADDER else -1
+
+
+def _fail_lines(g: Graph) -> set:
+    """The failures of g as comparable lines: each [FAIL] line plus the evidence line of every offending
+    node (and of unwitnessed human-only rungs, a WARN in validate that merge treats as a failure), so
+    that fixing one failure while adding another of the same kind is still a regression."""
+    import contextlib, io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        validate_graph(g)
+    return {ln for ln in buf.getvalue().splitlines() if ln.startswith("[FAIL]") or ln.startswith("   ↳")}
+
+
+def cmd_merge(a) -> None:
+    """Union shard graphs into the main graph (append-only). A shard is refused if it is unreadable, has
+    blank nodes, edits the plan or timing of an orchestration already in the main graph, retypes an existing
+    node, demotes a node below its current rung, or introduces any validation failure (including a
+    human-only rung without a human promotion). Accepted shards are merged; ladder states are normalised to
+    the highest rung per node, states outside the ladder (e.g. contested) are kept."""
+    from rdflib import BNode
+    g = load()
+    if any(isinstance(x, BNode) for t in g for x in t):
+        sys.exit("the main graph contains blank nodes; merge cannot compare shards against it (skolemise them first)")
+    frozen_props = (AIPROV.plannedAgent, AIPROV.plannedRole, AIPROV.plannedBinding, PROV.endedAtTime)
+    base_fail = _fail_lines(g)
+    main_rank = {n: max(_rung_rank(s_) for s_ in g.objects(n, AIPROV.verificationState))
+                 for n in set(g.subjects(AIPROV.verificationState, None))}  # before this call: order-independent
+    existing = set(g.subjects(RDF.type, None))
+    orchestrations = set(g.subjects(RDF.type, AIPROV.Orchestration))
+    merged, rejected = [], []
+    for path in a.from_:
+        try:
+            shard = Graph(); shard.parse(path, format="turtle")
+        except Exception as e:  # noqa: BLE001 - any unreadable file is a rejected shard, not a crash
+            rejected.append((path, f"unreadable shard ({type(e).__name__})")); continue
+        new = [t for t in shard if t not in g]
+        why = None
+        if any(isinstance(x, BNode) for t in new for x in t):
+            why = "blank nodes are not merged"
+        for s_, p_, o_ in new:
+            if why:
+                break
+            name = str(s_).rsplit("/", 1)[-1]
+            if s_ in orchestrations and (p_ in frozen_props or (p_ == PROV.wasInformedBy and o_ == s_)):
+                why = f"edits the frozen plan or timing of {name}"
+            elif p_ == RDF.type and s_ in existing:
+                why = f"retypes the existing node {name}"
+            elif p_ == AIPROV.verificationState and 0 <= _rung_rank(o_) < main_rank.get(s_, -1):
+                why = f"demotes {name} below its current rung (a repair belongs in the main graph, not in a merge)"
+        if why is None:
+            cand = Graph(); cand += g
+            for prefix, uri in g.namespaces():  # the validate queries use these prefixes
+                cand.bind(prefix, uri)
+            for t in new:
+                cand.add(t)
+            added = _fail_lines(cand) - base_fail
+            if added:
+                why = "validation: " + "; ".join(sorted(x.strip() for x in added))
+        if why:
+            rejected.append((path, why)); continue
+        for t in new:
+            g.add(t)
+        merged.append((path, len(new)))
+    for node in set(g.subjects(AIPROV.verificationState, None)):
+        ladder = [st for st in g.objects(node, AIPROV.verificationState) if _rung_rank(st) >= 0]
+        if len(ladder) > 1:
+            keep = max(ladder, key=_rung_rank)
+            for st in ladder:
+                if st != keep:
+                    g.remove((node, AIPROV.verificationState, st))
+    if merged and not a.dry_run:
+        save(g)
+    for path, n in merged:
+        print(f"merged {path}: {n} new triples")
+    for path, why in rejected:
+        print(f"REJECTED {path}: {why}")
+    if a.dry_run:
+        print("dry run: nothing written")
+    sys.exit(1 if rejected else 0)
+
+
 def cmd_extract(a) -> None:
     import collections
     from rdflib import URIRef
@@ -565,6 +756,8 @@ def main() -> None:
     for f in ["name", "model", "model_version", "provider", "endpoint", "context_window",
               "knowledge_cutoff", "orcid", "affiliation"]:
         s.add_argument("--" + f.replace("_", "-"), dest=f)
+    s.add_argument("--acted-on-behalf-of", dest="acted_on_behalf_of",
+                   help="agent id this agent acts for (prov:actedOnBehalfOf), e.g. orchestrator")
 
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
@@ -576,6 +769,13 @@ def main() -> None:
     s.add_argument("--tool", action="append"); s.add_argument("--prompt-file", dest="prompt_file")
     s.add_argument("--transcript"); s.add_argument("--generated", action="append")
     s.add_argument("--used", action="append")
+    s.add_argument("--orchestration", action="store_true",
+                   help="root of a multi-agent run; log it before any sub-agent starts")
+    s.add_argument("--planned-role", dest="planned_role", action="append")
+    s.add_argument("--planned-agent", dest="planned_agent", action="append",
+                   help="agent id, or ID:ROLE to bind the agent to one role; must be registered already")
+    s.add_argument("--informed-by", dest="informed_by", help="activity id (prov:wasInformedBy)")
+    s.add_argument("--role", help="role of this sub-activity within the orchestration")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)
@@ -583,6 +783,10 @@ def main() -> None:
     s.add_argument("--state", default="unverified")
 
     sub.add_parser("validate"); sub.add_parser("report")
+
+    s = sub.add_parser("merge", help="union shard graphs into the main graph")
+    s.add_argument("--from", dest="from_", nargs="+", required=True, metavar="SHARD.ttl")
+    s.add_argument("--dry-run", action="store_true")
 
     s = sub.add_parser("search")
     s.add_argument("--query", required=True)
@@ -616,7 +820,7 @@ def main() -> None:
 
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
-     "claim": cmd_claim, "validate": cmd_validate, "report": cmd_report,
+     "claim": cmd_claim, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
