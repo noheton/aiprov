@@ -735,7 +735,7 @@ def cmd_extract(a) -> None:
           f"{len(out)}/{len(g)} triples -> {a.out}")
     if a.dashboard:
         import json
-        import build_dashboard as bd
+        from aiprov import build_dashboard as bd
         data = bd.extract(pathlib.Path(a.out))
         html = bd.HTML.replace("__DATA__",
                                json.dumps(data).replace("</", "<\\/"))
