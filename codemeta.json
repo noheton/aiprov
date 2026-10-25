@@ -42,5 +42,6 @@
     "https://noheton.github.io/aiprov/",
     "https://w3id.org/aiprov/ns"
   ],
-  "referencePublication": "https://doi.org/10.48550/arXiv.2607.25637"
+  "referencePublication": "https://doi.org/10.48550/arXiv.2607.25637",
+  "identifier": "https://doi.org/10.5281/zenodo.23651333"
 }
