@@ -6,6 +6,7 @@
 <title>aiprov: AI provenance, recorded, open, verifiable</title>
 <meta name="description" content="aiprov records who, person or AI model, did what to an artefact and who checked it, in a plain W3C PROV-O file. A demo graph, explained.">
 <link rel="icon" href="aiprov-icon.png">
+$cite_link
 <style>
 :root { --ink: #0b2545; --muted: #4a6178; --teal: #0fa3b1; --line: #dfe7ef; --soft: #f5f8fb; }
 * { box-sizing: border-box; }
@@ -37,6 +38,11 @@ pre.term .bad { color: #ff9b85; }
 pre.term .out { color: #aebdcb; }
 code { font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
 a { color: #0b6fa4; }
+a.doi { display: inline-flex; margin-top: 14px; border-radius: 5px; overflow: hidden; text-decoration: none; font: 600 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+a.doi span { padding: 6px 9px; color: #fff; }
+a.doi span:first-child { background: #4d5a66; }
+a.doi span:last-child { background: #0f7fbf; }
+p.ref { padding-left: 1.6em; text-indent: -1.6em; }
 footer { color: var(--muted); font-size: 14px; padding: 22px 0 48px; }
 @media (max-width: 760px) {
   ul.three { grid-template-columns: 1fr; }
@@ -48,7 +54,7 @@ footer { color: var(--muted); font-size: 14px; padding: 22px 0 48px; }
 <body>
 <header><div class="wrap">
 <img src="aiprov-icon.png" alt="aiprov logo: a white salmon leaping up a waterfall in a teal-to-blue circle">
-<div><h1>aiprov</h1><p class="tag">AI provenance, recorded, open, verifiable</p></div>
+<div><h1>aiprov</h1><p class="tag">AI provenance, recorded, open, verifiable</p>$doi_badge</div>
 </div></header>
 
 <main class="wrap">
@@ -91,6 +97,8 @@ $figure
 <span class="pr">$$</span> provlog --base https://your.org/prov/ init</pre>
 <p>Then register your agents and log your steps as above. The <a href="https://github.com/noheton/aiprov#readme">README</a> lists every command; issues and pull requests are welcome.</p>
 </section>
+
+$cite_section
 </main>
 
 <footer class="wrap">
