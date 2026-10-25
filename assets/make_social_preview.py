@@ -14,7 +14,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 FONTS = Path("/usr/share/fonts/opentype/inter")
-W, H, BADGE, LEFT = 1280, 640, 440, 96
+# GitHub's repository card template: 1280 x 640, keep everything important 40 pt (80 px) inside the edges
+W, H, SAFE, BADGE, GAP = 1280, 640, 80, 440, 64
 THEMES = {
     "light": {"bg": ((246, 250, 253), (226, 238, 247)), "title": (11, 37, 69), "text": (40, 72, 102), "small": (86, 112, 138)},
     "dark": {"bg": ((7, 24, 43), (12, 44, 74)), "title": (255, 255, 255), "text": (196, 222, 240), "small": (140, 176, 202)},
@@ -51,10 +52,7 @@ def main() -> None:
     ramp = np.linspace(0, 1, W)[None, :, None] * 0.6 + np.linspace(0, 1, H)[:, None, None] * 0.4
     bg = np.array([r0, g0, b0]) + (np.array([r1, g1, b1]) - np.array([r0, g0, b0])) * ramp
     card = Image.fromarray(bg.astype(np.uint8), "RGB").convert("RGBA")
-    card.alpha_composite(badge(src, BADGE), (LEFT, (H - BADGE) // 2))
-
-    x = LEFT + BADGE + 64
-    room = W - x - 72
+    room = W - 2 * SAFE - BADGE - GAP
     d = ImageDraw.Draw(card)
     lines = [
         ("aiprov", FONTS / "InterDisplay-Bold.otf", 156, t["title"], 0),
@@ -64,6 +62,10 @@ def main() -> None:
     ]
     fonts = [fit(text, path, size, room) for text, path, size, _, _ in lines]
     heights = [f.getbbox(text)[3] - f.getbbox(text)[1] for (text, *_), f in zip(lines, fonts, strict=True)]
+    text_width = max(f.getlength(text) for (text, *_), f in zip(lines, fonts, strict=True))
+    left = SAFE + round((W - 2 * SAFE - (BADGE + GAP + text_width)) / 2)
+    card.alpha_composite(badge(src, BADGE), (left, (H - BADGE) // 2))
+    x = left + BADGE + GAP
     y = (H - (sum(heights) + sum(gap for *_, gap in lines))) // 2
     for (text, _, _, colour, gap), font, h in zip(lines, fonts, heights, strict=True):
         y += gap

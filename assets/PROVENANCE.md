@@ -19,6 +19,7 @@
 |---|---|
 | What | `aiprov-social-preview.png`, 1280 × 640 px, for the repository's social preview; the owner sets it in the repository settings (GitHub has no API for it) |
 | How it was made | by an AI session (Claude Opus 5.5 in OpenCode) on the owner's request on 2026-10-25, with `make_social_preview.py` (theme `dark`) from `aiprov-icon-source-gemini.png`: the badge cut as in `make_icon.py` and resized once, from the 665 px circle down to 440 px; a background gradient; the text set in Inter 4.1 (SIL Open Font License 1.1; Debian package `fonts-inter` 4.1+ds-1, Inter Display Bold, Inter SemiBold, Regular, Medium). The script reproduces the file byte for byte on a machine with the same fonts and Pillow |
+| Layout | GitHub's repository card template: everything important stays inside the 80 px (40 pt) safe area; the badge and text block is centred in it (measured: 38 px left, 35 px right, 22 px top and bottom) |
 | Text | "aiprov", "AI provenance", "recorded, open, verifiable", "W3C PROV-O · github.com/noheton/aiprov" |
 | Generated content | the badge only (see above); layout and text are deterministic |
-| File | sha256 `45a84c57ceb4dabac53a5ce6242143a20f2e9c1283ad09003788db147fb73249`, 182,013 bytes |
+| File | sha256 `d05574a696a708fcf53860ecedbc26898abd0ecd013a9631295bf2f6bcd6e8d7`, 181,844 bytes |
