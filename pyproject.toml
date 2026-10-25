@@ -1,6 +1,6 @@
 [project]
 name = "aiprov"
-version = "0.2.0rc1"
+version = "0.2.0"
 description = "Domain-agnostic AI provenance over W3C PROV-O: agents, activities, telemetry, claims, and a verification ladder with human-only rungs."
 readme = "README.md"
 license = "MIT"
