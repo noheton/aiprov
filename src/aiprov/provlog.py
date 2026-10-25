@@ -35,7 +35,7 @@ was drafted with AI assistance and verified by test-run; review before
 production use.
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, pathlib, sys
+import argparse, datetime, hashlib, pathlib, re, sys
 from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
@@ -228,8 +228,29 @@ def cmd_log(a) -> None:
     print(f"act:{a.activity} logged ({len(g)} triples total)")
 
 
+def _is_human(g: Graph, base: str, agent: "str | None") -> bool:
+    return agent is not None and (ns(base, "agent")[agent], RDF.type, AIPROV.HumanAgent) in g
+
+
+def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | None") -> None:
+    """Exit with the refusal of `promote` when a human-only rung is set by an agent that is not a registered HumanAgent."""
+    if state and canon_rung(state) in HUMAN_ONLY and not _is_human(g, base, agent):
+        why = (f"agent:{agent} is not a registered HumanAgent" if agent
+               else "no --agent was given, and a registered HumanAgent is required")
+        sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {why}. An AI must never grant this rung.")
+
+
+def _clean_state(state: str) -> str:
+    """A state as one lower-case token; any other form is read as a different state by validate and report."""
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]*", state):
+        sys.exit(f"invalid state '{state}': use one token of letters, digits and hyphens")
+    return state.lower()
+
+
 def cmd_claim(a) -> None:
     g = load()
+    a.state = _clean_state(a.state)
+    _refuse_human_only(g, a.base, a.state, a.agent)
     c = ns(a.base, "claim")[a.id]
     g.add((c, RDF.type, AIPROV.Claim))
     g.add((c, RDFS.label, Literal(a.text, lang="en")))
@@ -526,6 +547,7 @@ def cmd_source(a) -> None:
     s = ns(a.base, "source")[a.id]
     g.add((s, RDF.type, AIPROV.Source))
     state = canon_rung(a.state) if a.state else "unverified"
+    _refuse_human_only(g, a.base, state, a.agent)
     meta = None
     if a.verify:
         if not a.doi:
@@ -586,14 +608,14 @@ def cmd_promote(a) -> None:
     a.to = canon_rung(a.to)
     if a.to not in LADDER:
         sys.exit(f"unknown rung '{a.to}'; ladder: {' -> '.join(LADDER)}")
+    if cur not in LADDER:
+        sys.exit(f"'{a.id}' is at '{cur}', which is not on the ladder ({' -> '.join(LADDER)}); "
+                 f"moving it is a graph repair, not a promotion")
     if LADDER.index(a.to) <= LADDER.index(cur):
         sys.exit(f"'{a.to}' is not above current rung '{cur}' — "
                  f"demotions/no-ops are graph repairs, not promotions")
     agent = ns(a.base, "agent")[a.agent]
-    is_human = (agent, RDF.type, AIPROV.HumanAgent) in g
-    if a.to in HUMAN_ONLY and not is_human:
-        sys.exit(f"REFUSED: rung '{a.to}' is human-only; agent:{a.agent} is not "
-                 f"a registered HumanAgent. An AI must never grant this rung.")
+    _refuse_human_only(g, a.base, a.to, a.agent)
     _set_state(g, a.base, node, a.to)
     act = ns(a.base, "activity")[f"promote-{a.id}-{a.to}"]
     g.add((act, RDF.type, AIPROV.AuditPass))
