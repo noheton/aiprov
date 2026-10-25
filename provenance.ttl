@@ -294,10 +294,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/PROVENANCE-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/logo-salmon-badge> ;
-    aiprov:contentHash "sha256:7fa44df63471a40f2cf6df5b4a5ac0202266ef92cd897076f4acce82eedd54c4" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/logo-salmon-badge>,
+        <https://w3id.org/aiprov/prov/activity/social-preview> ;
+    aiprov:contentHash "sha256:7fa44df63471a40f2cf6df5b4a5ac0202266ef92cd897076f4acce82eedd54c4",
+        "sha256:f6b60935fdebbc0ece0bc2329cc8345826914b7a5129d3401cfff00964208dc4" ;
     aiprov:filePath "assets/PROVENANCE.md" ;
-    aiprov:gitCommit "9557532e45e01627cff1e9121775729bfd530d56" .
+    aiprov:gitCommit "8db44e71a3759ec7844720ca1fdaecd1dfe5ef12",
+        "9557532e45e01627cff1e9121775729bfd530d56" .
 
 <https://w3id.org/aiprov/prov/entity/README-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1,
@@ -338,6 +341,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "schema/aiprov-schema.ttl" ;
     aiprov:gitCommit "ab531da" .
 
+<https://w3id.org/aiprov/prov/entity/aiprov-social-preview-png> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/social-preview> ;
+    aiprov:contentHash "sha256:45a84c57ceb4dabac53a5ce6242143a20f2e9c1283ad09003788db147fb73249" ;
+    aiprov:filePath "assets/aiprov-social-preview.png" ;
+    aiprov:gitCommit "8db44e71a3759ec7844720ca1fdaecd1dfe5ef12" .
+
 <https://w3id.org/aiprov/prov/entity/attributes-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
@@ -365,6 +375,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:bce0705e9198234881d48422616719137e304a15944ea8eaa59c717f29035b8e" ;
     aiprov:filePath "assets/make_icon.py" ;
     aiprov:gitCommit "9557532e45e01627cff1e9121775729bfd530d56" .
+
+<https://w3id.org/aiprov/prov/entity/make_social_preview-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/social-preview> ;
+    aiprov:contentHash "sha256:6681dbfdb5aba29052e7bdcb5de15b2a08e579037fa3f9e44e6833ad37ae76b7" ;
+    aiprov:filePath "assets/make_social_preview.py" ;
+    aiprov:gitCommit "8db44e71a3759ec7844720ca1fdaecd1dfe5ef12" .
 
 <https://w3id.org/aiprov/prov/entity/orchestration-bad-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -539,6 +556,11 @@ aiprov:Repair a owl:Class ;
     prov:endedAtTime "2026-10-23T17:32:14.138134+00:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
+<https://w3id.org/aiprov/prov/activity/social-preview> a aiprov:AuthoringPass ;
+    rdfs:label "Social preview image 1280 x 640 from the badge source picture, built by assets/make_social_preview.py (dark theme, Inter 4.1); the owner uploads it in the repository settings; no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-25T22:03:17.599536+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 .
+
 aiprov:AIAgent a owl:Class ;
     rdfs:label "AI agent"@en ;
     rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en ;
@@ -579,10 +601,6 @@ aiprov:AIAgent a owl:Class ;
         "read",
         "write" .
 
-aiprov:AuthoringPass a owl:Class ;
-    rdfs:comment "AI or human produces/edits an artefact."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/adopt-aiprov> a aiprov:Build ;
     rdfs:label "The repository adopts its own method: agent rules, PR template with AI block, CI job and test validating its graph"@en ;
     prov:endedAtTime "2026-10-23T22:52:31.750188+02:00"^^xsd:dateTime ;
@@ -597,6 +615,10 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
     foaf:name "Claude Fable 5.1" ;
     aiprov:model "claude-fable-5-1"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+aiprov:AuthoringPass a owl:Class ;
+    rdfs:comment "AI or human produces/edits an artefact."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;
@@ -618,13 +640,13 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
         "read",
         "write" .
 
+aiprov:VerificationState a owl:Class ;
+    rdfs:comment "A rung on the verification ladder. Higher position = stronger check. Rungs at position 5+ are human-only: an AI agent must never grant them."@en .
+
 agent:claude-opus-5-5 a aiprov:AIAgent ;
     foaf:name "Claude Opus 5.5" ;
     aiprov:model "claude-opus-5-5"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
-
-aiprov:VerificationState a owl:Class ;
-    rdfs:comment "A rung on the verification ladder. Higher position = stronger check. Rungs at position 5+ are human-only: an AI agent must never grant them."@en .
 
 verif:unverified a aiprov:VerificationState ;
     rdfs:label "unverified"@en ;
