@@ -175,6 +175,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/c-demo-page-live-check> a aiprov:Claim ;
+    rdfs:label "site/build.py checks the exit code of each of its nine provlog commands (the human-read attempt by the AI must exit 1, validate must exit 0) and refuses to build when the graph holds a node without a place in the figure, so the page cannot show behaviour the code at that commit does not have."@en ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
+    aiprov:verificationState verif:ai-confirmed .
+
 <https://w3id.org/aiprov/prov/claim/c-extract-dashboard-fix> a aiprov:Claim ;
     rdfs:label "extract --dashboard failed because provlog.py imported build_dashboard as a top-level module; importing it from the aiprov package fixes it, shown by a new test that fails before and passes after the change."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -308,12 +314,16 @@ aiprov:verificationState a owl:ObjectProperty ;
 <https://w3id.org/aiprov/prov/entity/README-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1,
         agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/logo-salmon-badge>,
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page>,
+        <https://w3id.org/aiprov/prov/activity/logo-salmon-badge>,
         <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0> ;
     aiprov:contentHash "sha256:0856f21fc5927975f0024cebbc729089f26197ca60cb63ea6b30d722b610be2f",
-        "sha256:256e2f122bfef02e00137d8f6080ac0a1d9de5c4a22bd9ec23a8bcefb807dd7c" ;
-    aiprov:filePath "README.md" ;
-    aiprov:gitCommit "9557532e45e01627cff1e9121775729bfd530d56",
+        "sha256:256e2f122bfef02e00137d8f6080ac0a1d9de5c4a22bd9ec23a8bcefb807dd7c",
+        "sha256:52c57b971ada51bf4545143d5f5262cfcc346181686e256720f853b46a0157fe" ;
+    aiprov:filePath "README.md",
+        "site/README.md" ;
+    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61",
+        "9557532e45e01627cff1e9121775729bfd530d56",
         "a51b275" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-icon-1024-png> a aiprov:Artefact ;
@@ -361,6 +371,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "docs/attributes.md" ;
     aiprov:gitCommit "ab531da" .
 
+<https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
+    aiprov:contentHash "sha256:fa10200cbd82762d4ee673496af5af454d6a7452d522dbc9e34d6685ebb00181" ;
+    aiprov:filePath "site/build.py" ;
+    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
+
 <https://w3id.org/aiprov/prov/entity/ci-yml> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov> ;
@@ -401,6 +418,20 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/fixtures/orchestration-bad.ttl" ;
     aiprov:gitCommit "ab531da",
         "ebd9503" .
+
+<https://w3id.org/aiprov/prov/entity/page-html> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
+    aiprov:contentHash "sha256:4adb5146fc7d727534a25d83aa2e07ce3aa7d9a0b57abc17c0729103fc3dc037" ;
+    aiprov:filePath "site/page.html" ;
+    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
+
+<https://w3id.org/aiprov/prov/entity/pages-yml> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
+    aiprov:contentHash "sha256:4a2cce16a2db4d6dd2a02ada9b8c3e7d7615d0be141801e1728f526d13397b15" ;
+    aiprov:filePath ".github/workflows/pages.yml" ;
+    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
 
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -538,11 +569,6 @@ aiprov:HumanAgent a owl:Class ;
     prov:endedAtTime "2026-10-24T00:16:00.450436+02:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 .
 
-verif:ai-confirmed a aiprov:VerificationState ;
-    rdfs:label "AI-confirmed"@en ;
-    rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
-    aiprov:ladderPosition 3 .
-
 aiprov:Build a owl:Class ;
     rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
@@ -570,6 +596,11 @@ aiprov:Contribution a owl:Class ;
     rdfs:label "Social preview checked against GitHub's repository card template (safe area 80 px): it fitted; the block was centred in the safe area and the margin made a constant of the script; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+verif:ai-confirmed a aiprov:VerificationState ;
+    rdfs:label "AI-confirmed"@en ;
+    rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
+    aiprov:ladderPosition 3 .
 
 aiprov:AIAgent a owl:Class ;
     rdfs:label "AI agent"@en ;
@@ -599,6 +630,11 @@ aiprov:Repair a owl:Class ;
         "edit",
         "read",
         "write" .
+
+<https://w3id.org/aiprov/prov/activity/demo-page> a aiprov:AuthoringPass ;
+    rdfs:label "Demo page for GitHub Pages on the owner's choice: pitch, a demo graph produced by running provlog on invented data, a five-step explanation, the commands as run; build fails when provlog behaves differently; workflow deploys from main; no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-25T22:19:46.923228+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review> a aiprov:AuthoringPass ;
     rdfs:label "Fixes after the second-agent review of pull request 19: claim takes a state as one lower-case token, clearer refusal for a missing agent, documented limits of the check, two more tests"@en ;
@@ -630,10 +666,6 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
     aiprov:model "claude-fable-5-1"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
 
-aiprov:AuthoringPass a owl:Class ;
-    rdfs:comment "AI or human produces/edits an artefact."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;
     prov:endedAtTime "2026-10-25T17:33:53.685413+01:00"^^xsd:dateTime ;
@@ -643,6 +675,10 @@ aiprov:AuthoringPass a owl:Class ;
     rdfs:label "Salmon badge: source picture saved from the session store, cropped to a transparent circle by assets/make_icon.py, provenance record, README header (issue 20); no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+aiprov:AuthoringPass a owl:Class ;
+    rdfs:comment "AI or human produces/edits an artefact."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/orchestration-extension> a aiprov:AuthoringPass ;
     rdfs:label "Orchestration (multi-agent runs): schema terms, CLI flags, validator rules, report section, tests (refs #2)"@en ;
@@ -662,14 +698,14 @@ verif:unverified a aiprov:VerificationState ;
     rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
     aiprov:ladderPosition 0 .
 
+aiprov:Claim a owl:Class ;
+    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
+    rdfs:subClassOf prov:Entity .
+
 agent:claude-opus-5-5 a aiprov:AIAgent ;
     foaf:name "Claude Opus 5.5" ;
     aiprov:model "claude-opus-5-5"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
-
-aiprov:Claim a owl:Class ;
-    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
-    rdfs:subClassOf prov:Entity .
 
 aiprov:Artefact a owl:Class ;
     rdfs:comment "Generalizes Manuscript/Section/Figure: any produced file or object."@en ;
