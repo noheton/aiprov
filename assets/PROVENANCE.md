@@ -12,3 +12,13 @@
 | Processing | by an AI session (Claude Opus 5.5 in OpenCode), deterministic, no retouching: the generator painted a checkerboard where the prompt asked for transparency (real pixels, plus a faint grey patch right of the circle); the badge circle was found by colour saturation (664 × 664 px bounding box, centred), cropped square, masked to a circle with real transparency, the mask set 3 px inside the edge to drop the rim blended with the checkerboard, resized with Lanczos. The circle is 665 px across in the source, so the 1024 px file is **upscaled** and softer than a native export. Script: `assets/make_icon.py` (reproduces both files byte for byte) |
 | Files | `aiprov-icon-source-gemini.png` (as received, 1024 × 1024, sha256 `670dc0f0fffbc4795b85034e7f25d80b5255aaa4d1a591dbd02dc69e48453eea`), `aiprov-icon-1024.png` (sha256 `cd2fb09fcdd63b4d482a69c28e34a939f332e423df4f1acb960a9473c8f32f62`), `aiprov-icon.png` 512 px (sha256 `8ed155562e27cf30a106885f1883684942d814a49b074ee53da5c9287fdd0770`) |
 | Chosen by | the owner (human) |
+
+## Social preview
+
+| Item | Value |
+|---|---|
+| What | `aiprov-social-preview.png`, 1280 × 640 px, for the repository's social preview; the owner sets it in the repository settings (GitHub has no API for it) |
+| How it was made | by an AI session (Claude Opus 5.5 in OpenCode) on the owner's request on 2026-10-25, with `make_social_preview.py` (theme `dark`) from `aiprov-icon-source-gemini.png`: the badge cut as in `make_icon.py` and resized once, from the 665 px circle down to 440 px; a background gradient; the text set in Inter 4.1 (SIL Open Font License 1.1; Debian package `fonts-inter` 4.1+ds-1, Inter Display Bold, Inter SemiBold, Regular, Medium). The script reproduces the file byte for byte on a machine with the same fonts and Pillow |
+| Text | "aiprov", "AI provenance", "recorded, open, verifiable", "W3C PROV-O · github.com/noheton/aiprov" |
+| Generated content | the badge only (see above); layout and text are deterministic |
+| File | sha256 `45a84c57ceb4dabac53a5ce6242143a20f2e9c1283ad09003788db147fb73249`, 182,013 bytes |
