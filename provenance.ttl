@@ -342,16 +342,19 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasAttributedTo agent:claude-fable-5-1,
         agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page>,
+        <https://w3id.org/aiprov/prov/activity/doi-badge-pages>,
         <https://w3id.org/aiprov/prov/activity/logo-salmon-badge>,
         <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0>,
         <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
     aiprov:contentHash "sha256:0856f21fc5927975f0024cebbc729089f26197ca60cb63ea6b30d722b610be2f",
         "sha256:256e2f122bfef02e00137d8f6080ac0a1d9de5c4a22bd9ec23a8bcefb807dd7c",
         "sha256:25e295cc77650c5a510075acec05fea25f89caf25587a9c25d0d3d74fbeed352",
+        "sha256:4a939b3122a9dfea487d613fffe23d8c7892954c8ed54f7356bca5ccfcd6b32f",
         "sha256:52c57b971ada51bf4545143d5f5262cfcc346181686e256720f853b46a0157fe" ;
     aiprov:filePath "README.md",
         "site/README.md" ;
     aiprov:gitCommit "11158d7c70ef3b2b1eb5e346cdee41d8418f4b17",
+        "37f514ac979f65d80db66e8415eb01b54e185246",
         "93238e02cd80e8b026f7c1dc59202393be3e7d61",
         "9557532e45e01627cff1e9121775729bfd530d56",
         "a51b275" .
@@ -403,10 +406,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
-    aiprov:contentHash "sha256:fa10200cbd82762d4ee673496af5af454d6a7452d522dbc9e34d6685ebb00181" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page>,
+        <https://w3id.org/aiprov/prov/activity/doi-badge-pages> ;
+    aiprov:contentHash "sha256:0d07452ecd451b76be5054586394b3a7ae5eae0a5beec1c1e338d39a3b93b9f9",
+        "sha256:fa10200cbd82762d4ee673496af5af454d6a7452d522dbc9e34d6685ebb00181" ;
     aiprov:filePath "site/build.py" ;
-    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
+    aiprov:gitCommit "37f514ac979f65d80db66e8415eb01b54e185246",
+        "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
 
 <https://w3id.org/aiprov/prov/entity/ci-yml> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -461,10 +467,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/page-html> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page> ;
-    aiprov:contentHash "sha256:4adb5146fc7d727534a25d83aa2e07ce3aa7d9a0b57abc17c0729103fc3dc037" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page>,
+        <https://w3id.org/aiprov/prov/activity/doi-badge-pages> ;
+    aiprov:contentHash "sha256:4adb5146fc7d727534a25d83aa2e07ce3aa7d9a0b57abc17c0729103fc3dc037",
+        "sha256:83300a998bc5458dc96c27de73bba258c952ca6bd6ab481c61b6d83e8cab7a49" ;
     aiprov:filePath "site/page.html" ;
-    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
+    aiprov:gitCommit "37f514ac979f65d80db66e8415eb01b54e185246",
+        "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
 
 <https://w3id.org/aiprov/prov/entity/pages-yml> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -612,6 +621,11 @@ aiprov:HumanAgent a owl:Class ;
 aiprov:Contribution a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
+<https://w3id.org/aiprov/prov/activity/doi-badge-pages> a aiprov:AuthoringPass ;
+    rdfs:label "DOI badge row in the README and the DOI on the demo page (badge, cite-as link, Cite section read from CITATION.cff) on the owner's request; no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-25T23:05:26.350312+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 .
+
 <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import> a aiprov:Repair ;
     rdfs:label "Fix issue 7: extract --dashboard imports the packaged module; test added"@en ;
     prov:endedAtTime "2026-10-24T18:28:20.646643+02:00"^^xsd:dateTime ;
@@ -726,10 +740,6 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
 
-aiprov:AuthoringPass a owl:Class ;
-    rdfs:comment "AI or human produces/edits an artefact."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/orchestration-extension> a aiprov:AuthoringPass ;
     rdfs:label "Orchestration (multi-agent runs): schema terms, CLI flags, validator rules, report section, tests (refs #2)"@en ;
     prov:endedAtTime "2026-10-23T21:26:47.260494+02:00"^^xsd:dateTime ;
@@ -739,6 +749,10 @@ aiprov:AuthoringPass a owl:Class ;
         "edit",
         "read",
         "write" .
+
+aiprov:AuthoringPass a owl:Class ;
+    rdfs:comment "AI or human produces/edits an artefact."@en ;
+    rdfs:subClassOf prov:Activity .
 
 aiprov:VerificationState a owl:Class ;
     rdfs:comment "A rung on the verification ladder. Higher position = stronger check. Rungs at position 5+ are human-only: an AI agent must never grant them."@en .

@@ -17,6 +17,7 @@ import importlib.metadata as md
 import json
 import math
 import os
+import re
 import shutil
 import string
 import subprocess
@@ -303,6 +304,43 @@ def aiprov_version() -> str:
     return f"{dist.version}" + (f" (git {commit[:7]})" if commit else "")
 
 
+def citation(version: str) -> dict:
+    """DOIs, title, authors and year from CITATION.cff, so the page never disagrees with the citation metadata."""
+    text = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+    concept = re.search(r"^doi:\s*(\S+)", text, re.MULTILINE)
+    if not concept:
+        return {}
+    versions = {v: d for d, v in re.findall(r'value:\s*(\S+)\s*\n\s*description:\s*"Version ([^"]+)"', text)}
+    block = text.split("authors:", 1)[1].split("\nreferences:", 1)[0]
+    return {
+        "concept": concept.group(1),
+        "version_doi": versions.get(version, ""),
+        "title": re.search(r'^title:\s*"?(.*?)"?\s*$', text, re.MULTILINE).group(1),
+        "authors": re.findall(r"family-names:\s*(.+)\n\s*given-names:\s*(.+)", block),
+        "year": re.search(r"^date-released:\s*(\d{4})", text, re.MULTILINE).group(1),
+    }
+
+
+def cite_parts(c: dict, version: str, repo: str) -> dict[str, str]:
+    if not c:
+        return {"cite_link": "", "doi_badge": "", "cite_section": ""}
+    concept, vdoi = c["concept"], c["version_doi"]
+    names = ", ".join(f"{fam.strip()}, {''.join(p[0] + '.' for p in giv.split())}" for fam, giv in c["authors"])
+    doi = vdoi or concept
+    ver = f" (Version {esc(version)})" if vdoi else ""
+    return {
+        "cite_link": f'<link rel="cite-as" href="https://doi.org/{esc(concept)}">',
+        "doi_badge": (f'<a class="doi" href="https://doi.org/{esc(concept)}" title="DOI for all versions">'
+                      f"<span>DOI</span><span>{esc(concept)}</span></a>"),
+        "cite_section": (
+            '<section>\n<h2>Cite</h2>\n'
+            f'<p class="ref">{esc(names)} ({esc(c["year"])}). <em>{esc(c["title"])}</em>{ver} [Software]. Zenodo. '
+            f'<a href="https://doi.org/{esc(doi)}">https://doi.org/{esc(doi)}</a></p>\n'
+            f'<p>All versions: <a href="https://doi.org/{esc(concept)}">https://doi.org/{esc(concept)}</a>. '
+            f'Citation metadata: <a href="{esc(repo)}/blob/main/CITATION.cff">CITATION.cff</a>.</p>\n</section>'),
+    }
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="public")
@@ -321,7 +359,9 @@ def main() -> None:
     shutil.copy(ROOT / "assets" / "aiprov-icon.png", out / "aiprov-icon.png")
     server, name = os.environ.get("GITHUB_SERVER_URL"), os.environ.get("GITHUB_REPOSITORY")
     repo = f"{server}/{name}" if server and name else "https://github.com/noheton/aiprov"
+    version = md.distribution("aiprov").version
     page = string.Template((HERE / "page.html").read_text()).substitute(
+        **cite_parts(citation(version), version, repo),
         figure=figure,
         terminal=terminal(results),
         version=esc(aiprov_version()),

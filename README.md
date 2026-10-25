@@ -1,12 +1,14 @@
 # aiprov
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23651333.svg)](https://doi.org/10.5281/zenodo.23651333)
+[![ci](https://github.com/noheton/aiprov/actions/workflows/ci.yml/badge.svg)](https://github.com/noheton/aiprov/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 <img src="assets/aiprov-icon.png" alt="aiprov logo: a white salmon leaping up a waterfall in a teal-to-blue circle" width="120" align="right">
 
 Domain-agnostic **AI provenance over W3C PROV-O**: who (human, AI model, tool) did what to an
 artefact, with inference telemetry and a verification ladder whose top rungs only humans may grant.
 Works for code, documents, data pipelines, CAD, AAS submodels — any AI-in-the-loop artefact.
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23651333.svg)](https://doi.org/10.5281/zenodo.23651333)
 
 **A demo graph, explained:** https://noheton.github.io/aiprov/
 
