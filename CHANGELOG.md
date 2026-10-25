@@ -49,6 +49,10 @@ Additive; legacy graphs validate unchanged.
   and only `validate` warned. `provlog promote` reports a node whose state is not on the ladder with a message instead of a
   traceback. Not changed: `claim` still accepts states outside the ladder (adopters record `contested`), and `validate` keeps its
   warning for graphs edited by hand.
+- Found by a second review of this fix: `claim` takes a state as one token and lower-cases it, so `Human-Read` and `x/human-read`
+  no longer slip past the check or become a different state in the graph; the refusal for a missing `--agent` reads clearly.
+  Documented limits: the check trusts the registration (an agent can register itself as a human with `agent --type human`), and a
+  human's `claim --state human-read` leaves no promotion record (use `promote`).
 
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);

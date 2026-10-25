@@ -35,7 +35,7 @@ was drafted with AI assistance and verified by test-run; review before
 production use.
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, pathlib, sys
+import argparse, datetime, hashlib, pathlib, re, sys
 from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
@@ -235,13 +235,21 @@ def _is_human(g: Graph, base: str, agent: "str | None") -> bool:
 def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | None") -> None:
     """Exit with the refusal of `promote` when a human-only rung is set by an agent that is not a registered HumanAgent."""
     if state and canon_rung(state) in HUMAN_ONLY and not _is_human(g, base, agent):
-        who = f"agent:{agent}" if agent else "no --agent"
-        sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {who} is not "
-                 f"a registered HumanAgent. An AI must never grant this rung.")
+        why = (f"agent:{agent} is not a registered HumanAgent" if agent
+               else "no --agent was given, and a registered HumanAgent is required")
+        sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {why}. An AI must never grant this rung.")
+
+
+def _clean_state(state: str) -> str:
+    """A state as one lower-case token; any other form is read as a different state by validate and report."""
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]*", state):
+        sys.exit(f"invalid state '{state}': use one token of letters, digits and hyphens")
+    return state.lower()
 
 
 def cmd_claim(a) -> None:
     g = load()
+    a.state = _clean_state(a.state)
     _refuse_human_only(g, a.base, a.state, a.agent)
     c = ns(a.base, "claim")[a.id]
     g.add((c, RDF.type, AIPROV.Claim))
