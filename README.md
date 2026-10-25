@@ -1,6 +1,7 @@
 # aiprov
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23651333.svg)](https://doi.org/10.5281/zenodo.23651333)
+[![namespace: w3id.org/aiprov/ns](https://img.shields.io/badge/namespace-w3id.org%2Faiprov%2Fns-007ec6)](https://w3id.org/aiprov/ns)
 [![ci](https://github.com/noheton/aiprov/actions/workflows/ci.yml/badge.svg)](https://github.com/noheton/aiprov/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
