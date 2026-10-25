@@ -253,6 +253,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/entity/-zenodo-json> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
+    aiprov:contentHash "sha256:d6b595ec0f396e67cdad5e0ca97910d77929662656a0f890d384bada1e999e93" ;
+    aiprov:filePath ".zenodo.json" ;
+    aiprov:gitCommit "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
+
 <https://w3id.org/aiprov/prov/entity/AGENTS-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/adopt-aiprov>,
@@ -267,13 +274,15 @@ aiprov:verificationState a owl:ObjectProperty ;
         "f4b910ad445f6084d8273fc1c909336c137089e0" .
 
 <https://w3id.org/aiprov/prov/entity/CHANGELOG-md> a aiprov:Artefact ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasAttributedTo agent:claude-opus-5-5,
+        agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
         <https://w3id.org/aiprov/prov/activity/merge-hardening>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes>,
+        <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata>,
         <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1> ;
     aiprov:contentHash "sha256:0269edd5a48d3135d522a32dfe323765465b194bc89c94b0dfb6f6fe89aa6f23",
         "sha256:06d6c9aa194f5fa5c74bb0591f8986605f6e141e09e114479ae0b85637fa2e10",
@@ -281,15 +290,24 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
+        "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
     aiprov:filePath "CHANGELOG.md" ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "2129332",
         "735a10e",
+        "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
         "ab531da",
         "ebd9503",
         "f4b910ad445f6084d8273fc1c909336c137089e0" .
+
+<https://w3id.org/aiprov/prov/entity/CITATION-cff> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
+    aiprov:contentHash "sha256:ade75c31a6cede035a63b75b4fd1d8e86610c5d47947cf917774b9f7384cba72" ;
+    aiprov:filePath "CITATION.cff" ;
+    aiprov:gitCommit "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
 
 <https://w3id.org/aiprov/prov/entity/CONTRIBUTING-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -384,6 +402,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:cdb6ac775d3c0a35a3d0f32548977f8d556db1cde1a7b28ecd374260d028e51f" ;
     aiprov:filePath ".github/workflows/ci.yml" ;
     aiprov:gitCommit "1f8bf61" .
+
+<https://w3id.org/aiprov/prov/entity/codemeta-json> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
+    aiprov:contentHash "sha256:57c284801f2a7e28f6839f389c8176b010d5a6a80368870d54f10e9ba7d55cae" ;
+    aiprov:filePath "codemeta.json" ;
+    aiprov:gitCommit "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
 
 <https://w3id.org/aiprov/prov/entity/identity-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -569,10 +594,6 @@ aiprov:HumanAgent a owl:Class ;
     prov:endedAtTime "2026-10-24T00:16:00.450436+02:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 .
 
-aiprov:Build a owl:Class ;
-    rdfs:comment "Deterministic build/compile/CI activity."@en ;
-    rdfs:subClassOf prov:Activity .
-
 aiprov:Contribution a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
@@ -607,6 +628,10 @@ aiprov:AIAgent a owl:Class ;
     rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en ;
     rdfs:subClassOf prov:SoftwareAgent .
 
+aiprov:Build a owl:Class ;
+    rdfs:comment "Deterministic build/compile/CI activity."@en ;
+    rdfs:subClassOf prov:Activity .
+
 aiprov:Repair a owl:Class ;
     rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
     rdfs:subClassOf prov:Activity .
@@ -630,6 +655,11 @@ aiprov:Repair a owl:Class ;
         "edit",
         "read",
         "write" .
+
+<https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> a aiprov:Build ;
+    rdfs:label "Release metadata for 0.2.0 and the first Zenodo archive on the owner's decision (both 0.1.0 and 0.2.0 under one concept DOI, mint now); no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-25T22:33:03.378814+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 .
 
 <https://w3id.org/aiprov/prov/activity/demo-page> a aiprov:AuthoringPass ;
     rdfs:label "Demo page for GitHub Pages on the owner's choice: pitch, a demo graph produced by running provlog on invented data, a five-step explanation, the commands as run; build fails when provlog behaves differently; workflow deploys from main; no telemetry recorded"@en ;
