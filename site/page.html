@@ -15,6 +15,7 @@ body { margin: 0; font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, I
 header { background: linear-gradient(115deg, #07182b, #0c2c4a); color: #fff; }
 header .wrap { display: flex; align-items: center; gap: 28px; padding-top: 40px; padding-bottom: 40px; }
 header img { width: 116px; height: 116px; flex: none; }
+header .wrap > div { flex: 1; }
 h1 { font-size: 58px; line-height: 1; margin: 0; letter-spacing: -1px; }
 .tag { margin: 10px 0 0; font-size: 21px; color: #c4def0; }
 h2 { font-size: 25px; margin: 0 0 10px; }
@@ -38,15 +39,17 @@ pre.term .bad { color: #ff9b85; }
 pre.term .out { color: #aebdcb; }
 code { font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
 a { color: #0b6fa4; }
-a.doi { display: inline-flex; margin-top: 14px; border-radius: 5px; overflow: hidden; text-decoration: none; font: 600 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-a.doi span { padding: 6px 9px; color: #fff; }
-a.doi span:first-child { background: #4d5a66; }
-a.doi span:last-child { background: #0f7fbf; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+a.badge { display: inline-flex; border-radius: 5px; overflow: hidden; text-decoration: none; font: 600 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+a.badge span { padding: 6px 9px; color: #fff; }
+a.badge span:first-child { background: #4d5a66; }
+a.badge span:last-child { background: #0f7fbf; }
 p.ref { padding-left: 1.6em; text-indent: -1.6em; }
 footer { color: var(--muted); font-size: 14px; padding: 22px 0 48px; }
 @media (max-width: 760px) {
   ul.three { grid-template-columns: 1fr; }
   header .wrap { flex-direction: column; text-align: center; gap: 16px; }
+  .badges { justify-content: center; }
   h1 { font-size: 46px; }
 }
 </style>
@@ -54,7 +57,7 @@ footer { color: var(--muted); font-size: 14px; padding: 22px 0 48px; }
 <body>
 <header><div class="wrap">
 <img src="aiprov-icon.png" alt="aiprov logo: a white salmon leaping up a waterfall in a teal-to-blue circle">
-<div><h1>aiprov</h1><p class="tag">AI provenance, recorded, open, verifiable</p>$doi_badge</div>
+<div><h1>aiprov</h1><p class="tag">AI provenance, recorded, open, verifiable</p><div class="badges">$doi_badge<a class="badge" href="https://w3id.org/aiprov/ns" title="Vocabulary namespace: browsers get the documentation, RDF clients the Turtle file"><span>w3id</span><span>w3id.org/aiprov/ns</span></a></div></div>
 </div></header>
 
 <main class="wrap">

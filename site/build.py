@@ -330,7 +330,7 @@ def cite_parts(c: dict, version: str, repo: str) -> dict[str, str]:
     ver = f" (Version {esc(version)})" if vdoi else ""
     return {
         "cite_link": f'<link rel="cite-as" href="https://doi.org/{esc(concept)}">',
-        "doi_badge": (f'<a class="doi" href="https://doi.org/{esc(concept)}" title="DOI for all versions">'
+        "doi_badge": (f'<a class="badge" href="https://doi.org/{esc(concept)}" title="DOI for all versions">'
                       f"<span>DOI</span><span>{esc(concept)}</span></a>"),
         "cite_section": (
             '<section>\n<h2>Cite</h2>\n'
