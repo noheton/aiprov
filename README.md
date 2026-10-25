@@ -6,6 +6,8 @@ Domain-agnostic **AI provenance over W3C PROV-O**: who (human, AI model, tool) d
 artefact, with inference telemetry and a verification ladder whose top rungs only humans may grant.
 Works for code, documents, data pipelines, CAD, AAS submodels — any AI-in-the-loop artefact.
 
+**A demo graph, explained:** https://noheton.github.io/aiprov/
+
 Namespace: `https://w3id.org/aiprov/ns#` · Generalised from
 [F(AI)²R](https://github.com/noheton/f-ai-r) (arXiv:2607.25637).
 

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aiprov: AI provenance, recorded, open, verifiable</title>
+<meta name="description" content="aiprov records who, person or AI model, did what to an artefact and who checked it, in a plain W3C PROV-O file. A demo graph, explained.">
+<link rel="icon" href="aiprov-icon.png">
+<style>
+:root { --ink: #0b2545; --muted: #4a6178; --teal: #0fa3b1; --line: #dfe7ef; --soft: #f5f8fb; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif; color: var(--ink); }
+.wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+header { background: linear-gradient(115deg, #07182b, #0c2c4a); color: #fff; }
+header .wrap { display: flex; align-items: center; gap: 28px; padding-top: 40px; padding-bottom: 40px; }
+header img { width: 116px; height: 116px; flex: none; }
+h1 { font-size: 58px; line-height: 1; margin: 0; letter-spacing: -1px; }
+.tag { margin: 10px 0 0; font-size: 21px; color: #c4def0; }
+h2 { font-size: 25px; margin: 0 0 10px; }
+main section { padding: 30px 0; border-bottom: 1px solid var(--line); }
+.lead { font-size: 20px; margin-top: 0; }
+ul.three { list-style: none; padding: 0; margin: 18px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+ul.three li { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; font-size: 15.5px; line-height: 1.5; }
+ul.three b { display: block; font-size: 17px; margin-bottom: 4px; }
+.links { font-size: 16px; }
+figure { margin: 20px 0 8px; }
+figure svg { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+@media (min-width: 1120px) { figure { margin-left: -70px; margin-right: -70px; } }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+ol.steps { list-style: none; padding: 0; counter-reset: step; }
+ol.steps li { counter-increment: step; position: relative; padding-left: 44px; margin: 14px 0; }
+ol.steps li::before { content: counter(step); position: absolute; left: 0; top: 1px; width: 28px; height: 28px; border-radius: 50%; background: var(--teal); color: #fff; font-weight: 700; font-size: 15px; line-height: 28px; text-align: center; }
+pre.term { white-space: pre-wrap; overflow-wrap: anywhere; background: #0d1b2a; color: #d8e2ec; padding: 16px 18px; border-radius: 10px; overflow-x: auto; font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre.term .pr { color: #5fd3dc; }
+pre.term .ok { color: #7fd69a; }
+pre.term .bad { color: #ff9b85; }
+pre.term .out { color: #aebdcb; }
+code { font: 0.88em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+a { color: #0b6fa4; }
+footer { color: var(--muted); font-size: 14px; padding: 22px 0 48px; }
+@media (max-width: 760px) {
+  ul.three { grid-template-columns: 1fr; }
+  header .wrap { flex-direction: column; text-align: center; gap: 16px; }
+  h1 { font-size: 46px; }
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<img src="aiprov-icon.png" alt="aiprov logo: a white salmon leaping up a waterfall in a teal-to-blue circle">
+<div><h1>aiprov</h1><p class="tag">AI provenance, recorded, open, verifiable</p></div>
+</div></header>
+
+<main class="wrap">
+<section>
+<p class="lead">When an AI model drafts your code or your text, two questions come later: <strong>who did what</strong>, and <strong>who checked it</strong>? aiprov writes the answers into a plain Turtle file next to your work, as a profile of W3C PROV-O.</p>
+<ul class="three">
+<li><b>Recorded</b>Every step names its agent, person or model, its inputs and outputs by hash, and the telemetry the tool reports. Nothing is estimated.</li>
+<li><b>Open</b>One Turtle file and one dependency (rdflib). Any tool that reads PROV-O reads the graph.</li>
+<li><b>Verifiable</b>Every statement is a claim on a seven-step ladder. The top two steps belong to people: the command line refuses an AI, and <code>provlog validate</code> checks it again in CI.</li>
+</ul>
+<p class="links"><a href="https://github.com/noheton/aiprov">Code on GitHub</a> &middot; <a href="https://w3id.org/aiprov/ns">Vocabulary</a> &middot; <a href="https://arxiv.org/abs/2607.25637">The F(AI)&sup2;R paper it comes from</a></p>
+</section>
+
+<section>
+<h2>A demo: one report, two claims, one human check</h2>
+<p>Alice asks an AI model to turn her benchmark notes into a short report. Nine commands later, the graph below holds the whole story. The data is invented, the graph is real: this page ran the commands with aiprov $version when it was built.</p>
+<figure>
+$figure
+<figcaption>Shapes follow the W3C PROV notation: agents as houses, activities as rectangles, entities as ovals. Claims are entities with a verification state. Hover a node for its details; the numbers match the steps below.</figcaption>
+</figure>
+<ol class="steps">
+<li><b>Who.</b> Alice is a person, registered with her ORCID iD. Model X is an AI model that acts on her behalf (<code>prov:actedOnBehalfOf</code>).</li>
+<li><b>What.</b> Model X drafted <code>report.md</code> from <code>notes.md</code>. The activity records the model, both files (the output with its sha256) and the tokens the tool reported: 1,200 in, 800 out.</li>
+<li><b>Claims.</b> The report makes two statements. Each becomes a claim with a parent activity and a state on the ladder: "twice as fast" was checked by the model (<em>AI-confirmed</em>), "all functions tested" by nobody yet (<em>unverified</em>).</li>
+<li><b>Human check.</b> Alice re-ran the benchmark and promoted the speed claim to <em>human-confirmed</em>. The promotion is an activity of its own, an audit pass associated with Alice, so the graph says who granted the step and when.</li>
+<li><b>The rule.</b> Model X then tried to mark the other claim as <em>human-read</em>. provlog refused: the top two steps are for registered humans. <code>validate</code> checks the same rule on the whole file, so a hand-edited graph cannot slip it in either.</li>
+</ol>
+</section>
+
+<section>
+<h2>The commands, as run for this page</h2>
+<p>Each with <code>--base https://example.org/demo/</code>; the output is what provlog printed.</p>
+<pre class="term">$terminal</pre>
+<p>The resulting graph: <a href="demo.ttl">demo.ttl</a> (Turtle, with the vocabulary), and $dashboard that <code>aiprov-dashboard</code> builds from it.</p>
+</section>
+
+<section>
+<h2>Try it</h2>
+<pre class="term"><span class="pr">$$</span> pip install git+https://github.com/noheton/aiprov
+<span class="pr">$$</span> provlog --base https://your.org/prov/ init</pre>
+<p>Then register your agents and log your steps as above. The <a href="https://github.com/noheton/aiprov#readme">README</a> lists every command; issues and pull requests are welcome.</p>
+</section>
+</main>
+
+<footer class="wrap">
+<p>Built $built by <code>build.py</code> with aiprov $version. The demo data is invented. This page was drafted by Claude Opus 5.5 (AI) for Florian Krebs; its own provenance is in $repo_graph of the aiprov repository. The logo is AI-generated, see its <a href="https://github.com/noheton/aiprov/blob/main/assets/PROVENANCE.md">record</a>.</p>
+</footer>
+</body>
+</html>
