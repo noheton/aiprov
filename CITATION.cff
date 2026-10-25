@@ -16,6 +16,17 @@ keywords:
 version: 0.2.0
 date-released: 2026-10-25
 license: MIT
+doi: 10.5281/zenodo.23651333
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23651333
+    description: "All versions (concept DOI)"
+  - type: doi
+    value: 10.5281/zenodo.23651340
+    description: "Version 0.2.0"
+  - type: doi
+    value: 10.5281/zenodo.23651334
+    description: "Version 0.1.0"
 repository-code: https://github.com/noheton/aiprov
 url: https://w3id.org/aiprov
 authors:

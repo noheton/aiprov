@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.0 — 2026-10-23
+Archived on Zenodo: 10.5281/zenodo.23651334 (concept 10.5281/zenodo.23651333).
 First packaged release. Content identical to the aiprov skill bundle generalised from F(AI)²R:
 - `schema/aiprov-schema.ttl` — agents, activities, telemetry attributes, claims, sources,
   verification ladder (`unverified … human-read`; `source-vendored` present, see 0.2 plan).
@@ -60,6 +61,7 @@ model identity for local models; OTel ingest; source attribution and self-citati
 Tracked as issues; nothing lands before the first external consumer has reviewed #0.
 
 ## 0.2.0 — 2026-10-25
+Archived on Zenodo: 10.5281/zenodo.23651340 (concept 10.5281/zenodo.23651333).
 Everything of 0.2.0-rc.1, plus:
 - `claim` and `source` refuse the human-only steps (`human-confirmed`, `human-read`, `lit-read`) for any agent that is
   not a registered `HumanAgent`, through the same helper as `promote`; `promote` exits with a message for a state

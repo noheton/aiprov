@@ -6,6 +6,8 @@ Domain-agnostic **AI provenance over W3C PROV-O**: who (human, AI model, tool) d
 artefact, with inference telemetry and a verification ladder whose top rungs only humans may grant.
 Works for code, documents, data pipelines, CAD, AAS submodels — any AI-in-the-loop artefact.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23651333.svg)](https://doi.org/10.5281/zenodo.23651333)
+
 **A demo graph, explained:** https://noheton.github.io/aiprov/
 
 Namespace: `https://w3id.org/aiprov/ns#` · Generalised from
@@ -41,6 +43,7 @@ Releases are archived on Zenodo. Issues and pull requests welcome; the vocabular
 the systems that depend on it.
 
 ## Cite
-See `CITATION.cff`. Software DOI via Zenodo on release.
+Archived on Zenodo. Cite all versions with the concept DOI [10.5281/zenodo.23651333](https://doi.org/10.5281/zenodo.23651333), or a version:
+0.2.0 [10.5281/zenodo.23651340](https://doi.org/10.5281/zenodo.23651340), 0.1.0 [10.5281/zenodo.23651334](https://doi.org/10.5281/zenodo.23651334). See `CITATION.cff`.
 
 *AI note: repository scaffolded with AI assistance and logged in its own `provenance.ttl`; reviewed by the author.*
