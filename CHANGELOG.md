@@ -43,6 +43,13 @@ Additive; legacy graphs validate unchanged.
   template with an AI-assistance block, a CI job `provenance` that validates `provenance.ttl`, and a test that does the
   same locally.
 
+## Unreleased
+- Fix (issue 18): `provlog claim --state` and `provlog source --state` now apply the human-only rule of `promote`: `human-confirmed`,
+  `human-read` and the alias `lit-read` are refused unless `--agent` is a registered `HumanAgent`; before, they were accepted
+  and only `validate` warned. `provlog promote` reports a node whose state is not on the ladder with a message instead of a
+  traceback. Not changed: `claim` still accepts states outside the ladder (adopters record `contested`), and `validate` keeps its
+  warning for graphs edited by hand.
+
 ## 0.2.0 — planned
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.

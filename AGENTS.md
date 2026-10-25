@@ -12,7 +12,7 @@ rules (see `CONTRIBUTING.md`).
    Register a new agent or model first with `provlog agent`. Telemetry (tokens, cost) is recorded only when the
    tool or gateway reports it; it is never estimated.
 4. Every non-trivial statement an AI contributes becomes a claim: `provlog claim --state unverified|ai-confirmed`.
-   An AI never sets `human-confirmed` or `human-read`; the validator refuses it.
+   An AI never sets `human-confirmed` or `human-read`: `provlog claim`, `source` and `promote` refuse it unless the agent is a registered human, and `merge` rejects a shard that contains it.
 5. Run `uv run provlog --base https://w3id.org/aiprov/prov/ validate` and commit the graph in its own commit whose
    message ends with the trailer `Aiprov-Activity: https://w3id.org/aiprov/prov/activity/<slug>`.
 
