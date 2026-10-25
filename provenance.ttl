@@ -253,6 +253,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/c-zenodo-records> a aiprov:Claim ;
+    rdfs:label "Zenodo holds aiprov 0.1.0 as 10.5281/zenodo.23651334 and 0.2.0 as 10.5281/zenodo.23651340 under the concept DOI 10.5281/zenodo.23651333, open access, MIT; each archived zip has the same md5 as git archive of its tag (513e8a2e for v0.1.0, 3ff23479 for v0.2.0), checked through Zenodo's public records API on 2026-10-25."@en ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
+    aiprov:verificationState verif:ai-confirmed .
+
 <https://w3id.org/aiprov/prov/entity/-zenodo-json> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
@@ -304,10 +310,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/CITATION-cff> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
-    aiprov:contentHash "sha256:ade75c31a6cede035a63b75b4fd1d8e86610c5d47947cf917774b9f7384cba72" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata>,
+        <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
+    aiprov:contentHash "sha256:669f7c20a9c1d09fc96733b65b021500711b3fb2cdb9590edc9a319c25b49973",
+        "sha256:ade75c31a6cede035a63b75b4fd1d8e86610c5d47947cf917774b9f7384cba72" ;
     aiprov:filePath "CITATION.cff" ;
-    aiprov:gitCommit "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
+    aiprov:gitCommit "11158d7c70ef3b2b1eb5e346cdee41d8418f4b17",
+        "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
 
 <https://w3id.org/aiprov/prov/entity/CONTRIBUTING-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -334,13 +343,16 @@ aiprov:verificationState a owl:ObjectProperty ;
         agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/demo-page>,
         <https://w3id.org/aiprov/prov/activity/logo-salmon-badge>,
-        <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0> ;
+        <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0>,
+        <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
     aiprov:contentHash "sha256:0856f21fc5927975f0024cebbc729089f26197ca60cb63ea6b30d722b610be2f",
         "sha256:256e2f122bfef02e00137d8f6080ac0a1d9de5c4a22bd9ec23a8bcefb807dd7c",
+        "sha256:25e295cc77650c5a510075acec05fea25f89caf25587a9c25d0d3d74fbeed352",
         "sha256:52c57b971ada51bf4545143d5f5262cfcc346181686e256720f853b46a0157fe" ;
     aiprov:filePath "README.md",
         "site/README.md" ;
-    aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61",
+    aiprov:gitCommit "11158d7c70ef3b2b1eb5e346cdee41d8418f4b17",
+        "93238e02cd80e8b026f7c1dc59202393be3e7d61",
         "9557532e45e01627cff1e9121775729bfd530d56",
         "a51b275" .
 
@@ -405,10 +417,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/codemeta-json> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
-    aiprov:contentHash "sha256:57c284801f2a7e28f6839f389c8176b010d5a6a80368870d54f10e9ba7d55cae" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata>,
+        <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
+    aiprov:contentHash "sha256:57c284801f2a7e28f6839f389c8176b010d5a6a80368870d54f10e9ba7d55cae",
+        "sha256:f76a18fb03b26910a20221ef4977fd95514ab9d069a774f3ff75f85974566587" ;
     aiprov:filePath "codemeta.json" ;
-    aiprov:gitCommit "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
+    aiprov:gitCommit "11158d7c70ef3b2b1eb5e346cdee41d8418f4b17",
+        "971364ac8a4d8ed17eae6fafe68895502f48dbc6" .
 
 <https://w3id.org/aiprov/prov/entity/identity-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -618,19 +633,10 @@ aiprov:Contribution a owl:Class ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
 
-verif:ai-confirmed a aiprov:VerificationState ;
-    rdfs:label "AI-confirmed"@en ;
-    rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
-    aiprov:ladderPosition 3 .
-
 aiprov:AIAgent a owl:Class ;
     rdfs:label "AI agent"@en ;
     rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en ;
     rdfs:subClassOf prov:SoftwareAgent .
-
-aiprov:Build a owl:Class ;
-    rdfs:comment "Deterministic build/compile/CI activity."@en ;
-    rdfs:subClassOf prov:Activity .
 
 aiprov:Repair a owl:Class ;
     rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
@@ -660,6 +666,20 @@ aiprov:Repair a owl:Class ;
     rdfs:label "Release metadata for 0.2.0 and the first Zenodo archive on the owner's decision (both 0.1.0 and 0.2.0 under one concept DOI, mint now); no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T22:33:03.378814+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+<https://w3id.org/aiprov/prov/activity/zenodo-archive> a aiprov:Build ;
+    rdfs:label "0.1.0 and 0.2.0 archived on Zenodo through the deposit API from the owner's account on his go (one concept DOI); DOIs written into the citation metadata; no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-25T23:00:16.337775+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+verif:ai-confirmed a aiprov:VerificationState ;
+    rdfs:label "AI-confirmed"@en ;
+    rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
+    aiprov:ladderPosition 3 .
+
+aiprov:Build a owl:Class ;
+    rdfs:comment "Deterministic build/compile/CI activity."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/demo-page> a aiprov:AuthoringPass ;
     rdfs:label "Demo page for GitHub Pages on the owner's choice: pitch, a demo graph produced by running provlog on invented data, a five-step explanation, the commands as run; build fails when provlog behaves differently; workflow deploys from main; no telemetry recorded"@en ;
