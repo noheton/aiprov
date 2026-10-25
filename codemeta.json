@@ -3,25 +3,44 @@
   "@type": "SoftwareSourceCode",
   "name": "aiprov",
   "description": "Domain-agnostic AI provenance over W3C PROV-O: agents, activities, inference telemetry, claims, sources, and a verification ladder with human-only rungs.",
-  "version": "0.2.0-rc.1",
+  "version": "0.2.0",
   "dateCreated": "2026-10-23",
-  "datePublished": "2026-10-24",
+  "datePublished": "2026-10-25",
   "license": "https://spdx.org/licenses/MIT",
   "codeRepository": "https://github.com/noheton/aiprov",
   "url": "https://w3id.org/aiprov",
   "issueTracker": "https://github.com/noheton/aiprov/issues",
   "programmingLanguage": "Python",
   "runtimePlatform": "Python 3.10+",
-  "softwareRequirements": ["rdflib>=7.0"],
-  "keywords": ["provenance", "PROV-O", "AI", "FAIR", "RDF", "verification"],
-  "author": [{
-    "@type": "Person",
-    "givenName": "Florian",
-    "familyName": "Krebs",
-    "@id": "https://orcid.org/0000-0001-6033-801X",
-    "affiliation": {"@type": "Organization", "name": "DLR Institute of Structures and Design, ZLP Augsburg"}
-  }],
+  "softwareRequirements": [
+    "rdflib>=7.0"
+  ],
+  "keywords": [
+    "provenance",
+    "PROV-O",
+    "AI",
+    "FAIR",
+    "RDF",
+    "verification"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Florian",
+      "familyName": "Krebs",
+      "@id": "https://orcid.org/0000-0001-6033-801X",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "DLR Institute of Structures and Design, ZLP Augsburg"
+      }
+    }
+  ],
   "isBasedOn": "https://doi.org/10.48550/arXiv.2607.25637",
   "developmentStatus": "active",
-  "readme": "https://github.com/noheton/aiprov/blob/main/README.md"
+  "readme": "https://github.com/noheton/aiprov/blob/main/README.md",
+  "relatedLink": [
+    "https://noheton.github.io/aiprov/",
+    "https://w3id.org/aiprov/ns"
+  ],
+  "referencePublication": "https://doi.org/10.48550/arXiv.2607.25637"
 }

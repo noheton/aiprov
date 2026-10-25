@@ -58,3 +58,17 @@ Additive; legacy graphs validate unchanged.
 Session types; vendoring as a property (`vendoredFile`, rung deprecated, migration script);
 model identity for local models; OTel ingest; source attribution and self-citation rule.
 Tracked as issues; nothing lands before the first external consumer has reviewed #0.
+
+## 0.2.0 — 2026-10-25
+Everything of 0.2.0-rc.1, plus:
+- `claim` and `source` refuse the human-only steps (`human-confirmed`, `human-read`, `lit-read`) for any agent that is
+  not a registered `HumanAgent`, through the same helper as `promote`; `promote` exits with a message for a state
+  outside the ladder (#18, #19). The check trusts the registration of agents (`AGENTS.md`; follow-up #22).
+- Identity and logo: `docs/identity.md`; `assets/` with the salmon badge, its provenance record and the scripts that
+  build the badge and the social preview (#20).
+- Demo page, https://noheton.github.io/aiprov/: `site/` builds it by running `provlog` on invented data and fails if a
+  command behaves differently from what the page says; `.github/workflows/pages.yml` deploys it from `main`.
+- Docs: the install line pins `@v0.2.0`; `schema/README.md` names `Build` and `Repair` (#13).
+- First release archived on Zenodo, together with 0.1.0 under one concept DOI.
+
+Not in 0.2.0: the open proposals and bugs (#8 to #17, #21 to #25), planned for 0.3.0.

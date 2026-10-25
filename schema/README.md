@@ -6,7 +6,7 @@ for artefacts produced with AI in the loop.
 - `aiprov-schema.ttl` — the vocabulary (OWL/RDFS in Turtle). Versioned documents live at
   `https://w3id.org/aiprov/ns/<major.minor>`.
 - Classes: `AIAgent`, `HumanAgent`, `ToolAgent` (agents); `AuthoringPass`, `AuditPass`,
-  `BuildPass`, `RepairPass` (activities); `Artefact`, `Claim`, `Source`, `Prompt` (entities);
+  `Build`, `Repair` (activities); `Artefact`, `Claim`, `Source`, `Prompt` (entities);
   `VerificationState` with `ladderPosition`.
 - Invariants: no parentless claim; the rungs `human-confirmed` and `human-read` may only be
   granted by a `HumanAgent`.

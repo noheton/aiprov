@@ -13,7 +13,7 @@ Namespace: `https://w3id.org/aiprov/ns#` · Generalised from
 
 ## Install
 ```bash
-uv add "aiprov @ git+https://github.com/noheton/aiprov@v0.1.0"   # or: pip install git+…@v0.1.0
+uv add "aiprov @ git+https://github.com/noheton/aiprov@v0.2.0"   # or: pip install git+…@v0.2.0
 ```
 
 ## Use
@@ -35,8 +35,9 @@ Two invariants are enforced by `validate`: **no parentless claim**, and **human-
 `tests/` with a synthetic example graph as fixture.
 
 ## Status
-0.1.0 packages the existing skill bundle unchanged. 0.2.0 is planned with external consumers
-(see CHANGELOG). Issues and pull requests welcome; the vocabulary is meant to be co-owned by
+0.2.0 (2026-10-25) adds multi-agent orchestration, sharded logging and the human-only check in `claim` and
+`source`; 0.1.0 packaged the skill bundle unchanged. The open schema proposals are planned for 0.3.0 (see CHANGELOG).
+Releases are archived on Zenodo. Issues and pull requests welcome; the vocabulary is meant to be co-owned by
 the systems that depend on it.
 
 ## Cite

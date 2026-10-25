@@ -2,10 +2,37 @@
   "title": "aiprov: domain-agnostic AI provenance over PROV-O",
   "upload_type": "software",
   "license": "MIT",
-  "creators": [{"name": "Krebs, Florian", "orcid": "0000-0001-6033-801X", "affiliation": "DLR Institute of Structures and Design, ZLP Augsburg"}],
-  "keywords": ["provenance", "PROV-O", "AI", "FAIR", "RDF"],
+  "creators": [
+    {
+      "name": "Krebs, Florian",
+      "orcid": "0000-0001-6033-801X",
+      "affiliation": "DLR Institute of Structures and Design, ZLP Augsburg"
+    }
+  ],
+  "keywords": [
+    "provenance",
+    "PROV-O",
+    "AI",
+    "FAIR",
+    "RDF"
+  ],
   "related_identifiers": [
-    {"identifier": "10.48550/arXiv.2607.25637", "relation": "isDerivedFrom", "resource_type": "publication-preprint"},
-    {"identifier": "https://w3id.org/aiprov/ns", "relation": "isIdenticalTo", "scheme": "url"}
-  ]
+    {
+      "identifier": "10.48550/arXiv.2607.25637",
+      "relation": "isDerivedFrom",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "https://w3id.org/aiprov/ns",
+      "relation": "hasPart",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://noheton.github.io/aiprov/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    }
+  ],
+  "description": "<p>aiprov records who, a person or an AI model, did what to an artefact and who checked it, in a plain Turtle file as a profile of W3C PROV-O. It provides the vocabulary (https://w3id.org/aiprov/ns#), the provlog command line (activities with the telemetry the tool reports; claims on a seven-step verification ladder whose top two steps only registered humans may grant; validate, report, merge for multi-agent runs) and a dashboard builder.</p><p>A demo graph, explained: https://noheton.github.io/aiprov/</p>",
+  "notes": "Developed with AI assistance (Anthropic Claude models, named in the commit trailers). Every AI-assisted change is recorded in the repository's own provenance graph (provenance.ttl), which CI validates."
 }
