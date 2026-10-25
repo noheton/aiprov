@@ -27,6 +27,9 @@ strokes is preferred.
 generator, model as displayed, date, sha256 of the prompt text as it stands in this file, how the file was obtained
 (download or screenshot), processing steps, who chose it, marking, rights.
 
+**Result (2026-10-25).** The owner chose the first result of the prompt above, made in the Gemini web app. The badge is
+`assets/aiprov-icon.png` (512 px) and `assets/aiprov-icon-1024.png`; the README shows it. Record: `assets/PROVENANCE.md`.
+
 ## Rights of a generated picture
 
 Read on 2026-10-25 (public pages, country version Germany):

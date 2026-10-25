@@ -1,5 +1,7 @@
 # aiprov
 
+<img src="assets/aiprov-icon.png" alt="aiprov logo: a white salmon leaping up a waterfall in a teal-to-blue circle" width="120" align="right">
+
 Domain-agnostic **AI provenance over W3C PROV-O**: who (human, AI model, tool) did what to an
 artefact, with inference telemetry and a verification ladder whose top rungs only humans may grant.
 Works for code, documents, data pipelines, CAD, AAS submodels — any AI-in-the-loop artefact.
