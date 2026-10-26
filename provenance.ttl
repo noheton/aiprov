@@ -199,6 +199,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/c-logging-instant-is-not-a-span> a aiprov:Claim ;
+    rdfs:label "provlog recorded the moment a log line was appended in the field a reader takes for the duration of the work, and the consequence is misattribution rather than untidiness. Measured in a consuming repository on 2026-10-26: fourteen activities of one agent session carried prov:endedAtTime minus prov:startedAtTime of 0.35 to 1.27 seconds, for work whose real spans, derived from the first and last turn timestamps of the same session's harness record, were 916.6 and 444.4 seconds for two of the runs. The cause is that cmd_log wrote prov:endedAtTime as the current time unconditionally while --started was optional and seldom passed, so an activity logged in arrears is indistinguishable from one that genuinely took a second. This matters because the model in force can change inside a session through a reroute, a fallback or a manual switch, which was observed twice in one evening on the same session: attribution then follows the instant of logging rather than the window of work, and a perfectly valid graph can name the wrong model. The change is additive: aiprov:recordedAtTime is always written and states when the record was made, log --ended takes the end of the work and still defaults to now, and validate reports a session activity whose span is under a second or absent as a warning rather than a failure, because a genuinely short activity is possible and aiprov cannot distinguish the two. Records written before the change remain distinguishable by the absence of recordedAtTime. Thirty-four tests pass, two of them new and covering both directions. Not established: whether a sub-second threshold is the right boundary, and aiprov still has no way to obtain a true end time itself; it can only stop overwriting the field that would hold one."@en ;
+    prov:wasAttributedTo agent:claude-opus-alias ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/c-logo-provenance> a aiprov:Claim ;
     rdfs:label "The three badge files are byte-identical to the output of assets/make_icon.py run on the source picture (sha256 checked twice); the source is the inline image the owner pasted into the session, 1024 x 1024 px, sha256 670dc0f0. Model setting and prompt use are the owner's statements."@en ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -281,6 +287,7 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/CHANGELOG-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5,
+        agent:claude-opus-alias,
         agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -289,12 +296,14 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes>,
         <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata>,
-        <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1> ;
+        <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1>,
+        <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:0269edd5a48d3135d522a32dfe323765465b194bc89c94b0dfb6f6fe89aa6f23",
         "sha256:06d6c9aa194f5fa5c74bb0591f8986605f6e141e09e114479ae0b85637fa2e10",
         "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c",
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
+        "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
@@ -304,6 +313,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "2129332",
         "735a10e",
         "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
+        "aa04337",
         "ab531da",
         "ebd9503",
         "f4b910ad445f6084d8273fc1c909336c137089e0" .
@@ -384,11 +394,15 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "9557532e45e01627cff1e9121775729bfd530d56" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-schema-ttl> a aiprov:Artefact ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0" ;
+    prov:wasAttributedTo agent:claude-opus-alias,
+        agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
+        <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
+    aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
+        "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0" ;
     aiprov:filePath "schema/aiprov-schema.ttl" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "aa04337",
+        "ab531da" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-social-preview-png> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -489,18 +503,21 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
 
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasAttributedTo agent:claude-opus-alias,
+        agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
         <https://w3id.org/aiprov/prov/activity/merge-hardening>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
-        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes> ;
+        <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes>,
+        <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
+        "sha256:a1bf12c488c8f9b656293564a7ee63249cafe82af7640e50f6f72177a7c305ed",
         "sha256:a26fc61b043a25e9c4c40ab0e9ea3178f6f58a6b1577e3338e8781de18d6b3b9",
         "sha256:a7863dfd260b1e9f515850f8db58550c4027d5f3262e685820af9d6dd323ffe8",
         "sha256:f7550aa453f935bab37df94449cdce612785d29ed346b01224ad6475e3758a2f" ;
@@ -508,6 +525,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "735a10e",
+        "aa04337",
         "ab531da",
         "ebd9503",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
@@ -572,11 +590,15 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "1f8bf61" .
 
 <https://w3id.org/aiprov/prov/entity/test_validate-py> a aiprov:Artefact ;
-    prov:wasAttributedTo agent:claude-fable-5-1 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0> ;
-    aiprov:contentHash "sha256:cd664a7195eb61f9c51dcfbfe3bebf97cd8c9171d9b9d926db186b5b25cb156e" ;
+    prov:wasAttributedTo agent:claude-fable-5-1,
+        agent:claude-opus-alias ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/scaffold-0.1.0>,
+        <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
+    aiprov:contentHash "sha256:5f032c26a49151b57acb2c33aeff9b4aae98b6761b02852810af6cd68d66a401",
+        "sha256:cd664a7195eb61f9c51dcfbfe3bebf97cd8c9171d9b9d926db186b5b25cb156e" ;
     aiprov:filePath "tests/test_validate.py" ;
-    aiprov:gitCommit "a51b275" .
+    aiprov:gitCommit "a51b275",
+        "aa04337" .
 
 verif:human-confirmed a aiprov:VerificationState ;
     rdfs:label "human-confirmed"@en ;
@@ -611,10 +633,6 @@ verif:source-vendored a aiprov:VerificationState ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
-agent:florian-krebs a aiprov:HumanAgent ;
-    foaf:name "Florian Krebs" ;
-    aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
-
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
     rdfs:subClassOf prov:Person .
@@ -628,6 +646,10 @@ aiprov:HumanAgent a owl:Class ;
     rdfs:label "w3id namespace badge in the README and on the demo page on the owner's request; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T23:20:33.824517+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+agent:florian-krebs a aiprov:HumanAgent ;
+    foaf:name "Florian Krebs" ;
+    aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
 
 aiprov:Contribution a owl:Class ;
     rdfs:subClassOf prov:Entity .
@@ -657,11 +679,6 @@ aiprov:Contribution a owl:Class ;
     rdfs:label "Social preview checked against GitHub's repository card template (safe area 80 px): it fitted; the block was centred in the safe area and the margin made a constant of the script; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
-
-aiprov:AIAgent a owl:Class ;
-    rdfs:label "AI agent"@en ;
-    rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en ;
-    rdfs:subClassOf prov:SoftwareAgent .
 
 aiprov:Repair a owl:Class ;
     rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
@@ -702,9 +719,10 @@ verif:ai-confirmed a aiprov:VerificationState ;
     rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
     aiprov:ladderPosition 3 .
 
-aiprov:Build a owl:Class ;
-    rdfs:comment "Deterministic build/compile/CI activity."@en ;
-    rdfs:subClassOf prov:Activity .
+aiprov:AIAgent a owl:Class ;
+    rdfs:label "AI agent"@en ;
+    rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en ;
+    rdfs:subClassOf prov:SoftwareAgent .
 
 <https://w3id.org/aiprov/prov/activity/demo-page> a aiprov:AuthoringPass ;
     rdfs:label "Demo page for GitHub Pages on the owner's choice: pitch, a demo graph produced by running provlog on invented data, a five-step explanation, the commands as run; build fails when provlog behaves differently; workflow deploys from main; no telemetry recorded"@en ;
@@ -726,6 +744,18 @@ aiprov:Build a owl:Class ;
         "read",
         "write" .
 
+<https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> a aiprov:Build ;
+    rdfs:label "Separate the moment a record is written from the span of the work it describes: aiprov:recordedAtTime, log --ended, and a validate WARN for session activities that carry only a logging instant. The span given here runs from the earliest modification time of the changed files to the commit, a measured lower bound rather than the instant of logging, which is the defect this change exists to remove."@en ;
+    prov:endedAtTime "2026-10-26T23:59:31+01:00"^^xsd:dateTime ;
+    prov:startedAtTime "2026-10-26T23:28:34+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-alias ;
+    aiprov:recordedAtTime "2026-10-27T00:00:24.947068+01:00"^^xsd:dateTime ;
+    aiprov:sessionId "ses_e88a1446dffef7OPEtKQbHBo4L"^^xsd:string .
+
+aiprov:Build a owl:Class ;
+    rdfs:comment "Deterministic build/compile/CI activity."@en ;
+    rdfs:subClassOf prov:Activity .
+
 <https://w3id.org/aiprov/prov/activity/adopt-aiprov> a aiprov:Build ;
     rdfs:label "The repository adopts its own method: agent rules, PR template with AI block, CI job and test validating its graph"@en ;
     prov:endedAtTime "2026-10-23T22:52:31.750188+02:00"^^xsd:dateTime ;
@@ -740,6 +770,12 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
     foaf:name "Claude Fable 5.1" ;
     aiprov:model "claude-fable-5-1"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+agent:claude-opus-alias a aiprov:AIAgent ;
+    prov:actedOnBehalfOf agent:florian-krebs ;
+    foaf:name "Claude Opus (requested by alias through a gateway; served model not established)" ;
+    aiprov:model "opus"^^xsd:string ;
+    aiprov:provider "gateway alias"^^xsd:string .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;
