@@ -176,9 +176,12 @@ def cmd_log(a) -> None:
     g.add((act, RDF.type, cls))
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
-    g.add((act, PROV.endedAtTime, now()))
+    g.add((act, PROV.endedAtTime, Literal(a.ended, datatype=XSD.dateTime) if a.ended else now()))
     if a.started:
         g.add((act, PROV.startedAtTime, Literal(a.started, datatype=XSD.dateTime)))
+    # The moment of bookkeeping, kept apart from the span of the work: without it a record written in arrears
+    # cannot be told apart from one whose work really took the length it claims.
+    g.add((act, AIPROV.recordedAtTime, now()))
     if a.agent:
         g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
     for key, prop, dt in ACT_ATTRS:
@@ -309,6 +312,27 @@ def validate_graph(g: Graph) -> int:
             FILTER NOT EXISTS { ?act prov:wasAssociatedWith ?ag } }"""
     anon = set(r[0] for r in g.query(q4))
     print(f"[{'WARN' if anon else ' OK '}] activities without agent: {len(anon)}")
+    # An activity that carries a session id describes work done inside a session, so its span is a claim about
+    # that work. A span of under a second is almost always the instant the record was appended, which matters
+    # because the model in force can change inside a session: attribution then follows the moment of logging
+    # rather than the moment of work. Reported, never failed - a genuinely short activity is possible, and
+    # aiprov cannot tell the two apart. aiprov:recordedAtTime exists so new records need not be guessed at.
+    instants = []
+    for act in set(g.subjects(AIPROV.sessionId, None)):
+        st, en = g.value(act, PROV.startedAtTime), g.value(act, PROV.endedAtTime)
+        if en is None:
+            continue
+        if st is None:
+            instants.append(act)      # no span recorded at all: the end is the moment of writing
+            continue
+        try:
+            span = (en.toPython() - st.toPython()).total_seconds()
+        except (TypeError, AttributeError):
+            continue
+        if span < 1.0:
+            instants.append(act)
+    print(f"[{'WARN' if instants else ' OK '}] session activities with no measurable span "
+          f"(a logging instant, not the span of the work): {len(instants)}")
     # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
     dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
             FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
@@ -784,7 +808,10 @@ def main() -> None:
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
     s.add_argument("--pass", dest="pass_", choices=["authoring", "audit", "build", "repair"], default="authoring")
-    s.add_argument("--agent"); s.add_argument("--started"); s.add_argument("--commit")
+    s.add_argument("--agent"); s.add_argument("--started")
+    s.add_argument("--ended", help="end of the work; defaults to now, which is the moment of recording, "
+                                   "not necessarily the moment the work finished")
+    s.add_argument("--commit")
     s.add_argument("--total-tokens", dest="total_tokens")
     for key, _, _ in ACT_ATTRS:
         s.add_argument("--" + key.replace("_", "-"), dest=key)

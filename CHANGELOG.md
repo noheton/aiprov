@@ -45,6 +45,16 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Schema: `aiprov:recordedAtTime` separates when a record was written from when the work happened. `log` wrote
+  `prov:endedAtTime = now()` unconditionally, so a session activity carried a sub-second span where a reader
+  expects the duration of the work (measured in a consuming repository: fourteen activities, 0.35–1.27 s, for
+  work of hundreds of seconds). This is not only untidy: the model in force can change inside a session, so
+  attribution followed the instant of logging rather than the window of the work. `log --ended` now takes the
+  end of the work explicitly and defaults to now as before; `recordedAtTime` is always written, so a record
+  made in arrears is distinguishable from one whose span is real — and earlier records are distinguishable by
+  its absence. `validate` WARNs on a session activity whose span is under a second or missing, never fails:
+  a genuinely short activity is possible and aiprov cannot tell the two apart. Additive; legacy graphs
+  validate unchanged.
 - Fix (issue 18): `provlog claim --state` and `provlog source --state` now apply the human-only rule of `promote`: `human-confirmed`,
   `human-read` and the alias `lit-read` are refused unless `--agent` is a registered `HumanAgent`; before, they were accepted
   and only `validate` warned. `provlog promote` reports a node whose state is not on the ladder with a message instead of a
