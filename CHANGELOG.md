@@ -45,7 +45,7 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
-- Schema: `aiprov:recordedAtTime` separates when a record was written from when the work happened. `log` wrote
+- Schema (#34): `aiprov:recordedAtTime` separates when a record was written from when the work happened. `log` wrote
   `prov:endedAtTime = now()` unconditionally, so a session activity carried a sub-second span where a reader
   expects the duration of the work (measured in a consuming repository: fourteen activities, 0.35–1.27 s, for
   work of hundreds of seconds). This is not only untidy: the model in force can change inside a session, so
