@@ -188,3 +188,18 @@ aiprov:contradicts    a owl:ObjectProperty ;
     rdfs:domain aiprov:Claim ; rdfs:range aiprov:Claim .
 aiprov:repairs        a owl:ObjectProperty ;
     rdfs:comment "A Repair activity amends generation metadata of a claim without invalidating its content."@en .
+
+#--- Schema version and migration ---------------------------------------------
+
+aiprov:schemaVersion    a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Version of the aiprov schema the graph was last written or migrated to (major.minor.patch). Set by init and migrate; a graph without it is detected by its terms."@en .
+aiprov:Migration        a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Migration"@en ;
+    rdfs:comment "One run of provlog migrate: the graph moved from one schema version to another. Existing triples are kept; deprecated terms are marked, not deleted."@en .
+aiprov:fromSchemaVersion a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string .
+aiprov:toSchemaVersion  a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string .
+aiprov:toolVersion      a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string ;
+    rdfs:comment "Version of the aiprov package that ran the migration."@en .
+aiprov:addedTriples     a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer .
+aiprov:deprecatedTriples a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer ;
+    rdfs:comment "Number of terms the migration marked owl:deprecated."@en .

@@ -34,6 +34,8 @@ def local(iri) -> str:
 
 def extract(path: pathlib.Path) -> dict:
     g = Graph(); g.parse(path, format="turtle")
+    from aiprov.provlog import upgrade_in_memory
+    upgrade_in_memory(g)  # any schema version reads; the file stays as it is
 
     def subjects_of(*terms):
         out = []

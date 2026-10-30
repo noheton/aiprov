@@ -45,6 +45,7 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Added (issue 42): `provlog migrate [--dry-run] [--to VERSION] [--agent ID]` brings a graph to the schema version of the installed provlog. Steps are chained per version, every existing triple is kept, deprecated terms are marked `owl:deprecated` and never deleted, missing vocabulary terms are added, and each run is logged as one `aiprov:Migration` activity (from, to, tool version, counts). A second run changes nothing. `init` stamps `aiprov:schemaVersion`; a graph without it is detected by its terms (0.1.0, 0.2.0) and `validate` warns (never fails). The dashboard reads graphs of every version in memory and leaves the file as it is. Fixtures of 0.1.0 and 0.2.0 in `tests/fixtures/versions/`. Additive.
 - Fix (issue 21): `provlog log`, `claim`, `source` and `promote` refuse an `--agent` that was never registered with
   `provlog agent` (no `AIAgent`, `HumanAgent` or `ToolAgent` type in the graph) and name the command to register it; the
   graph file stays unchanged. `validate` fails on "agents referenced but not registered" (objects of `prov:wasAssociatedWith`
