@@ -265,6 +265,18 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents> ;
     aiprov:verificationState verif:ai-confirmed .
 
+<https://w3id.org/aiprov/prov/claim/session-types-legacy-unchanged> a aiprov:Claim ;
+    rdfs:label "Graphs that do not use dcterms:isPartOf on an activity validate and report exactly as before the session change (checked by test_legacy_graph_without_sessions_is_unchanged and by the existing 36 tests, which pass unchanged)."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/session-types-write-once> a aiprov:Claim ;
+    rdfs:label "A session's type, outcome, start and end are write-once: a different second value is refused and the graph file stays byte-identical (test_session_values_are_write_once)."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/entity/-zenodo-json> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/release-0-2-0-metadata> ;
@@ -394,10 +406,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/aiprov-schema-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
+    aiprov:contentHash "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0",
+        "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972" ;
     aiprov:filePath "schema/aiprov-schema.ttl" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "ab531da" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-social-preview-png> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -411,10 +426,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/attributes-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
+        <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
+    aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
+        "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c" ;
     aiprov:filePath "docs/attributes.md" ;
-    aiprov:gitCommit "ab531da" .
+    aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "ab531da" .
 
 <https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -501,6 +519,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasAttributedTo agent:claude-opus-5-5,
         agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents>,
+        <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -515,11 +534,13 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
         "sha256:a26fc61b043a25e9c4c40ab0e9ea3178f6f58a6b1577e3338e8781de18d6b3b9",
         "sha256:a7863dfd260b1e9f515850f8db58550c4027d5f3262e685820af9d6dd323ffe8",
+        "sha256:e6b805d56b0a1630ff2a325afa16a6720643edf0b1447e362e165d51d43a0c75",
         "sha256:f7550aa453f935bab37df94449cdce612785d29ed346b01224ad6475e3758a2f" ;
     aiprov:filePath "src/aiprov/provlog.py" ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "1ddf1a3",
+        "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "735a10e",
         "ab531da",
         "ebd9503",
@@ -546,6 +567,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:04cce89567167d2cbb215caa5bc9f637187976eb18cb9633d803d1978cccb3ae" ;
     aiprov:filePath ".github/ISSUE_TEMPLATE/schema-change.md" ;
     aiprov:gitCommit "dd4b718" .
+
+<https://w3id.org/aiprov/prov/entity/session-bad-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> ;
+    aiprov:contentHash "sha256:3dba4b60d575ed78510b4f932010c6534cca468bb398a94e2476bbb8e865e291" ;
+    aiprov:filePath "tests/fixtures/session-bad.ttl" ;
+    aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568" .
 
 <https://w3id.org/aiprov/prov/entity/test_extract_dashboard-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -597,6 +625,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:7a8e799377c714bfe3f9a38055536dca7c067e77046ab043f3cb362c679b7fe5" ;
     aiprov:filePath "tests/test_repository_provenance.py" ;
     aiprov:gitCommit "1f8bf61" .
+
+<https://w3id.org/aiprov/prov/entity/test_sessions-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> ;
+    aiprov:contentHash "sha256:559184b14220929d32e3aeb5f733991aaead72e7b77c84cb726056e312dbad3a" ;
+    aiprov:filePath "tests/test_sessions.py" ;
+    aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568" .
 
 <https://w3id.org/aiprov/prov/entity/test_validate-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-fable-5-1 ;
@@ -788,6 +823,11 @@ agent:claude-fable-5-1 a aiprov:AIAgent ;
     foaf:name "Claude Fable 5.1" ;
     aiprov:model "claude-fable-5-1"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+<https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> a aiprov:AuthoringPass ;
+    rdfs:label "Issue 8: aiprov:Session with type, start, end and outcome; log --session options (write-once); report by session type; validate FAIL for isPartOf of a non-session; fixture and seven tests; no telemetry recorded"@en ;
+    prov:endedAtTime "2026-10-30T20:07:32.274831+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;
