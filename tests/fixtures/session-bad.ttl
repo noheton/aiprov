@@ -1,0 +1,12 @@
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix act: <https://example.org/prov/activity/> .
+
+# Synthetic. An activity that is part of something that was never recorded as a session.
+agent:m1 a aiprov:AIAgent .
+act:orphan a aiprov:AuthoringPass ; prov:endedAtTime "2026-10-30T12:00:00+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:m1 ;
+    dcterms:isPartOf <https://example.org/prov/session/ghost> .
