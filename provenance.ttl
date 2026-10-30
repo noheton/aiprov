@@ -540,6 +540,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "pyproject.toml" ;
     aiprov:gitCommit "a51b275" .
 
+<https://w3id.org/aiprov/prov/entity/schema-change-md> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-opus-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-template-labels> ;
+    aiprov:contentHash "sha256:04cce89567167d2cbb215caa5bc9f637187976eb18cb9633d803d1978cccb3ae" ;
+    aiprov:filePath ".github/ISSUE_TEMPLATE/schema-change.md" ;
+    aiprov:gitCommit "dd4b718" .
+
 <https://w3id.org/aiprov/prov/entity/test_extract_dashboard-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import> ;
@@ -633,6 +640,13 @@ verif:source-vendored a aiprov:VerificationState ;
     rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads."@en ;
     aiprov:ladderPosition 4 .
 
+<https://w3id.org/aiprov/prov/activity/2026-10-30-template-labels> a aiprov:Repair ;
+    rdfs:label "Schema-change issue template uses the shared label set"@en ;
+    prov:endedAtTime "2026-10-30T20:57:03.293665+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-opus-5-5 ;
+    aiprov:sessionId "ses_e73662937ffeld6gOKquerG5wc"^^xsd:string ;
+    aiprov:usedTool "opencode" .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
@@ -724,10 +738,6 @@ aiprov:Build a owl:Class ;
     rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents> a aiprov:Repair ;
     rdfs:label "Refuse unregistered agents in log, claim, source, promote; validate and merge fail on them (issue 21)"@en ;
     prov:endedAtTime "2026-10-30T12:49:08.975657+01:00"^^xsd:dateTime ;
@@ -759,6 +769,10 @@ verif:ai-confirmed a aiprov:VerificationState ;
     rdfs:label "AI-confirmed"@en ;
     rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en ;
     aiprov:ladderPosition 3 .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/adopt-aiprov> a aiprov:Build ;
     rdfs:label "The repository adopts its own method: agent rules, PR template with AI block, CI job and test validating its graph"@en ;
