@@ -1,7 +1,7 @@
 ---
 name: Schema change proposal
 about: Propose an addition or change to the aiprov vocabulary
-labels: schema, rfc
+labels: kind::feature, area::schema, decide::open
 ---
 **Motivation** (what cannot be expressed today)
 
