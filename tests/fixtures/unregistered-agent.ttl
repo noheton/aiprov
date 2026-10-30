@@ -1,0 +1,20 @@
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix verif: <https://example.org/prov/verification/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Invented fixture (issue 21): agent:ghost is named by an activity and a claim but was never registered
+# with `provlog agent`, so it has no aiprov:AIAgent, aiprov:HumanAgent or aiprov:ToolAgent type.
+
+<https://example.org/prov/activity/a-ghost> a aiprov:AuthoringPass ;
+    rdfs:label "Activity of an agent that was never registered (fixture)"@en ;
+    prov:endedAtTime "2026-10-30T10:00:00+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:ghost .
+
+<https://example.org/prov/claim/c-ghost> a aiprov:Claim ;
+    rdfs:label "A claim by an agent that was never registered (fixture)."@en ;
+    prov:wasAttributedTo agent:ghost ;
+    prov:wasGeneratedBy <https://example.org/prov/activity/a-ghost> ;
+    aiprov:verificationState verif:unverified .

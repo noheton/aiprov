@@ -45,6 +45,11 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Fix (issue 21): `provlog log`, `claim`, `source` and `promote` refuse an `--agent` that was never registered with
+  `provlog agent` (no `AIAgent`, `HumanAgent` or `ToolAgent` type in the graph) and name the command to register it; the
+  graph file stays unchanged. `validate` fails on "agents referenced but not registered" (objects of `prov:wasAssociatedWith`
+  or `prov:wasAttributedTo` without one of the three types), and `merge` therefore rejects a shard that references such an
+  agent. Repair for an existing graph: one `provlog agent` call per listed id. `log` and `source` without `--agent` work as before.
 - Fix (issue 18): `provlog claim --state` and `provlog source --state` now apply the human-only rule of `promote`: `human-confirmed`,
   `human-read` and the alias `lit-read` are refused unless `--agent` is a registered `HumanAgent`; before, they were accepted
   and only `validate` warned. `provlog promote` reports a node whose state is not on the ladder with a message instead of a
