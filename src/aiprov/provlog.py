@@ -163,6 +163,7 @@ def cmd_log(a) -> None:
         if why:
             sys.exit("refused: " + why)
         g.add((act, PROV.wasInformedBy, parent))
+    _require_registered(g, a.base, a.agent)
     for r in a.planned_role or []:
         g.add((act, AIPROV.plannedRole, Literal(r)))
     for pa in a.planned_agent or []:
@@ -228,6 +229,22 @@ def cmd_log(a) -> None:
     print(f"act:{a.activity} logged ({len(g)} triples total)")
 
 
+AGENT_CLASSES = (AIPROV.AIAgent, AIPROV.HumanAgent, AIPROV.ToolAgent)
+
+
+def _is_registered(g: Graph, base: str, agent: str) -> bool:
+    node = ns(base, "agent")[agent]
+    return any((node, RDF.type, c) in g for c in AGENT_CLASSES)
+
+
+def _require_registered(g: Graph, base: str, agent: "str | None") -> None:
+    """Exit when --agent names an id that `provlog agent` never registered (issue 21): an untyped agent is
+    neither AI nor human nor tool, so reports cannot count it and the human-only rule cannot judge it."""
+    if agent is not None and not _is_registered(g, base, agent):
+        sys.exit(f"REFUSED: agent:{agent} is not registered; register it first with "
+                 f"`provlog agent --id {agent} --type ai|human|tool ...`")
+
+
 def _is_human(g: Graph, base: str, agent: "str | None") -> bool:
     return agent is not None and (ns(base, "agent")[agent], RDF.type, AIPROV.HumanAgent) in g
 
@@ -250,6 +267,7 @@ def _clean_state(state: str) -> str:
 def cmd_claim(a) -> None:
     g = load()
     a.state = _clean_state(a.state)
+    _require_registered(g, a.base, a.agent)
     _refuse_human_only(g, a.base, a.state, a.agent)
     c = ns(a.base, "claim")[a.id]
     g.add((c, RDF.type, AIPROV.Claim))
@@ -309,6 +327,13 @@ def validate_graph(g: Graph) -> int:
             FILTER NOT EXISTS { ?act prov:wasAssociatedWith ?ag } }"""
     anon = set(r[0] for r in g.query(q4))
     print(f"[{'WARN' if anon else ' OK '}] activities without agent: {len(anon)}")
+    # An agent that is named but was never registered carries no type, model or name (issue 21).
+    unreg = list(g.query("""SELECT DISTINCT ?ag WHERE {
+            { ?x prov:wasAssociatedWith ?ag } UNION { ?x prov:wasAttributedTo ?ag }
+            FILTER NOT EXISTS { ?ag a aiprov:AIAgent } FILTER NOT EXISTS { ?ag a aiprov:HumanAgent }
+            FILTER NOT EXISTS { ?ag a aiprov:ToolAgent } }"""))
+    print(f"[{'FAIL' if unreg else ' OK '}] agents referenced but not registered: {len(unreg)}")
+    fail += len(unreg)
     # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
     dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
             FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
@@ -346,6 +371,7 @@ def validate_graph(g: Graph) -> int:
     for kind, rows in (("parentless claim", orphans), ("unattributed claim", unattr),
                        ("human-only rung granted by an AI agent", bad), ("source without reference", noref),
                        ("human-only rung without human promotion", unwit),
+                       ("agent referenced but not registered", unreg),
                        ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
                        ("orchestration logged twice", reclosed), ("logged before its orchestration", early)):
         for row in rows:
@@ -547,6 +573,7 @@ def cmd_source(a) -> None:
     s = ns(a.base, "source")[a.id]
     g.add((s, RDF.type, AIPROV.Source))
     state = canon_rung(a.state) if a.state else "unverified"
+    _require_registered(g, a.base, a.agent)
     _refuse_human_only(g, a.base, state, a.agent)
     meta = None
     if a.verify:
@@ -594,6 +621,7 @@ def cmd_source(a) -> None:
 
 def cmd_promote(a) -> None:
     g = load()
+    _require_registered(g, a.base, a.agent)
     node = None
     for kind in ("source", "claim"):
         cand = ns(a.base, kind)[a.id]
