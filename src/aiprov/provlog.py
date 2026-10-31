@@ -127,6 +127,71 @@ def plan_violation(g: Graph, base: str, parent, agent, role) -> "str | None":
     return None
 
 
+SESSION_TYPES = ["interactive-chat", "coding-agent", "batch", "evaluation"]
+SESSION_OUTCOMES = ["succeeded", "failed", "interrupted"]
+
+
+def _session_type_node(value: str) -> URIRef:
+    """A built-in type name, or the full IRI of a concept in the adopter's own scheme."""
+    if value.startswith(("http://", "https://")):
+        return URIRef(value)
+    if value not in SESSION_TYPES:
+        sys.exit(f"--session-type: {value} is not one of {', '.join(SESSION_TYPES)}; "
+                 "use the IRI of your own concept for another kind")
+    return AIPROV["sessionType-" + value]
+
+
+def _session_time(value: str, flag: str) -> Literal:
+    try:
+        datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        sys.exit(f"{flag}: {value} is not an ISO 8601 date-time")
+    return Literal(value, datatype=XSD.dateTime)
+
+
+def _link_session(g: Graph, a, act) -> None:
+    """Create the session on first mention and attach the activity to it. Type, start, end and outcome are
+    write-once: a value may be added while absent, a different second value is refused (append-only)."""
+    given = {"--session-type": a.session_type, "--session-outcome": a.session_outcome,
+             "--session-started": a.session_started, "--session-ended": a.session_ended}
+    if not a.session:
+        if any(v is not None for v in given.values()):
+            sys.exit(", ".join(k for k, v in given.items() if v is not None) + " need --session")
+        return
+    node = ns(a.base, "session")[a.session]
+    if (node, RDF.type, None) in g and (node, RDF.type, AIPROV.Session) not in g:
+        sys.exit(f"{node} exists and is not a session")
+    values = []
+    if a.session_type is not None:
+        values.append((AIPROV.sessionType, _session_type_node(a.session_type), "--session-type"))
+    if a.session_outcome is not None:
+        values.append((AIPROV.sessionOutcome, Literal(a.session_outcome), "--session-outcome"))
+    if a.session_started is not None:
+        values.append((PROV.startedAtTime, _session_time(a.session_started, "--session-started"), "--session-started"))
+    if a.session_ended is not None:
+        values.append((PROV.endedAtTime, _session_time(a.session_ended, "--session-ended"), "--session-ended"))
+    for prop, val, flag in values:
+        old = set(g.objects(node, prop))
+        if old and val not in old:
+            sys.exit(f"{flag}: session {a.session} already has {', '.join(str(o) for o in old)}; "
+                     "the graph is append-only, a recorded value is not replaced")
+    g.add((node, RDF.type, AIPROV.Session))
+    g.add((node, AIPROV.sessionId, Literal(a.session)))
+    for prop, val, _ in values:
+        g.add((node, prop, val))
+    start = next(iter(g.objects(node, PROV.startedAtTime)), None)
+    end = next(iter(g.objects(node, PROV.endedAtTime)), None)
+    if start is not None and end is not None:
+        try:
+            late = (datetime.datetime.fromisoformat(str(end).replace("Z", "+00:00"))
+                    < datetime.datetime.fromisoformat(str(start).replace("Z", "+00:00")))
+        except TypeError:  # one with and one without a time zone: cannot be compared
+            late = False
+        if late:
+            sys.exit(f"session {a.session} would end before it started")
+    g.add((act, DCT.isPartOf, node))
+
+
 ACT_ATTRS = [  # (cli key, property, xsd type)
     ("session_id", AIPROV.sessionId, XSD.string), ("request_id", AIPROV.requestId, XSD.string),
     ("turns", AIPROV.turnCount, XSD.integer),
@@ -179,6 +244,7 @@ def cmd_log(a) -> None:
     if a.role:
         g.add((act, AIPROV.role, Literal(a.role)))
     g.add((act, RDF.type, cls))
+    _link_session(g, a, act)
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
     g.add((act, PROV.endedAtTime, Literal(a.ended, datatype=XSD.dateTime) if a.ended else now()))
@@ -526,6 +592,11 @@ def validate_graph(g: Graph) -> int:
             ?o a aiprov:Orchestration ; prov:endedAtTime ?ot . FILTER(?at < ?ot) }"""))
     print(f"[{'FAIL' if early else ' OK '}] sub-activities logged before their orchestration: {len(early)}")
     fail += len(early)
+    # Sessions: an activity that says it is part of something must name a session of this graph.
+    badpart = list(g.query("""SELECT ?a ?s WHERE { ?a dcterms:isPartOf ?s ; prov:endedAtTime ?t .
+            FILTER NOT EXISTS { ?s a aiprov:Session } }"""))
+    print(f"[{'FAIL' if badpart else ' OK '}] activities that are part of something that is not a session: {len(badpart)}")
+    fail += len(badpart)
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -534,7 +605,8 @@ def validate_graph(g: Graph) -> int:
                        ("human-only rung without human promotion", unwit),
                        ("agent referenced but not registered", unreg),
                        ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
-                       ("orchestration logged twice", reclosed), ("logged before its orchestration", early)):
+                       ("orchestration logged twice", reclosed), ("logged before its orchestration", early),
+                       ("part of a non-session", badpart)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -550,7 +622,8 @@ def cmd_report(a) -> None:
         return sum(int(o) for _, _, o in g.triples((None, prop, None)))
     print("== aiprov report ==")
     print(f"triples:            {len(g)}")
-    print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)))}")
+    sessions = set(g.subjects(RDF.type, AIPROV.Session))
+    print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)) - sessions)}")
     print(f"claims:             {len(set(g.subjects(RDF.type, AIPROV.Claim)))}")
     print(f"input tokens:       {total(AIPROV.inputTokens)}")
     print(f"output tokens:      {total(AIPROV.outputTokens)}")
@@ -575,6 +648,22 @@ def cmd_report(a) -> None:
     order = lambda r: LADDER.index(r) if r in LADDER else 99
     for r in sorted(agg, key=order):
         print(f"   {r:24s} {agg[r]}")
+    if sessions:
+        print("-- sessions --")
+        kinds = {}
+        for s_ in sessions:
+            t = next(iter(g.objects(s_, AIPROV.sessionType)), None)
+            key = "(no type)" if t is None else str(t).removeprefix(str(AIPROV) + "sessionType-")
+            kinds.setdefault(key, []).append(s_)
+        for key in sorted(kinds):
+            members = kinds[key]
+            acts = sum(len(set(g.subjects(DCT.isPartOf, s_))) for s_ in members)
+            outs = {}
+            for s_ in members:
+                for o in g.objects(s_, AIPROV.sessionOutcome):
+                    outs[str(o)] = outs.get(str(o), 0) + 1
+            tail = ", ".join(f"{k} {v}" for k, v in sorted(outs.items())) or "no outcome recorded"
+            print(f"   {key:24s} {len(members)} sessions, {acts} activities, {tail}")
     roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
     if roots:
         print("-- orchestration --")
@@ -990,6 +1079,13 @@ def main() -> None:
                    help="agent id, or ID:ROLE to bind the agent to one role; must be registered already")
     s.add_argument("--informed-by", dest="informed_by", help="activity id (prov:wasInformedBy)")
     s.add_argument("--role", help="role of this sub-activity within the orchestration")
+    s.add_argument("--session", help="session id: the activity is part of this session (created on first mention)")
+    s.add_argument("--session-type", dest="session_type",
+                   help=f"kind of session: {', '.join(SESSION_TYPES)}, or the IRI of your own concept")
+    s.add_argument("--session-outcome", dest="session_outcome", choices=SESSION_OUTCOMES,
+                   help="how the session ended, as the harness reports it")
+    s.add_argument("--session-started", dest="session_started", help="start of the session (ISO 8601)")
+    s.add_argument("--session-ended", dest="session_ended", help="end of the session (ISO 8601)")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)

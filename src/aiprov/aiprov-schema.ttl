@@ -75,6 +75,25 @@ aiprov:plannedBinding   a owl:DatatypeProperty ; rdfs:domain aiprov:Orchestratio
 aiprov:role             a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
     rdfs:comment "Role of a sub-activity within an orchestration."@en .
 
+aiprov:Session         a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Session"@en ;
+    rdfs:comment "A working session of one harness (an interactive chat, a coding-agent run, a batch job, an evaluation). Activities that belong to it point to it with dcterms:isPartOf. It may carry prov:startedAtTime, prov:endedAtTime, aiprov:sessionType, aiprov:sessionOutcome and aiprov:sessionId."@en .
+aiprov:sessionType      a owl:ObjectProperty ; rdfs:domain aiprov:Session ; rdfs:range skos:Concept ;
+    rdfs:comment "Kind of session: a concept of the scheme aiprov:SessionTypes, or a concept of the adopter's own scheme."@en .
+aiprov:sessionOutcome   a owl:DatatypeProperty ; rdfs:domain aiprov:Session ; rdfs:range xsd:string ;
+    rdfs:comment "How the session ended, as the harness reports it: succeeded, failed or interrupted. A session that failed may never have logged itself; the outcome is what makes that visible."@en .
+aiprov:SessionTypes     a skos:ConceptScheme ;
+    rdfs:label "Session types"@en ;
+    rdfs:comment "Small scheme of session kinds; adopters may add concepts in their own namespace."@en .
+aiprov:sessionType-interactive-chat a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "interactive-chat"@en ; rdfs:comment "A person converses with a model in a chat interface."@en .
+aiprov:sessionType-coding-agent a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "coding-agent"@en ; rdfs:comment "A coding agent works in a terminal or editor on a working tree."@en .
+aiprov:sessionType-batch a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "batch"@en ; rdfs:comment "A scheduled or unattended run."@en .
+aiprov:sessionType-evaluation a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "evaluation"@en ; rdfs:comment "A run whose purpose is to measure a model or a pipeline."@en .
+
 # --- Activity attributes: session & inference telemetry ---
 # Attach directly to the prov:Activity that produced/used the AI output.
 

@@ -25,6 +25,12 @@ Pass classes: `aiprov:AuthoringPass`, `aiprov:AuditPass`, `aiprov:Build`,
 
 Timing: `prov:startedAtTime`, `prov:endedAtTime` (xsd:dateTime, with zone).
 
+Sessions: `provlog log --session ID` makes the activity part of an `aiprov:Session` (`dcterms:isPartOf`), created on
+first mention. `--session-type` (`interactive-chat`, `coding-agent`, `batch`, `evaluation`, or the IRI of your own
+concept), `--session-outcome` (`succeeded`, `failed`, `interrupted`), `--session-started` and `--session-ended` are
+write-once on the session; `report` groups sessions by type; `validate` fails on an activity that is part of
+something that is not a session.
+
 | Property | Type | Anthropic API | OpenAI API | llama.cpp |
 |---|---|---|---|---|
 | aiprov:sessionId | string | Claude Code session UUID | — | — |
