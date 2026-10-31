@@ -33,7 +33,9 @@ provlog --base https://your.org/prov/ validate      # exit 1 on parentless claim
 aiprov-dashboard provenance.ttl -o dashboard.html
 ```
 Two invariants are enforced by `validate`: **no parentless claim**, and **human-only rungs**
-(`human-confirmed`, `human-read`) are never granted by an AI agent.
+(`human-confirmed`, `human-read`) are never granted by an AI agent. An agent is an AI or a person, never both:
+`agent --type human` refuses an id that is an `AIAgent`, and `validate` fails a node typed as both. The check trusts
+the registration, so a registered person leaves a trace (`aiprov:registeredBy`); `--record-refusals` also keeps refused steps.
 
 ## Layout
 `schema/` vocabulary · `src/aiprov/` CLI · `docs/attributes.md` attribute catalogue ·

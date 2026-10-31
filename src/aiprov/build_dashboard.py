@@ -112,6 +112,13 @@ def extract(path: pathlib.Path) -> dict:
                 (lambda x: x)(local(val(s, "verificationState") or "unverified")),
                 local(val(s, "verificationState") or "unverified"))})
     claims.sort(key=lambda c: c["id"])
+    refusals = []
+    for s in subjects_of("Refusal"):
+        who = val(s, "refusedAgent")
+        refusals.append({"id": local(s), "step": str(val(s, "refusedStep") or ""),
+                         "target": str(val(s, "refusedTarget") or ""), "rung": str(val(s, "refusedRung") or ""),
+                         "agent": local(who) if who is not None else "", "when": str(val(s, "refusedAtTime") or "")})
+    refusals.sort(key=lambda r: (r["when"], r["id"]))
     # --- graph view: typed nodes + labelled edges over the instance data ---
     nodes, edges = {}, []
     def add_node(iri, kind, label=None):
@@ -158,7 +165,7 @@ def extract(path: pathlib.Path) -> dict:
     return {"generatedAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": str(path), "triples": len(g),
             "agents": sorted(agents.values(), key=lambda a: a["kind"]),
-            "activities": acts, "claims": claims,
+            "activities": acts, "claims": claims, "refusals": refusals,
             "nodes": sorted(nodes.values(), key=lambda n: n["id"]), "edges": edges}
 
 
@@ -254,6 +261,9 @@ font:11.5px var(--mono);color:var(--dim)}
 <section><h2>Claims</h2><table id="claims"><thead><tr>
 <th>ID</th><th>Claim</th><th>Parent activity</th><th>Attributed to</th><th>State</th>
 </tr></thead><tbody></tbody></table></section>
+<section id="refsec" hidden><h2>Refused human-only steps</h2><table id="refs"><thead><tr>
+<th>When</th><th>Agent</th><th>Step</th><th>Target</th><th>Rung</th>
+</tr></thead><tbody></tbody></table></section>
 <footer id="foot"></footer></div>
 <script id="data" type="application/json">__DATA__</script>
 <script>
@@ -302,6 +312,9 @@ $("#rungs").innerHTML=LADDER.map(r=>{const n=rc[r]||0;
 $("#claims tbody").innerHTML=D.claims.map(c=>`<tr><td class="mono">${esc(c.id)}</td>
  <td>${esc(c.text)}</td><td class="mono">${esc(c.parent)}</td><td class="mono">${esc(c.agent)}</td>
  <td><span class="st st-${esc(c.state)}">${esc(c.state)}</span></td></tr>`).join("");
+if(D.refusals&&D.refusals.length){$("#refsec").hidden=false;
+ $("#refs tbody").innerHTML=D.refusals.map(r=>`<tr><td class="mono">${esc(r.when)}</td><td class="mono">${esc(r.agent)}</td>
+ <td class="mono">${esc(r.step)}</td><td class="mono">${esc(r.target)}</td><td class="mono">${esc(r.rung)}</td></tr>`).join("")}
 /* ---- provenance graph: dependency-free force layout over SVG ---- */
 (function(){
 const svg=$("#graph"),NS="http://www.w3.org/2000/svg";
