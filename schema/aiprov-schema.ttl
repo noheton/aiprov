@@ -84,6 +84,8 @@ aiprov:transcript       a owl:ObjectProperty ;
     rdfs:comment "Links the activity to a preserved conversation transcript entity."@en .
 aiprov:requestId        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Provider request ID for a single inference call."@en .
+aiprov:recordedAtTime   a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:dateTime ;
+    rdfs:comment "When the record of the activity was written, as distinct from when the work happened. prov:startedAtTime and prov:endedAtTime describe the work; this property describes the bookkeeping. They differ whenever an activity is logged in arrears, which is the normal case for an agent session, and keeping them apart is what allows a reader to tell a measured span from the instant a log line was appended."@en .
 aiprov:turnCount        a owl:DatatypeProperty ; rdfs:range xsd:integer .
 
 # Token accounting (integers; omit what the provider does not report)
