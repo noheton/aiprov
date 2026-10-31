@@ -6,6 +6,7 @@ release, anything that changes the meaning of an existing term gets a deprecatio
 migration script.
 
 - Discuss schema changes in an issue before a PR.
+- Every schema change, additive ones too, adds one migration step to `MIGRATION_STEPS` in `provlog.py` (it may be a no-op) and, at each release, the fixture graph of the previous version in `tests/fixtures/versions/`. `tests/test_migrate.py` migrates every fixture there and validates the result.
 - Every PR runs the tests; a schema change adds or updates a fixture.
 - The repository logs its own AI-assisted work in `provenance.ttl` (`provlog log …`); please do the
   same for AI-assisted contributions, and never grant `human-confirmed`/`human-read` from an AI agent.
