@@ -75,6 +75,18 @@ aiprov:plannedBinding   a owl:DatatypeProperty ; rdfs:domain aiprov:Orchestratio
 aiprov:role             a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
     rdfs:comment "Role of a sub-activity within an orchestration."@en .
 
+aiprov:modelRole        a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
+    rdfs:comment "What a model did within one answer: answer, draft, revise, judge or route (recommended values; adopters may add their own). Several activities with a model role, informed by one Orchestration, produce one answer."@en .
+aiprov:fallbackOf       a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range prov:Activity ;
+    rdfs:comment "The activity this one replaces after it failed (an error, a timeout, a policy refusal, no capacity)."@en .
+aiprov:fallbackReason   a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
+    rdfs:comment "Why the fallback happened: error, timeout, policy or capacity."@en .
+aiprov:routedBy         a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range prov:Plan ;
+    rdfs:comment "The routing rule (a prov:Plan) that chose the model for this activity."@en .
+aiprov:Score            a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:comment "The result of a judge activity. The judge prov:used the answer and the score prov:wasGeneratedBy the judge."@en .
+aiprov:scoreValue       a owl:DatatypeProperty ; rdfs:domain aiprov:Score ; rdfs:range xsd:decimal ;
+    rdfs:comment "The value a judge gave; the scale is the judge's own and is not interpreted by aiprov."@en .
 aiprov:Session         a owl:Class ; rdfs:subClassOf prov:Activity ;
     rdfs:label "Session"@en ;
     rdfs:comment "A working session of one harness (an interactive chat, a coding-agent run, a batch job, an evaluation). Activities that belong to it point to it with dcterms:isPartOf. It may carry prov:startedAtTime, prov:endedAtTime, aiprov:sessionType, aiprov:sessionOutcome and aiprov:sessionId."@en .
