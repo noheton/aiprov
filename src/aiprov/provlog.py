@@ -15,6 +15,8 @@ Commands:
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
+  migrate [--dry-run] [--to V]  Bring the graph to the schema version of this provlog: chained steps, every
+                             existing triple kept, deprecated terms marked, one aiprov:Migration activity per run.
   search                     Self-contained literature search over open APIs
                              (Crossref, OpenAlex, arXiv, DataCite) — no MCP
                              server, no key, no paid service required.
@@ -36,7 +38,7 @@ production use.
 """
 from __future__ import annotations
 import argparse, datetime, hashlib, pathlib, re, sys
-from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD
+from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD, OWL
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
 FAIR2R = Namespace("https://noheton.org/f-ai-r/ns#")
@@ -77,7 +79,9 @@ def cmd_init(a) -> None:
     text = SCHEMA.read_text(encoding="utf-8").replace("https://example.org/prov/", a.base)
     GRAPH.write_text(text, encoding="utf-8")
     g = load()  # parse check
-    print(f"Seeded {GRAPH} ({len(g)} triples, base {a.base})")
+    stamp_version(g, a.base, SCHEMA_VERSION)
+    save(g)
+    print(f"Seeded {GRAPH} ({len(g)} triples, base {a.base}, schema {SCHEMA_VERSION})")
 
 
 def cmd_agent(a) -> None:
@@ -162,6 +166,69 @@ def _link_models(g: Graph, a, act) -> None:
         if a.agent:
             g.add((score, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
         g.add((act, PROV.used, answer))
+SESSION_TYPES = ["interactive-chat", "coding-agent", "batch", "evaluation"]
+SESSION_OUTCOMES = ["succeeded", "failed", "interrupted"]
+
+
+def _session_type_node(value: str) -> URIRef:
+    """A built-in type name, or the full IRI of a concept in the adopter's own scheme."""
+    if value.startswith(("http://", "https://")):
+        return URIRef(value)
+    if value not in SESSION_TYPES:
+        sys.exit(f"--session-type: {value} is not one of {', '.join(SESSION_TYPES)}; "
+                 "use the IRI of your own concept for another kind")
+    return AIPROV["sessionType-" + value]
+
+
+def _session_time(value: str, flag: str) -> Literal:
+    try:
+        datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        sys.exit(f"{flag}: {value} is not an ISO 8601 date-time")
+    return Literal(value, datatype=XSD.dateTime)
+
+
+def _link_session(g: Graph, a, act) -> None:
+    """Create the session on first mention and attach the activity to it. Type, start, end and outcome are
+    write-once: a value may be added while absent, a different second value is refused (append-only)."""
+    given = {"--session-type": a.session_type, "--session-outcome": a.session_outcome,
+             "--session-started": a.session_started, "--session-ended": a.session_ended}
+    if not a.session:
+        if any(v is not None for v in given.values()):
+            sys.exit(", ".join(k for k, v in given.items() if v is not None) + " need --session")
+        return
+    node = ns(a.base, "session")[a.session]
+    if (node, RDF.type, None) in g and (node, RDF.type, AIPROV.Session) not in g:
+        sys.exit(f"{node} exists and is not a session")
+    values = []
+    if a.session_type is not None:
+        values.append((AIPROV.sessionType, _session_type_node(a.session_type), "--session-type"))
+    if a.session_outcome is not None:
+        values.append((AIPROV.sessionOutcome, Literal(a.session_outcome), "--session-outcome"))
+    if a.session_started is not None:
+        values.append((PROV.startedAtTime, _session_time(a.session_started, "--session-started"), "--session-started"))
+    if a.session_ended is not None:
+        values.append((PROV.endedAtTime, _session_time(a.session_ended, "--session-ended"), "--session-ended"))
+    for prop, val, flag in values:
+        old = set(g.objects(node, prop))
+        if old and val not in old:
+            sys.exit(f"{flag}: session {a.session} already has {', '.join(str(o) for o in old)}; "
+                     "the graph is append-only, a recorded value is not replaced")
+    g.add((node, RDF.type, AIPROV.Session))
+    g.add((node, AIPROV.sessionId, Literal(a.session)))
+    for prop, val, _ in values:
+        g.add((node, prop, val))
+    start = next(iter(g.objects(node, PROV.startedAtTime)), None)
+    end = next(iter(g.objects(node, PROV.endedAtTime)), None)
+    if start is not None and end is not None:
+        try:
+            late = (datetime.datetime.fromisoformat(str(end).replace("Z", "+00:00"))
+                    < datetime.datetime.fromisoformat(str(start).replace("Z", "+00:00")))
+        except TypeError:  # one with and one without a time zone: cannot be compared
+            late = False
+        if late:
+            sys.exit(f"session {a.session} would end before it started")
+    g.add((act, DCT.isPartOf, node))
 
 
 ACT_ATTRS = [  # (cli key, property, xsd type)
@@ -217,11 +284,15 @@ def cmd_log(a) -> None:
         g.add((act, AIPROV.role, Literal(a.role)))
     g.add((act, RDF.type, cls))
     _link_models(g, a, act)
+    _link_session(g, a, act)
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
-    g.add((act, PROV.endedAtTime, now()))
+    g.add((act, PROV.endedAtTime, Literal(a.ended, datatype=XSD.dateTime) if a.ended else now()))
     if a.started:
         g.add((act, PROV.startedAtTime, Literal(a.started, datatype=XSD.dateTime)))
+    # The moment of bookkeeping, kept apart from the span of the work: without it a record written in arrears
+    # cannot be told apart from one whose work really took the length it claims.
+    g.add((act, AIPROV.recordedAtTime, now()))
     if a.agent:
         g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
     for key, prop, dt in ACT_ATTRS:
@@ -321,6 +392,136 @@ def cmd_claim(a) -> None:
     print(f"claim:{a.id} added (state {a.state})")
 
 
+# --- schema versions and migration (issue 42) ---------------------------------------------------------------
+SCHEMA_VERSION = "0.3.0"  # the schema version this provlog writes
+SCHEMA_VERSIONS = ["0.1.0", "0.2.0", "0.3.0"]  # every version a graph can have; add the new one at each release
+_VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
+
+
+def _vkey(v: str) -> tuple:
+    return tuple(int(x) for x in v.split("."))
+
+
+def graph_version(g: Graph) -> "tuple[str, bool]":
+    """The schema version of g and whether the graph states it. A graph without aiprov:schemaVersion is
+    detected by its terms: the vocabulary of 0.2.0 has aiprov:Orchestration, that of 0.1.0 does not."""
+    stamped = [str(o) for o in g.objects(None, AIPROV.schemaVersion) if _VERSION_RE.fullmatch(str(o))]
+    if stamped:
+        return max(stamped, key=_vkey), True
+    if (AIPROV.Orchestration, RDF.type, None) in g or (AIPROV.plannedRole, RDF.type, None) in g:
+        return "0.2.0", False
+    return "0.1.0", False
+
+
+def stamp_version(g: Graph, base: str, version: str) -> None:
+    """Make `version` the only aiprov:schemaVersion of g, on the node that carries it already (else <base>graph)."""
+    node = next(iter(g.subjects(AIPROV.schemaVersion, None)), URIRef(base + "graph"))
+    for old in list(g.triples((None, AIPROV.schemaVersion, None))):
+        g.remove(old)
+    g.add((node, AIPROV.schemaVersion, Literal(version)))
+
+
+def _deprecate(g: Graph, term) -> int:
+    """Mark a term as deprecated instead of deleting it (for the steps of future releases); 1 if newly marked."""
+    mark = (term, OWL.deprecated, Literal(True))
+    if mark in g:
+        return 0
+    g.add(mark)
+    return 1
+
+
+def _step_no_change(g: Graph) -> int:
+    """A release that only adds terms needs no rewrite; the vocabulary refresh brings the new terms."""
+    return 0
+
+
+# key: the version migrated FROM; the step leads to the next entry of SCHEMA_VERSIONS and returns the number of
+# terms it marked deprecated. A release that changes a term adds its step here and keeps the previous fixture.
+MIGRATION_STEPS = {"0.1.0": _step_no_change, "0.2.0": _step_no_change}
+
+
+def apply_steps(g: Graph, frm: str, to: str) -> int:
+    deprecated = 0
+    for v in SCHEMA_VERSIONS[SCHEMA_VERSIONS.index(frm):SCHEMA_VERSIONS.index(to)]:
+        deprecated += MIGRATION_STEPS[v](g)
+    return deprecated
+
+
+def upgrade_in_memory(g: Graph) -> Graph:
+    """Run the steps to the current version on g without stamping or refreshing; readers (dashboard) use this so
+    they understand a graph of any version while the file stays as it is."""
+    frm, _ = graph_version(g)
+    if frm in SCHEMA_VERSIONS and frm != SCHEMA_VERSION:
+        apply_steps(g, frm, SCHEMA_VERSION)
+    return g
+
+
+def _vocabulary(base: str) -> Graph:
+    v = Graph()
+    v.parse(data=SCHEMA.read_text(encoding="utf-8").replace("https://example.org/prov/", base), format="turtle")
+    return v
+
+
+def _tool_version() -> str:
+    try:
+        from importlib.metadata import version
+        return version("aiprov")
+    except Exception:  # noqa: BLE001 - not installed as a package: fall back to the module constant
+        from aiprov import __version__
+        return __version__
+
+
+def cmd_migrate(a) -> None:
+    if not GRAPH.exists():
+        sys.exit("no provenance.ttl in this directory; nothing to migrate")
+    g = load()
+    frm, stamped = graph_version(g)
+    to = a.to or SCHEMA_VERSION
+    if to not in SCHEMA_VERSIONS:
+        sys.exit(f"unknown target version {to}; known: {', '.join(SCHEMA_VERSIONS)}")
+    if frm not in SCHEMA_VERSIONS:
+        sys.exit(f"the graph is at schema version {frm}, newer than this provlog knows; update aiprov")
+    if _vkey(to) < _vkey(frm):
+        sys.exit(f"refused: the graph is at {frm}; migrating down to {to} is not supported")
+    _require_registered(g, a.base, a.agent)
+    started = now()
+    before = set(g)
+    deprecated = apply_steps(g, frm, to)
+    if to == SCHEMA_VERSION:  # add vocabulary terms that are missing; a term already there is never touched
+        for t in _vocabulary(a.base):
+            g.add(t)
+    stamp_version(g, a.base, to)
+    after = set(g)
+    added, removed = after - before, before - after
+    if not added and not removed:
+        print(f"graph is at schema version {frm}; nothing to migrate")
+        return
+    how = "" if stamped else " (version detected from the terms)"
+    summary = (f"{frm} -> {to}{how}: {len(g)} triples ({len(added) - len(removed):+d}), "
+               f"{len(added)} added, {deprecated} marked deprecated")
+    if a.dry_run:
+        print("dry run, nothing written. Would migrate " + summary)
+        return
+    act = ns(a.base, "activity")[f"migrate-{frm}-to-{to}-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")]
+    n = 1
+    while (act, RDF.type, None) in g:
+        n += 1
+        act = ns(a.base, "activity")[f"migrate-{frm}-to-{to}-{n}"]
+    g.add((act, RDF.type, AIPROV.Migration))
+    g.add((act, RDFS.label, Literal(f"Schema migration {frm} -> {to}", lang="en")))
+    g.add((act, PROV.startedAtTime, started))
+    g.add((act, PROV.endedAtTime, now()))
+    g.add((act, AIPROV.fromSchemaVersion, Literal(frm)))
+    g.add((act, AIPROV.toSchemaVersion, Literal(to)))
+    g.add((act, AIPROV.toolVersion, Literal(_tool_version())))
+    g.add((act, AIPROV.addedTriples, Literal(len(added), datatype=XSD.integer)))
+    g.add((act, AIPROV.deprecatedTriples, Literal(deprecated, datatype=XSD.integer)))
+    if a.agent:
+        g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
+    save(g)
+    print(f"migrated {summary}; activity {act.rsplit('/', 1)[-1]}")
+
+
 def validate_graph(g: Graph) -> int:
     """Run all conformance checks on g, print them, return the number of failures."""
     fail = 0
@@ -369,6 +570,27 @@ def validate_graph(g: Graph) -> int:
             FILTER NOT EXISTS { ?act prov:wasAssociatedWith ?ag } }"""
     anon = set(r[0] for r in g.query(q4))
     print(f"[{'WARN' if anon else ' OK '}] activities without agent: {len(anon)}")
+    # An activity that carries a session id describes work done inside a session, so its span is a claim about
+    # that work. A span of under a second is almost always the instant the record was appended, which matters
+    # because the model in force can change inside a session: attribution then follows the moment of logging
+    # rather than the moment of work. Reported, never failed - a genuinely short activity is possible, and
+    # aiprov cannot tell the two apart. aiprov:recordedAtTime exists so new records need not be guessed at.
+    instants = []
+    for act in set(g.subjects(AIPROV.sessionId, None)):
+        st, en = g.value(act, PROV.startedAtTime), g.value(act, PROV.endedAtTime)
+        if en is None:
+            continue
+        if st is None:
+            instants.append(act)      # no span recorded at all: the end is the moment of writing
+            continue
+        try:
+            span = (en.toPython() - st.toPython()).total_seconds()
+        except (TypeError, AttributeError):
+            continue
+        if span < 1.0:
+            instants.append(act)
+    print(f"[{'WARN' if instants else ' OK '}] session activities with no measurable span "
+          f"(a logging instant, not the span of the work): {len(instants)}")
     # An agent that is named but was never registered carries no type, model or name (issue 21).
     unreg = list(g.query("""SELECT DISTINCT ?ag WHERE {
             { ?x prov:wasAssociatedWith ?ag } UNION { ?x prov:wasAttributedTo ?ag }
@@ -419,13 +641,22 @@ def validate_graph(g: Graph) -> int:
             FILTER(?a = ?b || NOT EXISTS { ?b prov:endedAtTime ?t }) }"""))
     print(f"[{'FAIL' if badfb else ' OK '}] fallbackOf targets that are not other logged activities: {len(badfb)}")
     fail += len(badfb)
+    # Sessions: an activity that says it is part of something must name a session of this graph.
+    badpart = list(g.query("""SELECT ?a ?s WHERE { ?a dcterms:isPartOf ?s ; prov:endedAtTime ?t .
+            FILTER NOT EXISTS { ?s a aiprov:Session } }"""))
+    print(f"[{'FAIL' if badpart else ' OK '}] activities that are part of something that is not a session: {len(badpart)}")
+    fail += len(badpart)
+    unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
+    print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
+          + (" (none; run `provlog migrate`)" if unversioned else ""))
     for kind, rows in (("parentless claim", orphans), ("unattributed claim", unattr),
                        ("human-only rung granted by an AI agent", bad), ("source without reference", noref),
                        ("human-only rung without human promotion", unwit),
                        ("agent referenced but not registered", unreg),
                        ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
                        ("orchestration logged twice", reclosed), ("logged before its orchestration", early),
-                       ("answer from two model activities", twice), ("bad fallbackOf target", badfb)):
+                       ("answer from two model activities", twice), ("bad fallbackOf target", badfb),
+                       ("part of a non-session", badpart)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -441,7 +672,8 @@ def cmd_report(a) -> None:
         return sum(int(o) for _, _, o in g.triples((None, prop, None)))
     print("== aiprov report ==")
     print(f"triples:            {len(g)}")
-    print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)))}")
+    sessions = set(g.subjects(RDF.type, AIPROV.Session))
+    print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)) - sessions)}")
     print(f"claims:             {len(set(g.subjects(RDF.type, AIPROV.Claim)))}")
     print(f"input tokens:       {total(AIPROV.inputTokens)}")
     print(f"output tokens:      {total(AIPROV.outputTokens)}")
@@ -483,6 +715,22 @@ def cmd_report(a) -> None:
                 why[str(r)] = why.get(str(r), 0) + 1
         tail = " (" + ", ".join(f"{k} {v}" for k, v in sorted(why.items())) + ")" if why else ""
         print(f"   fallbacks: {len(fallbacks)}{tail}; judged answers: {len(judges)}")
+    if sessions:
+        print("-- sessions --")
+        kinds = {}
+        for s_ in sessions:
+            t = next(iter(g.objects(s_, AIPROV.sessionType)), None)
+            key = "(no type)" if t is None else str(t).removeprefix(str(AIPROV) + "sessionType-")
+            kinds.setdefault(key, []).append(s_)
+        for key in sorted(kinds):
+            members = kinds[key]
+            acts = sum(len(set(g.subjects(DCT.isPartOf, s_))) for s_ in members)
+            outs = {}
+            for s_ in members:
+                for o in g.objects(s_, AIPROV.sessionOutcome):
+                    outs[str(o)] = outs.get(str(o), 0) + 1
+            tail = ", ".join(f"{k} {v}" for k, v in sorted(outs.items())) or "no outcome recorded"
+            print(f"   {key:24s} {len(members)} sessions, {acts} activities, {tail}")
     roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
     if roots:
         print("-- orchestration --")
@@ -881,7 +1129,10 @@ def main() -> None:
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
     s.add_argument("--pass", dest="pass_", choices=["authoring", "audit", "build", "repair"], default="authoring")
-    s.add_argument("--agent"); s.add_argument("--started"); s.add_argument("--commit")
+    s.add_argument("--agent"); s.add_argument("--started")
+    s.add_argument("--ended", help="end of the work; defaults to now, which is the moment of recording, "
+                                   "not necessarily the moment the work finished")
+    s.add_argument("--commit")
     s.add_argument("--total-tokens", dest="total_tokens")
     for key, _, _ in ACT_ATTRS:
         s.add_argument("--" + key.replace("_", "-"), dest=key)
@@ -903,6 +1154,13 @@ def main() -> None:
     s.add_argument("--routed-by", dest="routed_by", help="id of the routing rule (a prov:Plan) that chose this model")
     s.add_argument("--judges", help="path of the answer a judge activity scored (needs --score)")
     s.add_argument("--score", help="the value the judge gave (needs --judges)")
+    s.add_argument("--session", help="session id: the activity is part of this session (created on first mention)")
+    s.add_argument("--session-type", dest="session_type",
+                   help=f"kind of session: {', '.join(SESSION_TYPES)}, or the IRI of your own concept")
+    s.add_argument("--session-outcome", dest="session_outcome", choices=SESSION_OUTCOMES,
+                   help="how the session ended, as the harness reports it")
+    s.add_argument("--session-started", dest="session_started", help="start of the session (ISO 8601)")
+    s.add_argument("--session-ended", dest="session_ended", help="end of the session (ISO 8601)")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)
@@ -910,6 +1168,11 @@ def main() -> None:
     s.add_argument("--state", default="unverified")
 
     sub.add_parser("validate"); sub.add_parser("report")
+
+    s = sub.add_parser("migrate", help="bring the graph to the schema version of this provlog")
+    s.add_argument("--dry-run", action="store_true", help="print what would change; write nothing")
+    s.add_argument("--to", metavar="VERSION", help=f"target version (default {SCHEMA_VERSION})")
+    s.add_argument("--agent", help="registered agent that ran the migration")
 
     s = sub.add_parser("merge", help="union shard graphs into the main graph")
     s.add_argument("--from", dest="from_", nargs="+", required=True, metavar="SHARD.ttl")
@@ -948,7 +1211,7 @@ def main() -> None:
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
      "claim": cmd_claim, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
-     "extract": cmd_extract, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
+     "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
 if __name__ == "__main__":

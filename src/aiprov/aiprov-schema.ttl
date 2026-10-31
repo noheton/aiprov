@@ -87,6 +87,24 @@ aiprov:Score            a owl:Class ; rdfs:subClassOf prov:Entity ;
     rdfs:comment "The result of a judge activity. The judge prov:used the answer and the score prov:wasGeneratedBy the judge."@en .
 aiprov:scoreValue       a owl:DatatypeProperty ; rdfs:domain aiprov:Score ; rdfs:range xsd:decimal ;
     rdfs:comment "The value a judge gave; the scale is the judge's own and is not interpreted by aiprov."@en .
+aiprov:Session         a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Session"@en ;
+    rdfs:comment "A working session of one harness (an interactive chat, a coding-agent run, a batch job, an evaluation). Activities that belong to it point to it with dcterms:isPartOf. It may carry prov:startedAtTime, prov:endedAtTime, aiprov:sessionType, aiprov:sessionOutcome and aiprov:sessionId."@en .
+aiprov:sessionType      a owl:ObjectProperty ; rdfs:domain aiprov:Session ; rdfs:range skos:Concept ;
+    rdfs:comment "Kind of session: a concept of the scheme aiprov:SessionTypes, or a concept of the adopter's own scheme."@en .
+aiprov:sessionOutcome   a owl:DatatypeProperty ; rdfs:domain aiprov:Session ; rdfs:range xsd:string ;
+    rdfs:comment "How the session ended, as the harness reports it: succeeded, failed or interrupted. A session that failed may never have logged itself; the outcome is what makes that visible."@en .
+aiprov:SessionTypes     a skos:ConceptScheme ;
+    rdfs:label "Session types"@en ;
+    rdfs:comment "Small scheme of session kinds; adopters may add concepts in their own namespace."@en .
+aiprov:sessionType-interactive-chat a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "interactive-chat"@en ; rdfs:comment "A person converses with a model in a chat interface."@en .
+aiprov:sessionType-coding-agent a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "coding-agent"@en ; rdfs:comment "A coding agent works in a terminal or editor on a working tree."@en .
+aiprov:sessionType-batch a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "batch"@en ; rdfs:comment "A scheduled or unattended run."@en .
+aiprov:sessionType-evaluation a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
+    skos:prefLabel "evaluation"@en ; rdfs:comment "A run whose purpose is to measure a model or a pipeline."@en .
 
 # --- Activity attributes: session & inference telemetry ---
 # Attach directly to the prov:Activity that produced/used the AI output.
@@ -201,3 +219,18 @@ aiprov:contradicts    a owl:ObjectProperty ;
     rdfs:domain aiprov:Claim ; rdfs:range aiprov:Claim .
 aiprov:repairs        a owl:ObjectProperty ;
     rdfs:comment "A Repair activity amends generation metadata of a claim without invalidating its content."@en .
+
+#--- Schema version and migration ---------------------------------------------
+
+aiprov:schemaVersion    a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Version of the aiprov schema the graph was last written or migrated to (major.minor.patch). Set by init and migrate; a graph without it is detected by its terms."@en .
+aiprov:Migration        a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Migration"@en ;
+    rdfs:comment "One run of provlog migrate: the graph moved from one schema version to another. Existing triples are kept; deprecated terms are marked, not deleted."@en .
+aiprov:fromSchemaVersion a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string .
+aiprov:toSchemaVersion  a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string .
+aiprov:toolVersion      a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:string ;
+    rdfs:comment "Version of the aiprov package that ran the migration."@en .
+aiprov:addedTriples     a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer .
+aiprov:deprecatedTriples a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer ;
+    rdfs:comment "Number of terms the migration marked owl:deprecated."@en .
