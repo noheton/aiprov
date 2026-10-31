@@ -15,6 +15,8 @@ Commands:
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
+  migrate [--dry-run] [--to V]  Bring the graph to the schema version of this provlog: chained steps, every
+                             existing triple kept, deprecated terms marked, one aiprov:Migration activity per run.
   search                     Self-contained literature search over open APIs
                              (Crossref, OpenAlex, arXiv, DataCite) — no MCP
                              server, no key, no paid service required.
@@ -36,7 +38,7 @@ production use.
 """
 from __future__ import annotations
 import argparse, datetime, hashlib, pathlib, re, sys
-from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD
+from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD, OWL
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
 FAIR2R = Namespace("https://noheton.org/f-ai-r/ns#")
@@ -77,7 +79,9 @@ def cmd_init(a) -> None:
     text = SCHEMA.read_text(encoding="utf-8").replace("https://example.org/prov/", a.base)
     GRAPH.write_text(text, encoding="utf-8")
     g = load()  # parse check
-    print(f"Seeded {GRAPH} ({len(g)} triples, base {a.base})")
+    stamp_version(g, a.base, SCHEMA_VERSION)
+    save(g)
+    print(f"Seeded {GRAPH} ({len(g)} triples, base {a.base}, schema {SCHEMA_VERSION})")
 
 
 def cmd_agent(a) -> None:
@@ -279,6 +283,136 @@ def cmd_claim(a) -> None:
     print(f"claim:{a.id} added (state {a.state})")
 
 
+# --- schema versions and migration (issue 42) ---------------------------------------------------------------
+SCHEMA_VERSION = "0.3.0"  # the schema version this provlog writes
+SCHEMA_VERSIONS = ["0.1.0", "0.2.0", "0.3.0"]  # every version a graph can have; add the new one at each release
+_VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
+
+
+def _vkey(v: str) -> tuple:
+    return tuple(int(x) for x in v.split("."))
+
+
+def graph_version(g: Graph) -> "tuple[str, bool]":
+    """The schema version of g and whether the graph states it. A graph without aiprov:schemaVersion is
+    detected by its terms: the vocabulary of 0.2.0 has aiprov:Orchestration, that of 0.1.0 does not."""
+    stamped = [str(o) for o in g.objects(None, AIPROV.schemaVersion) if _VERSION_RE.fullmatch(str(o))]
+    if stamped:
+        return max(stamped, key=_vkey), True
+    if (AIPROV.Orchestration, RDF.type, None) in g or (AIPROV.plannedRole, RDF.type, None) in g:
+        return "0.2.0", False
+    return "0.1.0", False
+
+
+def stamp_version(g: Graph, base: str, version: str) -> None:
+    """Make `version` the only aiprov:schemaVersion of g, on the node that carries it already (else <base>graph)."""
+    node = next(iter(g.subjects(AIPROV.schemaVersion, None)), URIRef(base + "graph"))
+    for old in list(g.triples((None, AIPROV.schemaVersion, None))):
+        g.remove(old)
+    g.add((node, AIPROV.schemaVersion, Literal(version)))
+
+
+def _deprecate(g: Graph, term) -> int:
+    """Mark a term as deprecated instead of deleting it (for the steps of future releases); 1 if newly marked."""
+    mark = (term, OWL.deprecated, Literal(True))
+    if mark in g:
+        return 0
+    g.add(mark)
+    return 1
+
+
+def _step_no_change(g: Graph) -> int:
+    """A release that only adds terms needs no rewrite; the vocabulary refresh brings the new terms."""
+    return 0
+
+
+# key: the version migrated FROM; the step leads to the next entry of SCHEMA_VERSIONS and returns the number of
+# terms it marked deprecated. A release that changes a term adds its step here and keeps the previous fixture.
+MIGRATION_STEPS = {"0.1.0": _step_no_change, "0.2.0": _step_no_change}
+
+
+def apply_steps(g: Graph, frm: str, to: str) -> int:
+    deprecated = 0
+    for v in SCHEMA_VERSIONS[SCHEMA_VERSIONS.index(frm):SCHEMA_VERSIONS.index(to)]:
+        deprecated += MIGRATION_STEPS[v](g)
+    return deprecated
+
+
+def upgrade_in_memory(g: Graph) -> Graph:
+    """Run the steps to the current version on g without stamping or refreshing; readers (dashboard) use this so
+    they understand a graph of any version while the file stays as it is."""
+    frm, _ = graph_version(g)
+    if frm in SCHEMA_VERSIONS and frm != SCHEMA_VERSION:
+        apply_steps(g, frm, SCHEMA_VERSION)
+    return g
+
+
+def _vocabulary(base: str) -> Graph:
+    v = Graph()
+    v.parse(data=SCHEMA.read_text(encoding="utf-8").replace("https://example.org/prov/", base), format="turtle")
+    return v
+
+
+def _tool_version() -> str:
+    try:
+        from importlib.metadata import version
+        return version("aiprov")
+    except Exception:  # noqa: BLE001 - not installed as a package: fall back to the module constant
+        from aiprov import __version__
+        return __version__
+
+
+def cmd_migrate(a) -> None:
+    if not GRAPH.exists():
+        sys.exit("no provenance.ttl in this directory; nothing to migrate")
+    g = load()
+    frm, stamped = graph_version(g)
+    to = a.to or SCHEMA_VERSION
+    if to not in SCHEMA_VERSIONS:
+        sys.exit(f"unknown target version {to}; known: {', '.join(SCHEMA_VERSIONS)}")
+    if frm not in SCHEMA_VERSIONS:
+        sys.exit(f"the graph is at schema version {frm}, newer than this provlog knows; update aiprov")
+    if _vkey(to) < _vkey(frm):
+        sys.exit(f"refused: the graph is at {frm}; migrating down to {to} is not supported")
+    _require_registered(g, a.base, a.agent)
+    started = now()
+    before = set(g)
+    deprecated = apply_steps(g, frm, to)
+    if to == SCHEMA_VERSION:  # add vocabulary terms that are missing; a term already there is never touched
+        for t in _vocabulary(a.base):
+            g.add(t)
+    stamp_version(g, a.base, to)
+    after = set(g)
+    added, removed = after - before, before - after
+    if not added and not removed:
+        print(f"graph is at schema version {frm}; nothing to migrate")
+        return
+    how = "" if stamped else " (version detected from the terms)"
+    summary = (f"{frm} -> {to}{how}: {len(g)} triples ({len(added) - len(removed):+d}), "
+               f"{len(added)} added, {deprecated} marked deprecated")
+    if a.dry_run:
+        print("dry run, nothing written. Would migrate " + summary)
+        return
+    act = ns(a.base, "activity")[f"migrate-{frm}-to-{to}-" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")]
+    n = 1
+    while (act, RDF.type, None) in g:
+        n += 1
+        act = ns(a.base, "activity")[f"migrate-{frm}-to-{to}-{n}"]
+    g.add((act, RDF.type, AIPROV.Migration))
+    g.add((act, RDFS.label, Literal(f"Schema migration {frm} -> {to}", lang="en")))
+    g.add((act, PROV.startedAtTime, started))
+    g.add((act, PROV.endedAtTime, now()))
+    g.add((act, AIPROV.fromSchemaVersion, Literal(frm)))
+    g.add((act, AIPROV.toSchemaVersion, Literal(to)))
+    g.add((act, AIPROV.toolVersion, Literal(_tool_version())))
+    g.add((act, AIPROV.addedTriples, Literal(len(added), datatype=XSD.integer)))
+    g.add((act, AIPROV.deprecatedTriples, Literal(deprecated, datatype=XSD.integer)))
+    if a.agent:
+        g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
+    save(g)
+    print(f"migrated {summary}; activity {act.rsplit('/', 1)[-1]}")
+
+
 def validate_graph(g: Graph) -> int:
     """Run all conformance checks on g, print them, return the number of failures."""
     fail = 0
@@ -368,6 +502,9 @@ def validate_graph(g: Graph) -> int:
             ?o a aiprov:Orchestration ; prov:endedAtTime ?ot . FILTER(?at < ?ot) }"""))
     print(f"[{'FAIL' if early else ' OK '}] sub-activities logged before their orchestration: {len(early)}")
     fail += len(early)
+    unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
+    print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
+          + (" (none; run `provlog migrate`)" if unversioned else ""))
     for kind, rows in (("parentless claim", orphans), ("unattributed claim", unattr),
                        ("human-only rung granted by an AI agent", bad), ("source without reference", noref),
                        ("human-only rung without human promotion", unwit),
@@ -834,6 +971,11 @@ def main() -> None:
 
     sub.add_parser("validate"); sub.add_parser("report")
 
+    s = sub.add_parser("migrate", help="bring the graph to the schema version of this provlog")
+    s.add_argument("--dry-run", action="store_true", help="print what would change; write nothing")
+    s.add_argument("--to", metavar="VERSION", help=f"target version (default {SCHEMA_VERSION})")
+    s.add_argument("--agent", help="registered agent that ran the migration")
+
     s = sub.add_parser("merge", help="union shard graphs into the main graph")
     s.add_argument("--from", dest="from_", nargs="+", required=True, metavar="SHARD.ttl")
     s.add_argument("--dry-run", action="store_true")
@@ -871,7 +1013,7 @@ def main() -> None:
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
      "claim": cmd_claim, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
-     "extract": cmd_extract, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
+     "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
 if __name__ == "__main__":
