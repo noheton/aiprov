@@ -1,0 +1,6 @@
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+
+# Invented fixture (issue 22): agent:model-z is typed as an AI agent and as a person.
+agent:model-z a aiprov:AIAgent, aiprov:HumanAgent ;
+    aiprov:model "model-z" .

@@ -45,6 +45,16 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Schema (issue 22): an agent is an AI or a person, never both. `aiprov:HumanAgent owl:disjointWith aiprov:AIAgent`;
+  `provlog agent --type human` refuses an id that is already an `AIAgent` (and `--type ai` an id that is a
+  `HumanAgent`), leaving the graph file unchanged; `validate` fails a node typed as both and lists every such node.
+  Repair for an existing graph: there is no automatic fix, because it is unknown which type was meant; remove the
+  wrong `rdf:type` by hand. Check before upgrading with `provlog validate` (the new line "agents typed as both AI and human").
+  `agent --type human` records who registered the person (`aiprov:registeredBy`, from `--by` or `$PROV_ACTOR`) and when
+  (`aiprov:registeredAtTime`), write-once. New: `claim`, `source` and `promote` accept `--record-refusals`; a refused
+  human-only step then writes one `aiprov:Refusal` (step, target, rung, agent, time) and nothing else. Off by default, so a
+  refusal still leaves the file byte-identical for wrappers with locks and commit hooks; `validate` prints the count,
+  `report` shows it and the dashboard lists the refusals. Additive; the migration step is a no-op that stamps the version.
 - Schema (#34): `aiprov:recordedAtTime` separates when a record was written from when the work happened. `log` wrote
   `prov:endedAtTime = now()` unconditionally, so a session activity carried a sub-second span where a reader
   expects the duration of the work (measured in a consuming repository: fourteen activities, 0.35–1.27 s, for

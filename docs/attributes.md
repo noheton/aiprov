@@ -96,6 +96,12 @@ promoted it. Promotion activities by AI agents to rungs 5-6 are hard
 failures; human-only rungs without any recorded human promotion activity
 are warnings (legitimate in legacy or hand-curated graphs).
 
+An agent is an AI or a person, never both (`aiprov:AIAgent owl:disjointWith aiprov:HumanAgent`). A person
+registered with `provlog agent --type human` carries `aiprov:registeredBy` (the registering agent, from `--by`
+or `$PROV_ACTOR`) and `aiprov:registeredAtTime`. With `--record-refusals`, a refused `claim`, `source` or
+`promote` writes an `aiprov:Refusal` (`refusedStep`, `refusedTarget`, `refusedRung`, `refusedAgent`,
+`refusedAtTime`); without the flag the graph file is not touched.
+
 ---
 *AI note: drafted with AI assistance, verified against the Anthropic and
 OpenAI usage-object documentation and by test-run of provlog.py; review

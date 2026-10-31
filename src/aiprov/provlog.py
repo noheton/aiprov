@@ -37,7 +37,7 @@ was drafted with AI assistance and verified by test-run; review before
 production use.
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, pathlib, re, sys
+import argparse, datetime, hashlib, os, pathlib, re, sys
 from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD, OWL
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
@@ -88,7 +88,20 @@ def cmd_agent(a) -> None:
     g = load()
     s = ns(a.base, "agent")[a.id]
     cls = {"ai": AIPROV.AIAgent, "human": AIPROV.HumanAgent, "tool": AIPROV.ToolAgent}[a.type]
+    # An agent is an AI or a person, never both (issue 22): a self-registration as a person would otherwise
+    # turn a model into an agent that may grant the human-only rungs.
+    if a.type == "human" and (s, RDF.type, AIPROV.AIAgent) in g:
+        sys.exit(f"REFUSED: agent:{a.id} is registered as an AI agent and cannot also be a person; "
+                 f"register the person under their own id")
+    if a.type == "ai" and (s, RDF.type, AIPROV.HumanAgent) in g:
+        sys.exit(f"REFUSED: agent:{a.id} is registered as a person and cannot also be an AI agent")
+    newly_human = a.type == "human" and (s, RDF.type, AIPROV.HumanAgent) not in g
     g.add((s, RDF.type, cls))
+    if newly_human:  # write-once: a repeated registration keeps the first trace
+        by = getattr(a, "by", None) or os.environ.get("PROV_ACTOR")
+        if by:
+            g.add((s, AIPROV.registeredBy, ns(a.base, "agent")[by]))
+        g.add((s, AIPROV.registeredAtTime, now()))
     if a.name:
         g.add((s, FOAF.name, Literal(a.name)))
     for key, prop, dt in [
@@ -362,9 +375,30 @@ def _is_human(g: Graph, base: str, agent: "str | None") -> bool:
     return agent is not None and (ns(base, "agent")[agent], RDF.type, AIPROV.HumanAgent) in g
 
 
-def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | None") -> None:
-    """Exit with the refusal of `promote` when a human-only rung is set by an agent that is not a registered HumanAgent."""
+def _record_refusal(base: str, agent: "str | None", step: str, target: str, rung: str) -> None:
+    """Write one aiprov:Refusal and nothing else (issue 22). The graph is read afresh: the caller's copy may hold
+    nodes it began to build before the refusal, and those must not reach the file."""
+    g = load()
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    node = ns(base, "refusal")[f"{step}-{target}-{stamp}"]
+    g.add((node, RDF.type, AIPROV.Refusal))
+    g.add((node, RDFS.label, Literal(f"Refused {step} of {target} at rung {rung}", lang="en")))
+    g.add((node, AIPROV.refusedStep, Literal(step)))
+    g.add((node, AIPROV.refusedTarget, Literal(target)))
+    g.add((node, AIPROV.refusedRung, Literal(rung)))
+    if agent:
+        g.add((node, AIPROV.refusedAgent, ns(base, "agent")[agent]))
+    g.add((node, AIPROV.refusedAtTime, now()))
+    save(g)
+
+
+def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | None",
+                       step: "str | None" = None, target: "str | None" = None, record: bool = False) -> None:
+    """Exit with the refusal of `promote` when a human-only rung is set by an agent that is not a registered HumanAgent.
+    With record=True (`--record-refusals`) the refusal is also written to the graph as an aiprov:Refusal."""
     if state and canon_rung(state) in HUMAN_ONLY and not _is_human(g, base, agent):
+        if record and step and target:
+            _record_refusal(base, agent, step, target, canon_rung(state))
         why = (f"agent:{agent} is not a registered HumanAgent" if agent
                else "no --agent was given, and a registered HumanAgent is required")
         sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {why}. An AI must never grant this rung.")
@@ -381,7 +415,7 @@ def cmd_claim(a) -> None:
     g = load()
     a.state = _clean_state(a.state)
     _require_registered(g, a.base, a.agent)
-    _refuse_human_only(g, a.base, a.state, a.agent)
+    _refuse_human_only(g, a.base, a.state, a.agent, "claim", a.id, getattr(a, "record_refusals", False))
     c = ns(a.base, "claim")[a.id]
     g.add((c, RDF.type, AIPROV.Claim))
     g.add((c, RDFS.label, Literal(a.text, lang="en")))
@@ -598,6 +632,14 @@ def validate_graph(g: Graph) -> int:
             FILTER NOT EXISTS { ?ag a aiprov:ToolAgent } }"""))
     print(f"[{'FAIL' if unreg else ' OK '}] agents referenced but not registered: {len(unreg)}")
     fail += len(unreg)
+    # An agent is an AI or a person, never both (issue 22). There is no automatic repair: it is unknown which type
+    # was meant, so the nodes are listed and the wrong rdf:type is removed by hand.
+    dual = [(n,) for n in sorted(set(g.subjects(RDF.type, AIPROV.AIAgent)) & set(g.subjects(RDF.type, AIPROV.HumanAgent)))]
+    print(f"[{'FAIL' if dual else ' OK '}] agents typed as both AI and human: {len(dual)}")
+    fail += len(dual)
+    nref = len(set(g.subjects(RDF.type, AIPROV.Refusal)))
+    if nref:
+        print(f"[INFO] refused human-only steps recorded: {nref}")
     # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
     dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
             FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
@@ -653,6 +695,7 @@ def validate_graph(g: Graph) -> int:
                        ("human-only rung granted by an AI agent", bad), ("source without reference", noref),
                        ("human-only rung without human promotion", unwit),
                        ("agent referenced but not registered", unreg),
+                       ("agent typed as both AI and human (remove the wrong rdf:type)", dual),
                        ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
                        ("orchestration logged twice", reclosed), ("logged before its orchestration", early),
                        ("answer from two model activities", twice), ("bad fallbackOf target", badfb),
@@ -675,6 +718,9 @@ def cmd_report(a) -> None:
     sessions = set(g.subjects(RDF.type, AIPROV.Session))
     print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)) - sessions)}")
     print(f"claims:             {len(set(g.subjects(RDF.type, AIPROV.Claim)))}")
+    nref = len(set(g.subjects(RDF.type, AIPROV.Refusal)))
+    if nref:
+        print(f"refusals:           {nref}")
     print(f"input tokens:       {total(AIPROV.inputTokens)}")
     print(f"output tokens:      {total(AIPROV.outputTokens)}")
     print(f"cache read tokens:  {total(AIPROV.cacheReadTokens)}")
@@ -891,7 +937,7 @@ def cmd_source(a) -> None:
     g.add((s, RDF.type, AIPROV.Source))
     state = canon_rung(a.state) if a.state else "unverified"
     _require_registered(g, a.base, a.agent)
-    _refuse_human_only(g, a.base, state, a.agent)
+    _refuse_human_only(g, a.base, state, a.agent, "source", a.id, getattr(a, "record_refusals", False))
     meta = None
     if a.verify:
         if not a.doi:
@@ -960,7 +1006,7 @@ def cmd_promote(a) -> None:
         sys.exit(f"'{a.to}' is not above current rung '{cur}' — "
                  f"demotions/no-ops are graph repairs, not promotions")
     agent = ns(a.base, "agent")[a.agent]
-    _refuse_human_only(g, a.base, a.to, a.agent)
+    _refuse_human_only(g, a.base, a.to, a.agent, "promote", a.id, getattr(a, "record_refusals", False))
     _set_state(g, a.base, node, a.to)
     act = ns(a.base, "activity")[f"promote-{a.id}-{a.to}"]
     g.add((act, RDF.type, AIPROV.AuditPass))
@@ -1125,6 +1171,7 @@ def main() -> None:
         s.add_argument("--" + f.replace("_", "-"), dest=f)
     s.add_argument("--acted-on-behalf-of", dest="acted_on_behalf_of",
                    help="agent id this agent acts for (prov:actedOnBehalfOf), e.g. orchestrator")
+    s.add_argument("--by", help="agent id that registers a person (default: $PROV_ACTOR); recorded as aiprov:registeredBy")
 
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
@@ -1166,6 +1213,8 @@ def main() -> None:
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)
     s.add_argument("--parent", required=True); s.add_argument("--agent", required=True)
     s.add_argument("--state", default="unverified")
+    s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
+                   help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
     sub.add_parser("validate"); sub.add_parser("report")
 
@@ -1192,12 +1241,16 @@ def main() -> None:
     s.add_argument("--verify", action="store_true",
                    help="resolve the DOI via Crossref/OpenAlex and promote to retrieved")
     s.add_argument("--agent", help="agent performing the verification")
+    s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
+                   help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
     s = sub.add_parser("promote")
     s.add_argument("--id", required=True, help="source or claim id")
     s.add_argument("--to", required=True, help="target rung")
     s.add_argument("--agent", required=True)
     s.add_argument("--note")
+    s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
+                   help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
     s = sub.add_parser("extract")
     s.add_argument("--graph", help="input TTL (default provenance.ttl)")

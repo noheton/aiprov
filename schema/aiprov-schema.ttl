@@ -30,7 +30,27 @@ aiprov:AIAgent          a owl:Class ; rdfs:subClassOf prov:SoftwareAgent ;
     rdfs:comment "An LLM- or ML-driven agent participating in artefact production."@en .
 
 aiprov:HumanAgent       a owl:Class ; rdfs:subClassOf prov:Person ;
-    rdfs:label "Human agent"@en .
+    owl:disjointWith aiprov:AIAgent ;
+    rdfs:label "Human agent"@en ;
+    rdfs:comment "A person. Never also an aiprov:AIAgent: validate fails a node typed as both."@en .
+
+aiprov:registeredBy     a owl:ObjectProperty ; rdfs:domain aiprov:HumanAgent ; rdfs:range prov:Agent ;
+    rdfs:comment "The agent that registered this person (provlog agent --type human, from --by or PROV_ACTOR). Makes a self-registration visible."@en .
+aiprov:registeredAtTime a owl:DatatypeProperty ; rdfs:domain aiprov:HumanAgent ; rdfs:range xsd:dateTime ;
+    rdfs:comment "When the person was registered."@en .
+
+aiprov:Refusal          a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Refusal"@en ;
+    rdfs:comment "A human-only step (a rung only a registered person may grant) that provlog refused. Written only with --record-refusals."@en .
+aiprov:refusedStep      a owl:DatatypeProperty ; rdfs:domain aiprov:Refusal ; rdfs:range xsd:string ;
+    rdfs:comment "The refused command: claim, source or promote."@en .
+aiprov:refusedTarget    a owl:DatatypeProperty ; rdfs:domain aiprov:Refusal ; rdfs:range xsd:string ;
+    rdfs:comment "The id of the claim or source the step was about."@en .
+aiprov:refusedRung      a owl:DatatypeProperty ; rdfs:domain aiprov:Refusal ; rdfs:range xsd:string ;
+    rdfs:comment "The human-only rung that was requested."@en .
+aiprov:refusedAgent     a owl:ObjectProperty ; rdfs:domain aiprov:Refusal ; rdfs:range prov:Agent ;
+    rdfs:comment "The agent whose request was refused."@en .
+aiprov:refusedAtTime    a owl:DatatypeProperty ; rdfs:domain aiprov:Refusal ; rdfs:range xsd:dateTime .
 
 aiprov:ToolAgent        a owl:Class ; rdfs:subClassOf prov:SoftwareAgent ;
     rdfs:label "Deterministic tool"@en ;
