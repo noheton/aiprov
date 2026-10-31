@@ -45,6 +45,17 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Schema (#34): `aiprov:recordedAtTime` separates when a record was written from when the work happened. `log` wrote
+  `prov:endedAtTime = now()` unconditionally, so a session activity carried a sub-second span where a reader
+  expects the duration of the work (measured in a consuming repository: fourteen activities, 0.35–1.27 s, for
+  work of hundreds of seconds). This is not only untidy: the model in force can change inside a session, so
+  attribution followed the instant of logging rather than the window of the work. `log --ended` now takes the
+  end of the work explicitly and defaults to now as before; `recordedAtTime` is always written, so a record
+  made in arrears is distinguishable from one whose span is real — and earlier records are distinguishable by
+  its absence. `validate` WARNs on a session activity whose span is under a second or missing, never fails:
+  a genuinely short activity is possible and aiprov cannot tell the two apart. Additive; legacy graphs
+  validate unchanged.
+- Added (issue 42): `provlog migrate [--dry-run] [--to VERSION] [--agent ID]` brings a graph to the schema version of the installed provlog. Steps are chained per version, every existing triple is kept, deprecated terms are marked `owl:deprecated` and never deleted, missing vocabulary terms are added, and each run is logged as one `aiprov:Migration` activity (from, to, tool version, counts). A second run changes nothing. `init` stamps `aiprov:schemaVersion`; a graph without it is detected by its terms (0.1.0, 0.2.0) and `validate` warns (never fails). The dashboard reads graphs of every version in memory and leaves the file as it is. Fixtures of 0.1.0 and 0.2.0 in `tests/fixtures/versions/`. Additive.
 - Fix (issue 21): `provlog log`, `claim`, `source` and `promote` refuse an `--agent` that was never registered with
   `provlog agent` (no `AIAgent`, `HumanAgent` or `ToolAgent` type in the graph) and name the command to register it; the
   graph file stays unchanged. `validate` fails on "agents referenced but not registered" (objects of `prov:wasAssociatedWith`
