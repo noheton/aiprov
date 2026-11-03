@@ -582,6 +582,106 @@ def _clean_state(state: str) -> str:
     return state.lower()
 
 
+REFUTED = -2  # effective rank of a composite claim that fails (contested, or too many refuted premises)
+_COMPOSITIONS = {'all': 'AllOf', 'any': 'AnyOf', 'atleast': 'AtLeast'}
+
+
+def _parse_composition(value: str) -> tuple[str, int]:
+    v = value.lower()
+    if v in ('all', 'any'):
+        return v, 0
+    m = re.fullmatch(r'atleast:([0-9]+)', v)
+    if not m or int(m.group(1)) < 1:
+        sys.exit(f'invalid composition {value}: use all, any or atleast:N (N >= 1)')
+    return 'atleast', int(m.group(1))
+
+
+def _own_rank(g: Graph, c) -> int:
+    '''Ladder position of the state a claim is stated at; REFUTED for contested.'''
+    names = [canon_rung(str(s).rsplit('/', 1)[-1]) for s in g.objects(c, AIPROV.verificationState)]
+    if 'contested' in names:
+        return REFUTED
+    return max([LADDER.index(n) for n in names if n in LADDER], default=0)
+
+
+def _rank_name(rank: int) -> str:
+    return LADDER[rank] if rank >= 0 else 'refuted'
+
+
+def _premise_limit(g: Graph, c, memo: dict | None = None, stack: tuple = ()) -> int | None:
+    '''What the premises of a claim allow, without the own rung of the claim: AllOf the weakest premise, AnyOf the
+    best, AtLeast k the k-th best; REFUTED when the composition fails; None for a claim without premises.'''
+    prems = list(g.objects(c, AIPROV.hasPremise))
+    if not prems or c in stack:
+        return None
+    vals = [_effective_rank(g, p, memo, stack + (c,)) for p in prems]
+    alive = [v for v in vals if v != REFUTED]
+    comp = next(iter(g.objects(c, AIPROV.composition)), AIPROV.AllOf)
+    if comp == AIPROV.AnyOf:
+        return max(alive) if alive else REFUTED
+    if comp == AIPROV.AtLeast:
+        k = next(iter(g.objects(c, AIPROV.minPremises)), None)
+        k = int(k) if k is not None else len(prems) + 1
+        return sorted(alive, reverse=True)[k - 1] if 1 <= k <= len(alive) else REFUTED
+    return min(vals) if len(alive) == len(vals) else REFUTED
+
+
+def _effective_rank(g: Graph, c, memo: dict | None = None, stack: tuple = ()) -> int:
+    '''The effective rung of a claim: computed, never written; its own rung, capped by what its premises allow.'''
+    memo = {} if memo is None else memo
+    if c in memo:
+        return memo[c]
+    own = _own_rank(g, c)
+    lim = None if own == REFUTED else _premise_limit(g, c, memo, stack)
+    memo[c] = own if lim is None else min(own, lim)
+    return memo[c]
+
+
+def _above_limit(g: Graph, c) -> bool:
+    '''A claim stated higher than its premises allow. Refuted premises cap it at unverified, not below.'''
+    lim = _premise_limit(g, c)
+    return lim is not None and _own_rank(g, c) > max(lim, 0)
+
+
+def _limiting_premises(g: Graph, c) -> list:
+    eff = _effective_rank(g, c)
+    if eff == _own_rank(g, c):
+        return []
+    return sorted(str(p).rsplit('/', 1)[-1] for p in g.objects(c, AIPROV.hasPremise)
+                  if _effective_rank(g, p) == eff)
+
+
+def _add_premises(g: Graph, a, c) -> None:
+    prems = getattr(a, 'premise', None) or []
+    comp = getattr(a, 'composition', None)
+    if comp and not prems:
+        sys.exit('--composition needs at least one --premise')
+    if not prems:
+        return
+    kind, k = _parse_composition(comp or 'all')
+    claims = set(g.subjects(RDF.type, AIPROV.Claim))
+    seen = []
+    for p in prems:
+        node = ns(a.base, 'claim')[p]
+        if node not in claims:
+            sys.exit(f'premise {p} is not a claim in the graph')
+        if node == c:
+            sys.exit('a claim cannot be its own premise')
+        if node not in seen:
+            seen.append(node)
+    if kind == 'atleast' and k > len(seen):
+        sys.exit(f'atleast:{k} needs at least {k} premises, got {len(seen)}')
+    for node in seen:
+        g.add((c, AIPROV.hasPremise, node))
+    g.add((c, AIPROV.composition, AIPROV[_COMPOSITIONS[kind]]))
+    if kind == 'atleast':
+        g.add((c, AIPROV.minPremises, Literal(k, datatype=XSD.integer)))
+    own, eff = _own_rank(g, c), _effective_rank(g, c)
+    if _above_limit(g, c):
+        sys.exit(f'claim {a.id} is stated at {_rank_name(own)}, above its effective rung {_rank_name(eff)}; '
+                 f'a composite claim cannot rank higher than its premises allow')
+
+
 def cmd_claim(a) -> None:
     g = load()
     a.state = _clean_state(a.state)
@@ -593,6 +693,7 @@ def cmd_claim(a) -> None:
     g.add((c, PROV.wasGeneratedBy, ns(a.base, "activity")[a.parent]))
     g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
     g.add((c, AIPROV.verificationState, ns(a.base, "verification")[a.state]))
+    _add_premises(g, a, c)
     save(g)
     print(f"claim:{a.id} added (state {a.state})")
 
@@ -1333,6 +1434,48 @@ def validate_graph(g: Graph) -> int:
             badchain.append((ch_,))
     print(f"[{'FAIL' if badchain else ' OK '}] telemetry chain anchors without one valid head, a length of at least 1 and an author: {len(badchain)}")
     fail += len(badchain)
+    # Composite claims (issue 36)
+    short = lambda n: str(n).rsplit('/', 1)[-1]
+    all_claims = set(g.subjects(RDF.type, AIPROV.Claim))
+    composites = set(g.subjects(AIPROV.hasPremise, None)) | set(g.subjects(AIPROV.composition, None))
+    prem_bad, prem_cycle, min_bad, comp_nop, above = [], [], [], [], []
+    for c in sorted(composites, key=str):
+        prems = list(g.objects(c, AIPROV.hasPremise))
+        for p in prems:
+            if p not in all_claims:
+                prem_bad.append((f'{short(c)} has premise {short(p)}, which is not a claim',))
+        seen, todo = set(), list(prems)
+        while todo:
+            x = todo.pop()
+            if x not in seen:
+                seen.add(x)
+                todo.extend(g.objects(x, AIPROV.hasPremise))
+        if c in seen:
+            prem_cycle.append((short(c),))
+        comp = next(iter(g.objects(c, AIPROV.composition)), None)
+        if comp is not None and not prems:
+            comp_nop.append((short(c),))
+        if comp == AIPROV.AtLeast:
+            k = next(iter(g.objects(c, AIPROV.minPremises)), None)
+            try:
+                ok_k = k is not None and 1 <= int(k) <= len(prems)
+            except ValueError:
+                ok_k = False
+            if not ok_k:
+                min_bad.append((f'{short(c)}: minPremises {k} with {len(prems)} premises',))
+        if prems and _above_limit(g, c):
+            above.append((f'{short(c)}: stated {_rank_name(_own_rank(g, c))}, effective {_rank_name(_effective_rank(g, c))}',))
+    for sev, label, rows in (
+            ('FAIL', 'premises that are not claims', prem_bad),
+            ('FAIL', 'premise cycles', prem_cycle),
+            ('FAIL', 'atleast claims with minPremises missing or above the number of premises', min_bad),
+            ('WARN', 'composite claims without premises', comp_nop),
+            ('WARN', 'claims stated above their effective rung', above)):
+        print('[{}] {}: {}'.format(sev if rows else ' OK ', label, len(rows)))
+        if sev == 'FAIL':
+            fail += len(rows)
+        for row in rows:
+            print('   ↳', label + ':', row[0])
     # Decisions (issue 44)
     for sev, label, rows in _decision_findings(g):
         print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
@@ -1424,7 +1567,16 @@ def cmd_report(a) -> None:
         agg[r] = agg.get(r, 0) + int(n)
     order = lambda r: LADDER.index(r) if r in LADDER else 99
     for r in sorted(agg, key=order):
-        print(f"   {r:24s} {agg[r]}")
+        print(f'   {r:24s} {agg[r]}')
+    composite = sorted(set(g.subjects(AIPROV.hasPremise, None)), key=str)
+    if composite:
+        print('-- composite claims (own rung, effective rung, limiting premises) --')
+        for c in composite:
+            own, eff = _own_rank(g, c), _effective_rank(g, c)
+            comp = str(next(iter(g.objects(c, AIPROV.composition)), AIPROV.AllOf)).rsplit('#', 1)[-1]
+            lim = ', '.join(_limiting_premises(g, c))
+            print('   {:24s} {:8s} own {}, effective {}'.format(str(c).rsplit('/', 1)[-1], comp, _rank_name(own), _rank_name(eff))
+                  + (', limited by ' + lim if lim else ''))
     final = sorted({(e, act) for e, act in g.subject_objects(PROV.wasGeneratedBy)
                     if any(str(r) in ("answer", "revise") for r in g.objects(act, AIPROV.modelRole))}, key=str)
     fallbacks = list(g.subject_objects(AIPROV.fallbackOf))
@@ -1722,6 +1874,10 @@ def cmd_promote(a) -> None:
                  f"demotions/no-ops are graph repairs, not promotions")
     agent = ns(a.base, "agent")[a.agent]
     _refuse_human_only(g, a.base, a.to, a.agent, "promote", a.id, getattr(a, "record_refusals", False))
+    lim = _premise_limit(g, node)
+    if lim is not None and LADDER.index(a.to) > max(lim, 0):
+        sys.exit(f'{a.id} rests on premises; its effective rung is at most {_rank_name(lim)}, so it '
+                 f'cannot be promoted to {a.to} before its premises reach it')
     _set_state(g, a.base, node, a.to)
     act = ns(a.base, "activity")[f"promote-{a.id}-{a.to}"]
     g.add((act, RDF.type, AIPROV.AuditPass))
@@ -1951,6 +2107,10 @@ def main() -> None:
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)
     s.add_argument("--parent", required=True); s.add_argument("--agent", required=True)
     s.add_argument("--state", default="unverified")
+    s.add_argument("--premise", action="append", metavar="CLAIM",
+                   help="id of a claim this claim rests on (repeatable; makes the claim composite)")
+    s.add_argument("--composition", metavar="all|any|atleast:N",
+                   help="how the premises combine: all (AND, default), any (OR), atleast:N (k of n)")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
