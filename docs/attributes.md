@@ -73,6 +73,26 @@ model ID so accounting stays comparable.
 | prov:wasAttributedTo | → agent | mandatory for claims |
 | aiprov:verificationState | → rung | mandatory for claims |
 
+## Novelty claims (`aiprov:claimKind`, `aiprov:DelimitationRecord`)
+A claim may carry `aiprov:claimKind` (open vocabulary, for example `novelty`, `empirical`, `definitional`,
+`methodological`); it is a plain annotation, not a rung. A claim of kind `novelty` rests on an absence ("no prior work
+does X"), so its evidence is the search, recorded with `provlog delimitation`:
+
+| Property | Meaning |
+|---|---|
+| aiprov:delimits | the novelty claim the record belongs to |
+| aiprov:searchProtocol | → `aiprov:SearchProtocol` with `searchQuery`, `searchSource`, `searchedOn` (date), `resultSetHash` (sha256 of the reviewed result set) |
+| aiprov:nearestWorks | → `aiprov:NearestWork` with `workRef` (DOI or reference) and `difference` (one line on what differs) |
+| aiprov:similarityHint | optional embedding model and version; exploratory, never an input to a rung |
+
+Two states, no scale: a novelty claim is *delimitation documented* when a record exists and *not documented*
+otherwise. `validate` and `report` print the counts. A novelty claim at `ai-confirmed` or above needs a record
+(`validate` fails without one). The schema has no numeric novelty or originality attribute, and `validate` fails one.
+
+**Limitation.** A record shows that a search was made and against what; it does not show that the claim is new.
+Coverage is incomplete (databases, languages, grey literature, work not yet published), and an embedding similarity is
+not a measure of originality.
+
 ## Verification ladder
 
 Rung names answer "who checked what". Position is machine-readable via
