@@ -157,7 +157,7 @@ aiprov:recordedAtTime   a owl:DatatypeProperty ; rdfs:range xsd:dateTime ;
 # Attach directly to the prov:Activity that produced/used the AI output.
 
 aiprov:sessionId        a owl:DatatypeProperty ; rdfs:range xsd:string ;
-    rdfs:comment "Client session identifier (e.g. Claude Code session UUID)."@en .
+    rdfs:comment "Identifier of a session as the harness reports it (for example a coding-agent session UUID or a chat conversation id)."@en .
 aiprov:transcript       a owl:ObjectProperty ;
     rdfs:comment "Links the activity to a preserved conversation transcript entity."@en .
 aiprov:requestId        a owl:DatatypeProperty ; rdfs:range xsd:string ;
@@ -306,3 +306,33 @@ aiprov:recordedFrom     a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:
     rdfs:comment "What a record was written from (a transcript, a summary, a commit); expected for a backfill."@en .
 aiprov:AuxiliaryPass    a owl:Class ; rdfs:subClassOf prov:Activity ;
     rdfs:comment "A model request outside the agent loop (compaction summary, title, classifier). Its tokens are counted but kept apart from the loop's."@en .
+
+#--- Harness identity, model variant, unknown model (issue 23) -------------------
+
+aiprov:Harness          a owl:Class ; rdfs:subClassOf prov:SoftwareAgent ;
+    rdfs:label "Harness"@en ;
+    rdfs:comment "The software an agent works through (a coding-agent CLI, an IDE extension, a portal chat, a batch script). The same model behaves differently under different harnesses: permission rules, hooks, loaded instructions and context management differ. It may carry aiprov:harnessKind, aiprov:harnessVersion, aiprov:configHash and aiprov:configNormaliser."@en .
+aiprov:harnessKind      a owl:ObjectProperty ; rdfs:domain aiprov:Harness ; rdfs:range skos:Concept ;
+    rdfs:comment "Kind of harness: a concept of the scheme aiprov:HarnessKinds, or of the adopter's own scheme."@en .
+aiprov:HarnessKinds     a skos:ConceptScheme ;
+    rdfs:label "Harness kinds"@en ;
+    rdfs:comment "Small scheme of harness kinds; adopters may add concepts in their own namespace."@en .
+aiprov:harnessKind-coding-agent-cli a skos:Concept ; skos:inScheme aiprov:HarnessKinds ;
+    skos:prefLabel "coding-agent-cli"@en ; rdfs:comment "A coding agent in a terminal."@en .
+aiprov:harnessKind-ide-extension a skos:Concept ; skos:inScheme aiprov:HarnessKinds ;
+    skos:prefLabel "ide-extension"@en ; rdfs:comment "An assistant inside an editor or IDE."@en .
+aiprov:harnessKind-portal-chat a skos:Concept ; skos:inScheme aiprov:HarnessKinds ;
+    skos:prefLabel "portal-chat"@en ; rdfs:comment "A chat interface of a provider or an institution."@en .
+aiprov:harnessKind-batch a skos:Concept ; skos:inScheme aiprov:HarnessKinds ;
+    skos:prefLabel "batch"@en ; rdfs:comment "A script or scheduled job that calls a model."@en .
+aiprov:harnessVersion   a owl:DatatypeProperty ; rdfs:domain aiprov:Harness ; rdfs:range xsd:string .
+aiprov:configHash       a owl:DatatypeProperty ; rdfs:domain aiprov:Harness ; rdfs:range xsd:string ;
+    rdfs:comment "sha256 of the normalised configuration of the harness; the configuration itself is never stored. Comparable only for equal aiprov:configNormaliser."@en .
+aiprov:configNormaliser a owl:DatatypeProperty ; rdfs:domain aiprov:Harness ; rdfs:range xsd:string ;
+    rdfs:comment "Name and version of the normaliser that produced aiprov:configHash (today aiprov-config/1: object keys sorted, list order kept, values under credential-like keys removed, URLs replaced by their sha256)."@en .
+aiprov:viaHarness       a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range aiprov:Harness ;
+    rdfs:comment "The harness an activity ran under."@en .
+aiprov:modelVariant     a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
+    rdfs:comment "The reasoning variant in force for an activity (for example low, max). On the activity, not the agent, because the variant can change per request."@en .
+aiprov:modelUnknownReason a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
+    rdfs:comment "Why the model of an activity is not known (for example: not reported by the harness), stated instead of an empty or guessed model."@en .

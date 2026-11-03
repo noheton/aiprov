@@ -14,6 +14,8 @@ Commands:
                              --informed-by/--role; agent --acted-on-behalf-of.
   message --id --channel --agent (--text | --content-hash) ...   Record one message of an agent in a channel
                              (hash by default; the text only with --keep-text).
+  harness --id --kind ... [--version V] [--config-file PATH]   Register the harness (coding-agent CLI, IDE extension,
+                             portal chat, batch) an activity ran under; the configuration is hashed, never stored.
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
@@ -120,6 +122,98 @@ def cmd_agent(a) -> None:
         g.add((s, PROV.actedOnBehalfOf, ns(a.base, "agent")[a.acted_on_behalf_of]))
     save(g)
     print(f"agent:{a.id} registered ({a.type})")
+
+
+HARNESS_KINDS = ["coding-agent-cli", "ide-extension", "portal-chat", "batch"]
+CONFIG_NORMALISER = "aiprov-config/1"  # name and version of the normaliser; recorded next to every config hash
+_SECRET_KEY = re.compile(r"(token(?!s)|secret|passw|api[-_]?key|authorization|credential|private[-_]?key|cookie)", re.I)
+_URL = re.compile(r"[a-z][a-z0-9+.-]*://\S+", re.I)
+
+
+def _sha(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _norm_config(value, key: str = ""):
+    """aiprov-config/1: object keys sorted; lists keep their order (the order of permission rules decides the
+    effective rule); a value under a secret-looking key becomes <secret>; a URL is replaced by its sha256."""
+    if key and _SECRET_KEY.search(key) and value is not None:
+        return "<secret>"
+    if isinstance(value, dict):
+        return {k: _norm_config(v, k) for k, v in sorted(value.items())}
+    if isinstance(value, list):
+        return [_norm_config(v, key) for v in value]
+    if isinstance(value, str) and _URL.fullmatch(value.strip()):
+        return "url:sha256:" + _sha(value.strip())
+    return value
+
+
+def config_hash(text: str) -> str:
+    """sha256 of the normalised configuration (aiprov-config/1). JSON is normalised structurally; any other text
+    line by line (trailing blanks dropped, `key = value` or `key: value` with a secret-looking key redacted,
+    URLs hashed), in the original line order."""
+    import json
+    try:
+        canon = json.dumps(_norm_config(json.loads(text)), ensure_ascii=False, separators=(",", ":"))
+    except ValueError:
+        lines = []
+        for ln in text.splitlines():
+            ln = ln.rstrip()
+            m = re.match(r"^(\s*)([^=:#]+?)\s*([=:])\s*(.*)$", ln)
+            if m and _SECRET_KEY.search(m.group(2)):
+                ln = f"{m.group(1)}{m.group(2)}{m.group(3)}<secret>"
+            lines.append(_URL.sub(lambda u: "url:sha256:" + _sha(u.group(0)), ln))
+        canon = "\n".join(lines)
+    return "sha256:" + _sha(canon)
+
+
+def cmd_harness(a) -> None:
+    """Register a harness (issue 23). Kind, version and configuration hash are write-once: a changed
+    configuration is a new harness id, so the record of an earlier activity keeps what it ran under."""
+    g = load()
+    node = ns(a.base, "harness")[a.id]
+    if (node, RDF.type, None) in g and (node, RDF.type, AIPROV.Harness) not in g:
+        sys.exit(f"{node} exists and is not a harness")
+    if a.kind in HARNESS_KINDS:
+        kind = AIPROV["harnessKind-" + a.kind]
+    elif a.kind.startswith("http://") or a.kind.startswith("https://"):
+        kind = URIRef(a.kind)
+    else:
+        sys.exit(f"--kind: {a.kind} is not one of {', '.join(HARNESS_KINDS)} or the IRI of your own concept")
+    values = [(AIPROV.harnessKind, kind, "--kind")]
+    if a.version is not None:
+        values.append((AIPROV.harnessVersion, Literal(a.version), "--version"))
+    if a.config_file:
+        cp = pathlib.Path(a.config_file)
+        if not cp.is_file():
+            sys.exit(f"--config-file: {a.config_file} is not a file")
+        values.append((AIPROV.configHash, Literal(config_hash(cp.read_text(encoding="utf-8"))), "--config-file"))
+        values.append((AIPROV.configNormaliser, Literal(CONFIG_NORMALISER), "--config-file"))
+    for prop, val, flag in values:
+        old = set(g.objects(node, prop))
+        if old and val not in old:
+            sys.exit(f"{flag}: harness {a.id} already has {', '.join(str(o) for o in old)}; the graph is append-only, "
+                     "register the changed harness under a new id")
+    g.add((node, RDF.type, AIPROV.Harness))
+    for prop, val, _ in values:
+        g.add((node, prop, val))
+    if a.name:
+        g.add((node, FOAF.name, Literal(a.name)))
+    save(g)
+    print(f"harness:{a.id} registered ({a.kind})")
+
+
+def _link_harness(g: Graph, a, act) -> None:
+    """The harness an activity ran under, the reasoning variant in force and, for an unknown model, the reason (issue 23)."""
+    if a.harness:
+        h = ns(a.base, "harness")[a.harness]
+        if (h, RDF.type, AIPROV.Harness) not in g:
+            sys.exit(f"--harness: harness {a.harness} is not registered; register it with `provlog harness` first")
+        g.add((act, AIPROV.viaHarness, h))
+    if a.model_variant:
+        g.add((act, AIPROV.modelVariant, Literal(a.model_variant)))
+    if a.model_unknown_reason:
+        g.add((act, AIPROV.modelUnknownReason, Literal(a.model_unknown_reason)))
 
 
 def plan_violation(g: Graph, base: str, parent, agent, role) -> "str | None":
@@ -338,6 +432,7 @@ def cmd_log(a) -> None:
         g.add((act, AIPROV.role, Literal(a.role)))
     g.add((act, RDF.type, cls))
     _link_models(g, a, act)
+    _link_harness(g, a, act)
     _link_session(g, a, act)
     if a.recorded_by:
         _require_registered(g, a.base, a.recorded_by)
@@ -847,6 +942,19 @@ def validate_graph(g: Graph) -> int:
     print(f"[{'WARN' if unsourced else ' OK '}] records made by another agent or in arrears without a source (recordedFrom): {len(unsourced)}")
     _, _, twopaths = _witness_split(g)
     print(f"[{'WARN' if twopaths else ' OK '}] sessions with token sums from more than one capture path (only one is counted): {len(twopaths)}")
+    # Harness (issue 23): viaHarness must name a registered harness; an activity via a harness should say which model
+    # ran or why it is unknown. The second is a WARN: legacy and partial records are legitimate.
+    badharness = list(g.query("""SELECT ?a ?h WHERE { ?a aiprov:viaHarness ?h .
+            FILTER NOT EXISTS { ?h a aiprov:Harness } }"""))
+    print(f"[{'FAIL' if badharness else ' OK '}] viaHarness targets that are not registered harnesses: {len(badharness)}")
+    fail += len(badharness)
+    nomodel = []
+    for act in set(g.subjects(AIPROV.viaHarness, None)):
+        if (act, AIPROV.modelUnknownReason, None) in g:
+            continue
+        if not any((ag, AIPROV.model, None) in g for ag in g.objects(act, PROV.wasAssociatedWith)):
+            nomodel.append((act,))
+    print(f"[{'WARN' if nomodel else ' OK '}] activities via a harness with neither a model nor a stated reason: {len(nomodel)}")
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -862,7 +970,9 @@ def validate_graph(g: Graph) -> int:
                        ("reply target not a message of this graph", badreply), ("message hash missing or wrong", nohash),
                        ("message text kept in a channel above internal or of unknown class", kept_risky),
                        ("record by another agent or in arrears without a source", unsourced),
-                       ("session with token sums from more than one capture path", twopaths)):
+                       ("session with token sums from more than one capture path", twopaths),
+                       ("viaHarness target is not a registered harness", badharness),
+                       ("activity via a harness with neither a model nor a stated reason", nomodel)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -962,6 +1072,17 @@ def cmd_report(a) -> None:
                     outs[str(o)] = outs.get(str(o), 0) + 1
             tail = ", ".join(f"{k} {v}" for k, v in sorted(outs.items())) or "no outcome recorded"
             print(f"   {key:24s} {len(members)} sessions, {acts} activities, {tail}")
+    harnesses = set(g.subjects(RDF.type, AIPROV.Harness))
+    if harnesses:
+        print("-- harnesses --")
+        for h_ in sorted(harnesses, key=str):
+            acts = set(g.subjects(AIPROV.viaHarness, h_))
+            kind = next(iter(g.objects(h_, AIPROV.harnessKind)), None)
+            kind = "(no kind)" if kind is None else str(kind).removeprefix(str(AIPROV) + "harnessKind-")
+            variants = sorted({str(v) for x in acts for v in g.objects(x, AIPROV.modelVariant)})
+            unknown = sum(1 for x in acts if (x, AIPROV.modelUnknownReason, None) in g)
+            tail = (f", variants {', '.join(variants)}" if variants else "") + (f", model unknown {unknown}" if unknown else "")
+            print(f"   {str(h_).rsplit('/', 1)[-1]:24s} {kind}, {len(acts)} activities{tail}")
     msgs = set(g.subjects(RDF.type, AIPROV.Message))
     if msgs:
         print("-- messages --")
@@ -1411,6 +1532,19 @@ def main() -> None:
                    help="registered agent that wrote the record, when it is not the acting agent")
     s.add_argument("--recorded-from", dest="recorded_from",
                    help="path of the source a record was written from (a summary, a transcript, a commit)")
+    s.add_argument("--harness", help="id of the harness this activity ran under (see `provlog harness`)")
+    s.add_argument("--model-variant", dest="model_variant",
+                   help="reasoning variant in force for this activity (for example low, max); it can change per request")
+    s.add_argument("--model-unknown-reason", dest="model_unknown_reason",
+                   help="why the model is not known (for example: not reported by the harness), instead of a guess")
+
+    s = sub.add_parser("harness", help="register the harness an activity ran under")
+    s.add_argument("--id", required=True)
+    s.add_argument("--kind", required=True, help=f"{', '.join(HARNESS_KINDS)}, or the IRI of your own concept")
+    s.add_argument("--version", help="version of the harness")
+    s.add_argument("--config-file", dest="config_file",
+                   help=f"configuration to hash ({CONFIG_NORMALISER}: secrets removed, URLs hashed, list order kept); never stored")
+    s.add_argument("--name")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)
@@ -1479,7 +1613,7 @@ def main() -> None:
     s.add_argument("--dashboard", help="also render an HTML dashboard of the extract")
 
     a = p.parse_args()
-    {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
+    {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
      "claim": cmd_claim, "message": cmd_message, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 

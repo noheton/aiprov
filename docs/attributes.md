@@ -134,3 +134,16 @@ failure.
 `merge` also refuses: an unreadable shard; a shard that demotes a node below its rung in the main graph (a repair belongs
 in the main graph), retypes an existing node, or adds a human-only rung without a human promotion; and it stops if the
 main graph contains blank nodes. Verification states outside the ladder (for example `contested`) are kept as they are.
+
+## Harness configuration hash (`aiprov-config/1`)
+
+`provlog harness --config-file PATH` stores `aiprov:configHash` (sha256 of the normalised configuration) and
+`aiprov:configNormaliser` (`aiprov-config/1`); the configuration itself is never stored. Two hashes compare only when the
+normaliser is the same.
+
+- JSON: object keys are sorted; arrays keep their order (the order of permission rules decides the effective rule);
+  a value under a key that looks secret (token, secret, password, api key, authorization, credential, private key,
+  cookie) becomes `<secret>`, so two configurations that differ only in a secret hash equal; a string that is a URL is
+  replaced by `url:sha256:<hex>`; the result is serialised compactly, without ASCII escaping.
+- Any other text: line by line in the original order; trailing blanks dropped; `key = value` or `key: value` with a
+  secret-looking key keeps the key and `<secret>` as value; URLs are replaced as above.
