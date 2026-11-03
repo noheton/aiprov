@@ -25,9 +25,6 @@ aiprov:Prompt a owl:Class ;
     rdfs:comment "A versioned prompt file. Bind to activities via prov:qualifiedAssociation/prov:hadPlan or dcterms:source."@en ;
     rdfs:subClassOf prov:Plan .
 
-aiprov:Source a owl:Class ;
-    rdfs:subClassOf prov:Entity .
-
 aiprov:ToolAgent a owl:Class ;
     rdfs:label "Deterministic tool"@en ;
     rdfs:comment "Non-AI software (compiler, linter, CI job) acting in the pipeline."@en ;
@@ -223,6 +220,24 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/merge-command> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/c-messages-43-additive> a aiprov:Claim ;
+    rdfs:label "The change is additive: graphs without messages validate unchanged and the migration step only stamps the version."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/c-messages-43-hash-default> a aiprov:Claim ;
+    rdfs:label "provlog message stores only the sha256 of the text unless --keep-text is given; validate fails when kept text does not match the stored hash."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/c-messages-43-tests> a aiprov:Claim ;
+    rdfs:label "The full test suite (76 tests, Python 3.12 locally) passes with the change; the 3.10 matrix runs in CI."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/c-orch-prov-semantics> a aiprov:Claim ;
     rdfs:label "prov:wasInformedBy for sub-activity to orchestration and prov:actedOnBehalfOf for agent instance to orchestrating agent are used in line with PROV-O semantics."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -346,6 +361,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -361,6 +377,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c",
         "sha256:5d2a4fcc24653a6bfae321fc05141b54503d024298fd175b2bf1ce0cf5b1a244",
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
+        "sha256:7474c7ae6881b073e8189c47f95fbac447124e38390723e9147fb96183a576ae",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
@@ -379,7 +396,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "b956d1d6cc59621cd378e6184021594071a54686",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
-        "f4b910ad445f6084d8273fc1c909336c137089e0" .
+        "f4b910ad445f6084d8273fc1c909336c137089e0",
+        "f80a31d" .
 
 <https://w3id.org/aiprov/prov/entity/CITATION-cff> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -466,6 +484,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
@@ -473,7 +492,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4771d7fd3964ff52c9d7ff6ba87065ae54c2987ebcf2d1b63beff14796555d0f",
         "sha256:4a11763782f160fb55c74c0deaac8f4c6ae6567b6ada89d11a52dd9b8d223182",
         "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0",
-        "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972" ;
+        "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972",
+        "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
     aiprov:gitCommit "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
@@ -481,7 +501,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
-        "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5" .
+        "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
+        "f80a31d" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-social-preview-png> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -571,6 +592,20 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "4398cb58490f7e461765a3d86da835f022ea7d26",
         "8db44e71a3759ec7844720ca1fdaecd1dfe5ef12" .
 
+<https://w3id.org/aiprov/prov/entity/message-bad-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:contentHash "sha256:1e88db4e1ac5cbb73df8997c71bd2db92487c0a41b75ee4f9f7f208a83c9055f" ;
+    aiprov:filePath "tests/fixtures/message-bad.ttl" ;
+    aiprov:gitCommit "f80a31d" .
+
+<https://w3id.org/aiprov/prov/entity/message-thread-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:contentHash "sha256:f6b5c0205b752099b65741e02a4860aa2a8db628bab15dbbc1b78b29ca40d724" ;
+    aiprov:filePath "tests/fixtures/message-thread.ttl" ;
+    aiprov:gitCommit "f80a31d" .
+
 <https://w3id.org/aiprov/prov/entity/model-answers-bad-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers> ;
@@ -617,6 +652,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -636,6 +672,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:a26fc61b043a25e9c4c40ab0e9ea3178f6f58a6b1577e3338e8781de18d6b3b9",
         "sha256:a7863dfd260b1e9f515850f8db58550c4027d5f3262e685820af9d6dd323ffe8",
         "sha256:a8b1d3c2b57588483f11d5824f25127a1b8515c85173abf2356c0bac79b60851",
+        "sha256:e19bf9eaa7ae25e74dab66db4d1b75eef9b8ddd13cd58b2879fec552c9ebf473",
         "sha256:e6b805d56b0a1630ff2a325afa16a6720643edf0b1447e362e165d51d43a0c75",
         "sha256:f7550aa453f935bab37df94449cdce612785d29ed346b01224ad6475e3758a2f" ;
     aiprov:filePath "src/aiprov/provlog.py" ;
@@ -651,7 +688,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
-        "f4b910ad445f6084d8273fc1c909336c137089e0" .
+        "f4b910ad445f6084d8273fc1c909336c137089e0",
+        "f80a31d" .
 
 <https://w3id.org/aiprov/prov/entity/pull_request_template-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -714,6 +752,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/test_merge.py" ;
     aiprov:gitCommit "07d9604",
         "735a10e" .
+
+<https://w3id.org/aiprov/prov/entity/test_messages-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> ;
+    aiprov:contentHash "sha256:997e0a28087d6dc3460cd2829a933935e7006f7440583cd463d46bfc6ac3f49d" ;
+    aiprov:filePath "tests/test_messages.py" ;
+    aiprov:gitCommit "f80a31d" .
 
 <https://w3id.org/aiprov/prov/entity/test_migrate-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -806,6 +851,9 @@ verif:source-vendored a aiprov:VerificationState ;
     rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads."@en ;
     aiprov:ladderPosition 4 .
 
+aiprov:Source a owl:Class ;
+    rdfs:subClassOf prov:Entity .
+
 <https://w3id.org/aiprov/prov/activity/2026-10-30-template-labels> a aiprov:Repair ;
     rdfs:label "Schema-change issue template uses the shared label set"@en ;
     prov:endedAtTime "2026-10-30T20:57:03.293665+01:00"^^xsd:dateTime ;
@@ -817,6 +865,9 @@ verif:source-vendored a aiprov:VerificationState ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
+
+<https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
+    aiprov:filePath "CONTRIBUTING.md" .
 
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
@@ -1012,6 +1063,13 @@ agent:claude-opus-alias a aiprov:AIAgent ;
 
 aiprov:VerificationState a owl:Class ;
     rdfs:comment "A rung on the verification ladder. Higher position = stronger check. Rungs at position 5+ are human-only: an AI agent must never grant them."@en .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43> a aiprov:AuthoringPass ;
+    rdfs:label "Channels and messages between agents: schema, provlog message, validate rules, fixtures, tests (issue 43)"@en ;
+    prov:endedAtTime "2026-11-03T05:14:08.190669+01:00"^^xsd:dateTime ;
+    prov:used <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-03T05:14:08.190711+01:00"^^xsd:dateTime .
 
 aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
