@@ -134,8 +134,8 @@ aiprov:platform         a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rd
     rdfs:comment "The kind of system that hosts the channel, in the adopter's own words."@en .
 aiprov:channelName      a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rdfs:range xsd:string ;
     rdfs:comment "Display name of the channel. Optional; a channel may be known by its identifier alone."@en .
-aiprov:dataClass        a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rdfs:range xsd:string ;
-    rdfs:comment "Data class of what the channel holds: public, untrusted, internal, confidential or restricted. validate warns when message text is kept in a channel above internal or of unknown class."@en .
+aiprov:dataClass        a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Data class of what a channel or the text of a decision holds: public, untrusted, internal, confidential or restricted. validate warns when message text is kept in a channel above internal or of unknown class."@en .
 aiprov:Message          a owl:Class ; rdfs:subClassOf prov:Entity ;
     rdfs:label "Message"@en ;
     rdfs:comment "One message of an agent in a channel. prov:wasAttributedTo names the sender; aiprov:contentHash is required; aiprov:content is stored only on request. An activity or a decision uses a message with prov:used."@en .
@@ -159,6 +159,39 @@ aiprov:transcript       a owl:ObjectProperty ;
     rdfs:comment "Links the activity to a preserved conversation transcript entity."@en .
 aiprov:requestId        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Provider request ID for a single inference call."@en .
+# --- Decision records (issue 44) ---
+aiprov:Decision         a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Decision"@en ;
+    rdfs:comment "A question put to a decider with its options and, optionally, a recommendation. prov:wasAttributedTo names who asked; aiprov:contentHash is the sha256 of the question; the text (rdfs:label) is stored only on request. The effective state is the state of the latest aiprov:Deciding activity, open when there is none."@en .
+aiprov:Option           a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Option"@en ;
+    rdfs:comment "One alternative of a decision, with aiprov:contentHash and, on request, rdfs:label."@en .
+aiprov:Deciding         a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "Deciding"@en ;
+    rdfs:comment "The act of choosing an option of a decision. It prov:used the decision, is prov:wasAssociatedWith the decider, and carries aiprov:chosenOption and aiprov:decisionState."@en .
+aiprov:optionOf         a owl:ObjectProperty ; rdfs:domain aiprov:Option ; rdfs:range aiprov:Decision ;
+    rdfs:comment "The decision an option belongs to."@en .
+aiprov:recommendedOption a owl:ObjectProperty ; rdfs:domain aiprov:Decision ; rdfs:range aiprov:Option ;
+    rdfs:comment "The option the asker recommended. Absent when no recommendation was made."@en .
+aiprov:chosenOption     a owl:ObjectProperty ; rdfs:domain aiprov:Deciding ; rdfs:range aiprov:Option ;
+    rdfs:comment "The option chosen. validate fails when it is not an option of the decision the activity used."@en .
+aiprov:decisionState    a owl:ObjectProperty ;
+    rdfs:comment "State of a decision or of a deciding activity: a concept of the scheme aiprov:DecisionStates. Only a registered human sets done; an AI sets provisional."@en .
+aiprov:DecisionStates   a skos:ConceptScheme ;
+    skos:prefLabel "Decision states"@en .
+aiprov:decisionState-open a skos:Concept ; skos:inScheme aiprov:DecisionStates ;
+    skos:prefLabel "open"@en ; rdfs:comment "Asked, not decided."@en .
+aiprov:decisionState-provisional a skos:Concept ; skos:inScheme aiprov:DecisionStates ;
+    skos:prefLabel "provisional"@en ; rdfs:comment "The recommendation applies until a person decides."@en .
+aiprov:decisionState-done a skos:Concept ; skos:inScheme aiprov:DecisionStates ;
+    skos:prefLabel "done"@en ; rdfs:comment "Decided by a registered human."@en .
+aiprov:askedIn          a owl:ObjectProperty ; rdfs:domain aiprov:Decision ;
+    rdfs:comment "IRI of the issue, pull request or message where the question was asked."@en .
+aiprov:decidedIn        a owl:ObjectProperty ; rdfs:domain aiprov:Deciding ;
+    rdfs:comment "IRI of the place where it was decided (a comment, a card, a label event)."@en .
+aiprov:supersedes       a owl:ObjectProperty ; rdfs:domain aiprov:Decision ; rdfs:range aiprov:Decision ;
+    rdfs:comment "The earlier decision this one replaces. A decided decision is never edited; a change is a new decision that supersedes it."@en .
+
 aiprov:recordedAtTime   a owl:DatatypeProperty ; rdfs:range xsd:dateTime ;
     rdfs:comment "When the record of an activity or a message was written, as distinct from when the work happened. prov:startedAtTime and prov:endedAtTime describe the work; this property describes the bookkeeping. They differ whenever an activity is logged in arrears, which is the normal case for an agent session, and keeping them apart is what allows a reader to tell a measured span from the instant a log line was appended."@en .
 aiprov:turnCount        a owl:DatatypeProperty ; rdfs:range xsd:integer .
