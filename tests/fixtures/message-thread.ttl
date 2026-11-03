@@ -1,0 +1,26 @@
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix act: <https://example.org/prov/activity/> .
+@prefix chan: <https://example.org/prov/channel/> .
+@prefix msg: <https://example.org/prov/message/> .
+
+# Synthetic. A thread of three messages between two agents: a plan, a reply, and a message whose text is withheld.
+# The second message informs an activity.
+agent:planner a aiprov:AIAgent ; aiprov:model "m-1" .
+agent:reviewer a aiprov:AIAgent ; aiprov:model "m-2" .
+chan:team a aiprov:Channel ; aiprov:platform "chat" ; aiprov:channelName "team" ; aiprov:dataClass "internal" .
+msg:m1 a aiprov:Message ; prov:wasAttributedTo agent:planner ; aiprov:inChannel chan:team ;
+    aiprov:sentAt "2026-11-01T09:00:00+00:00"^^xsd:dateTime ; aiprov:recordedAtTime "2026-11-01T09:05:00+00:00"^^xsd:dateTime ;
+    aiprov:contentHash "sha256:8c97ea2d127464a38e5d6d6770d963da84ac760790f2826c30b5123eafc5ca59" ; aiprov:content "Plan: add the parser first." ;
+    aiprov:refersTo <https://example.org/tracker/issues/7> .
+msg:m2 a aiprov:Message ; prov:wasAttributedTo agent:reviewer ; aiprov:inChannel chan:team ;
+    aiprov:sentAt "2026-11-01T09:10:00+00:00"^^xsd:dateTime ; aiprov:recordedAtTime "2026-11-01T09:12:00+00:00"^^xsd:dateTime ;
+    aiprov:contentHash "sha256:6e2a6bad4140dd79a68f7823abdd48a51450a1bc8417fd7597c62f669191d4bb" ; aiprov:content "Agreed, with one objection." ;
+    aiprov:inReplyTo msg:m1 .
+msg:m3 a aiprov:Message ; prov:wasAttributedTo agent:planner ; aiprov:inChannel chan:team ;
+    aiprov:recordedAtTime "2026-11-01T09:20:00+00:00"^^xsd:dateTime ;
+    aiprov:contentHash "sha256:50bae30b3a0b9035b9c1bfa5b35cf7df432dbab4a8328f204346850b6debee9c" ; aiprov:inReplyTo msg:m2 .
+act:revise a aiprov:AuthoringPass ; prov:endedAtTime "2026-11-01T10:00:00+00:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:planner ; prov:used msg:m2 .

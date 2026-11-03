@@ -12,6 +12,8 @@ Commands:
                              edit a frozen plan or add validation failures.
   (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
                              --informed-by/--role; agent --acted-on-behalf-of.
+  message --id --channel --agent (--text | --content-hash) ...   Record one message of an agent in a channel
+                             (hash by default; the text only with --keep-text).
   validate                   Conformance: parentless claims, AI-granted
                              human-only verification rungs, missing attribution.
   report                     Totals: tokens, cost, activities per agent, rungs.
@@ -346,6 +348,11 @@ def cmd_log(a) -> None:
             g.add((e, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
         if a.commit:
             g.add((e, AIPROV.gitCommit, Literal(a.commit)))
+    for mid in a.used_message or []:
+        m_ = ns(a.base, "message")[mid]
+        if (m_, RDF.type, AIPROV.Message) not in g:
+            sys.exit(f"--used-message: message {mid} is not logged; log it with `provlog message` first")
+        g.add((act, PROV.used, m_))
     for path in a.used or []:
         e = ns(a.base, "source")[pathlib.Path(path).name.replace(".", "-")]
         g.add((e, RDF.type, AIPROV.Source))
@@ -424,6 +431,71 @@ def cmd_claim(a) -> None:
     g.add((c, AIPROV.verificationState, ns(a.base, "verification")[a.state]))
     save(g)
     print(f"claim:{a.id} added (state {a.state})")
+
+
+DATA_CLASSES = ["public", "untrusted", "internal", "confidential", "restricted"]
+KEEP_TEXT_OK = {"public", "untrusted", "internal"}  # classes in which message text may be stored
+_HASH_RE = re.compile(r"sha256:[0-9a-f]{64}")
+
+
+def _channel_value(g: Graph, chan, prop, value, flag: str) -> None:
+    """Write-once channel attribute: add while absent, refuse a different second value."""
+    old = set(g.objects(chan, prop))
+    if old and Literal(value) not in old:
+        sys.exit(f"{flag}: the channel already has {', '.join(str(o) for o in old)}; a recorded value is not replaced")
+    g.add((chan, prop, Literal(value)))
+
+
+def cmd_message(a) -> None:
+    """Record one message of a registered agent in a channel (issue 43). The content hash is always written; the
+    text only with --keep-text. Nothing is guessed: without --sent-at there is no aiprov:sentAt."""
+    g = load()
+    _require_registered(g, a.base, a.agent)
+    if (a.text is None) == (a.content_hash is None):
+        sys.exit("give exactly one of --text and --content-hash")
+    if a.keep_text and a.text is None:
+        sys.exit("--keep-text needs --text")
+    if a.content_hash is not None and not _HASH_RE.fullmatch(a.content_hash):
+        sys.exit("--content-hash: use sha256:<64 hex digits>")
+    msg = ns(a.base, "message")[a.id]
+    if (msg, RDF.type, None) in g:
+        sys.exit(f"message {a.id} is already logged; the graph is append-only, use a new id")
+    chan = ns(a.base, "channel")[a.channel]
+    if (chan, RDF.type, None) in g and (chan, RDF.type, AIPROV.Channel) not in g:
+        sys.exit(f"{chan} exists and is not a channel")
+    if a.reply_to:
+        target = ns(a.base, "message")[a.reply_to]
+        if target == msg:
+            sys.exit("--reply-to: a message cannot reply to itself")
+        if (target, RDF.type, AIPROV.Message) not in g:
+            sys.exit(f"--reply-to: message {a.reply_to} is not logged in this graph; a reply target in another "
+                     "graph is not supported yet")
+    for iri in a.refers_to or []:
+        if not iri.startswith(("http://", "https://")):
+            sys.exit(f"--refers-to: {iri} is not an http(s) IRI")
+    sent = _session_time(a.sent_at, "--sent-at") if a.sent_at else None
+    g.add((chan, RDF.type, AIPROV.Channel))
+    for val, prop, flag in ((a.platform, AIPROV.platform, "--platform"), (a.channel_name, AIPROV.channelName, "--channel-name"),
+                            (a.channel_class, AIPROV.dataClass, "--channel-class")):
+        if val is not None:
+            _channel_value(g, chan, prop, val, flag)
+    g.add((msg, RDF.type, AIPROV.Message))
+    g.add((msg, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
+    g.add((msg, AIPROV.inChannel, chan))
+    if sent is not None:
+        g.add((msg, AIPROV.sentAt, sent))
+    g.add((msg, AIPROV.recordedAtTime, now()))
+    digest = a.content_hash if a.text is None else "sha256:" + hashlib.sha256(a.text.encode("utf-8")).hexdigest()
+    g.add((msg, AIPROV.contentHash, Literal(digest)))
+    if a.keep_text:
+        g.add((msg, AIPROV.content, Literal(a.text)))
+    if a.reply_to:
+        g.add((msg, AIPROV.inReplyTo, ns(a.base, "message")[a.reply_to]))
+    for iri in a.refers_to or []:
+        g.add((msg, AIPROV.refersTo, URIRef(iri)))
+    save(g)
+    kept = "text kept" if a.keep_text else "hash only"
+    print(f"message:{a.id} logged in channel:{a.channel} ({kept})")
 
 
 # --- schema versions and migration (issue 42) ---------------------------------------------------------------
@@ -688,6 +760,29 @@ def validate_graph(g: Graph) -> int:
             FILTER NOT EXISTS { ?s a aiprov:Session } }"""))
     print(f"[{'FAIL' if badpart else ' OK '}] activities that are part of something that is not a session: {len(badpart)}")
     fail += len(badpart)
+    # Messages (issue 43): a sender, a reply target in this graph, a content hash that fits the kept text.
+    nosender = list(g.query("""SELECT ?m WHERE { ?m a aiprov:Message .
+            FILTER NOT EXISTS { ?m prov:wasAttributedTo ?ag } }"""))
+    print(f"[{'FAIL' if nosender else ' OK '}] messages without a sender: {len(nosender)}")
+    fail += len(nosender)
+    badreply = list(g.query("""SELECT ?m ?t WHERE { ?m aiprov:inReplyTo ?t .
+            FILTER(?m = ?t || NOT EXISTS { ?t a aiprov:Message }) }"""))
+    print(f"[{'FAIL' if badreply else ' OK '}] replies to a message that is not in this graph: {len(badreply)}")
+    fail += len(badreply)
+    nohash = list(g.query("""SELECT ?m WHERE { ?m a aiprov:Message .
+            FILTER NOT EXISTS { ?m aiprov:contentHash ?h } }"""))
+    for m_ in set(g.subjects(RDF.type, AIPROV.Message)):
+        txt, hs = g.value(m_, AIPROV.content), g.value(m_, AIPROV.contentHash)
+        if txt is not None and hs is not None and str(hs) != "sha256:" + hashlib.sha256(str(txt).encode("utf-8")).hexdigest():
+            nohash.append((m_,))
+    print(f"[{'FAIL' if nohash else ' OK '}] messages without a content hash, or whose kept text does not match it: {len(nohash)}")
+    fail += len(nohash)
+    kept_risky = []
+    for m_ in set(g.subjects(AIPROV.content, None)):
+        cls = {str(c) for ch in g.objects(m_, AIPROV.inChannel) for c in g.objects(ch, AIPROV.dataClass)}
+        if not cls or not cls <= KEEP_TEXT_OK:
+            kept_risky.append((m_,))
+    print(f"[{'WARN' if kept_risky else ' OK '}] message text kept in a channel above internal or of unknown class: {len(kept_risky)}")
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -699,7 +794,9 @@ def validate_graph(g: Graph) -> int:
                        ("wasInformedBy target not logged", dangling), ("outside the plan", unplanned),
                        ("orchestration logged twice", reclosed), ("logged before its orchestration", early),
                        ("answer from two model activities", twice), ("bad fallbackOf target", badfb),
-                       ("part of a non-session", badpart)):
+                       ("part of a non-session", badpart), ("message without a sender", nosender),
+                       ("reply target not a message of this graph", badreply), ("message hash missing or wrong", nohash),
+                       ("message text kept in a channel above internal or of unknown class", kept_risky)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -777,6 +874,16 @@ def cmd_report(a) -> None:
                     outs[str(o)] = outs.get(str(o), 0) + 1
             tail = ", ".join(f"{k} {v}" for k, v in sorted(outs.items())) or "no outcome recorded"
             print(f"   {key:24s} {len(members)} sessions, {acts} activities, {tail}")
+    msgs = set(g.subjects(RDF.type, AIPROV.Message))
+    if msgs:
+        print("-- messages --")
+        chans = {}
+        for m_ in msgs:
+            for ch in g.objects(m_, AIPROV.inChannel):
+                chans.setdefault(ch, []).append(m_)
+        for ch in sorted(chans, key=str):
+            kept = sum(1 for m_ in chans[ch] if (m_, AIPROV.content, None) in g)
+            print(f"   {str(ch).rsplit('/',1)[-1]:24s} {len(chans[ch])} messages, text kept for {kept}")
     roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
     if roots:
         print("-- orchestration --")
@@ -1186,6 +1293,8 @@ def main() -> None:
     s.add_argument("--tool", action="append"); s.add_argument("--prompt-file", dest="prompt_file")
     s.add_argument("--transcript"); s.add_argument("--generated", action="append")
     s.add_argument("--used", action="append")
+    s.add_argument("--used-message", dest="used_message", action="append",
+                   help="id of a message (see `provlog message`) this activity used; repeatable")
     s.add_argument("--orchestration", action="store_true",
                    help="root of a multi-agent run; log it before any sub-agent starts")
     s.add_argument("--planned-role", dest="planned_role", action="append")
@@ -1215,6 +1324,20 @@ def main() -> None:
     s.add_argument("--state", default="unverified")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
+
+    s = sub.add_parser("message", help="record one message of an agent in a channel")
+    s.add_argument("--id", required=True); s.add_argument("--channel", required=True)
+    s.add_argument("--agent", required=True, help="registered sender")
+    s.add_argument("--text", help="the text; only its sha256 is stored unless --keep-text is given")
+    s.add_argument("--content-hash", dest="content_hash", help="sha256:<hex> of a text that is not passed in")
+    s.add_argument("--keep-text", dest="keep_text", action="store_true",
+                   help="also store the text (only where the data class of the channel allows it)")
+    s.add_argument("--reply-to", dest="reply_to", help="id of the message this one replies to (same graph)")
+    s.add_argument("--refers-to", dest="refers_to", action="append", help="IRI of an issue, pull request or commit")
+    s.add_argument("--sent-at", dest="sent_at", help="when the message was sent (ISO 8601); omitted when unknown")
+    s.add_argument("--platform"); s.add_argument("--channel-name", dest="channel_name")
+    s.add_argument("--channel-class", dest="channel_class", choices=DATA_CLASSES,
+                   help="data class of the channel (write-once)")
 
     sub.add_parser("validate"); sub.add_parser("report")
 
@@ -1263,7 +1386,7 @@ def main() -> None:
 
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "log": cmd_log,
-     "claim": cmd_claim, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
+     "claim": cmd_claim, "message": cmd_message, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
