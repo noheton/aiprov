@@ -292,6 +292,18 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents> ;
     aiprov:verificationState verif:ai-confirmed .
 
+<https://w3id.org/aiprov/prov/claim/harness-config-hash-secret-invariant> a aiprov:Claim ;
+    rdfs:label "provlog harness hashes a configuration so that two configurations differing only in a secret-looking value hash equal, and two differing only in list order hash differently; the configuration is never stored"@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/harness-validate-rules> a aiprov:Claim ;
+    rdfs:label "validate fails on viaHarness to a non-harness and only warns on an activity via a harness with neither model nor reason, so legacy graphs stay valid"@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/issue22-disjoint-agents> a aiprov:Claim ;
     rdfs:label "agent --type human now refuses an id registered as AIAgent (and the reverse), and validate fails and lists a node typed as both; covered by tests/test_agent_types.py (66 tests green)."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -494,6 +506,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
@@ -501,13 +514,15 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:20b1222944162961e91b0d44181ff9fd56d04a5340c0cafb78241748d15e0e13",
         "sha256:4771d7fd3964ff52c9d7ff6ba87065ae54c2987ebcf2d1b63beff14796555d0f",
         "sha256:4a11763782f160fb55c74c0deaac8f4c6ae6567b6ada89d11a52dd9b8d223182",
+        "sha256:4f27d528113b787d1b0fd92212d9fcd0aa6957859f2a5d9f0995ab456c6c325c",
         "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0",
         "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972",
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
-    aiprov:gitCommit "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
+    aiprov:gitCommit "090fc8a",
+        "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "aa04337",
@@ -529,11 +544,14 @@ aiprov:verificationState a owl:ObjectProperty ;
 <https://w3id.org/aiprov/prov/entity/attributes-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
-        "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c" ;
+        "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c",
+        "sha256:ce8616dd8bd415a5c24472b072486de95de532faabf70dca4b6e5fb30133724c" ;
     aiprov:filePath "docs/attributes.md" ;
-    aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+    aiprov:gitCommit "090fc8a",
+        "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "ab531da" .
 
 <https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
@@ -665,6 +683,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
@@ -688,10 +707,12 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:a8b1d3c2b57588483f11d5824f25127a1b8515c85173abf2356c0bac79b60851",
         "sha256:e19bf9eaa7ae25e74dab66db4d1b75eef9b8ddd13cd58b2879fec552c9ebf473",
         "sha256:e6b805d56b0a1630ff2a325afa16a6720643edf0b1447e362e165d51d43a0c75",
+        "sha256:eaba3d06f512a97df424a233522944bfe0751eba86e83d0f632fafec08d38ba6",
         "sha256:f7550aa453f935bab37df94449cdce612785d29ed346b01224ad6475e3758a2f" ;
     aiprov:filePath "src/aiprov/provlog.py" ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
+        "090fc8a",
         "1ddf1a3",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
@@ -754,6 +775,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:63c68988e3a8751e3f560bbb46ea28b0a551edd62a3eb08aa4c3216f1ba0de3f" ;
     aiprov:filePath "tests/test_extract_dashboard.py" ;
     aiprov:gitCommit "f4b83c8e6c76a12573f5d20435d631d9769ac349" .
+
+<https://w3id.org/aiprov/prov/entity/test_harness-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23> ;
+    aiprov:contentHash "sha256:e61de54b68a8d2c1dd1c28a832653071ed781fa9fc8244cc7591b408ce955631" ;
+    aiprov:filePath "tests/test_harness.py" ;
+    aiprov:gitCommit "090fc8a" .
 
 <https://w3id.org/aiprov/prov/entity/test_human_steps-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -873,9 +901,6 @@ verif:source-vendored a aiprov:VerificationState ;
     rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads."@en ;
     aiprov:ladderPosition 4 .
 
-aiprov:Source a owl:Class ;
-    rdfs:subClassOf prov:Entity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-template-labels> a aiprov:Repair ;
     rdfs:label "Schema-change issue template uses the shared label set"@en ;
     prov:endedAtTime "2026-10-30T20:57:03.293665+01:00"^^xsd:dateTime ;
@@ -888,12 +913,18 @@ aiprov:Source a owl:Class ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
+<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
+    aiprov:filePath "CHANGELOG.md" .
+
 <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
     aiprov:filePath "CONTRIBUTING.md" .
 
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
     rdfs:subClassOf prov:Person .
+
+aiprov:Source a owl:Class ;
+    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1> a aiprov:Build ;
     rdfs:label "Release candidate 0.2.0-rc.1: version bump and changelog on the owner's go (thesis issue 10)"@en ;
@@ -1032,6 +1063,13 @@ aiprov:Repair a owl:Class ;
     prov:endedAtTime "2026-10-30T20:13:18.086459+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23> a aiprov:AuthoringPass ;
+    rdfs:label "Implement harness identity, model variant and unknown model with a reason (issue 23): schema terms, provlog harness, log options, validate, report, config normaliser, tests"@en ;
+    prov:endedAtTime "2026-11-03T15:12:44.260212+01:00"^^xsd:dateTime ;
+    prov:used <https://w3id.org/aiprov/prov/source/CHANGELOG-md> ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-03T15:12:44.260247+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/adopt-aiprov> a aiprov:Build ;
     rdfs:label "The repository adopts its own method: agent rules, PR template with AI block, CI job and test validating its graph"@en ;
     prov:endedAtTime "2026-10-23T22:52:31.750188+02:00"^^xsd:dateTime ;
@@ -1108,14 +1146,14 @@ verif:unverified a aiprov:VerificationState ;
     rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
     aiprov:ladderPosition 0 .
 
-aiprov:Claim a owl:Class ;
-    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
-    rdfs:subClassOf prov:Entity .
-
 agent:claude-opus-5-5 a aiprov:AIAgent ;
     foaf:name "Claude Opus 5.5" ;
     aiprov:model "claude-opus-5-5"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+aiprov:Claim a owl:Class ;
+    rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
+    rdfs:subClassOf prov:Entity .
 
 aiprov:Artefact a owl:Class ;
     rdfs:comment "Generalizes Manuscript/Section/Figure: any produced file or object."@en ;
