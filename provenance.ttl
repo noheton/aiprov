@@ -316,6 +316,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/composite-effective-rung-rule-36> a aiprov:Claim ;
+    rdfs:label "The effective rung of a composite claim is computed from its premises (AllOf weakest, AnyOf best, AtLeast k the k-th best, never above its own rung); a premise stated as contested counts as refuted, and a claim stated above its premises' limit is capped at unverified rather than below."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/fix-21-refusal> a aiprov:Claim ;
     rdfs:label "log, claim, source and promote exit non-zero and leave the graph unchanged for an agent id without an AIAgent, HumanAgent or ToolAgent type; validate fails on such a reference (37 tests pass)."@en ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -410,6 +416,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
@@ -433,6 +440,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
         "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
+        "sha256:a46be1944ff32439aba19ed98f55a807ca2f636c70b17aaa2aa096042da9de19",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
@@ -442,6 +450,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "1ddf1a3",
         "2129332",
         "56c0fcb",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "735a10e",
         "9170036",
         "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
@@ -539,6 +548,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-decisions-44>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
@@ -547,6 +557,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
         "sha256:20b1222944162961e91b0d44181ff9fd56d04a5340c0cafb78241748d15e0e13",
+        "sha256:2ef5623d42986eeb5c2b13c6e7211cfe25cce3ac8ef8460c074f272b58ee7fe9",
         "sha256:4771d7fd3964ff52c9d7ff6ba87065ae54c2987ebcf2d1b63beff14796555d0f",
         "sha256:4a11763782f160fb55c74c0deaac8f4c6ae6567b6ada89d11a52dd9b8d223182",
         "sha256:4f27d528113b787d1b0fd92212d9fcd0aa6957859f2a5d9f0995ab456c6c325c",
@@ -556,6 +567,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
         "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
+        "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
@@ -563,6 +575,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "3a88ea441dea512e278215e48b6ec15bb4c8f88c",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "9170036",
         "aa04337",
@@ -584,15 +597,18 @@ aiprov:verificationState a owl:ObjectProperty ;
 <https://w3id.org/aiprov/prov/entity/attributes-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
+        "sha256:169962a635e1b0c5f2bfda7451648e82a3cf1062d9adaecac6416181e833276f",
         "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c",
         "sha256:a34edb27b2c06e21ba8e5b8a896b5016e0e2cdeaea349fe0b44d7316eb9abbef",
         "sha256:ce8616dd8bd415a5c24472b072486de95de532faabf70dca4b6e5fb30133724c" ;
     aiprov:filePath "docs/attributes.md" ;
     aiprov:gitCommit "090fc8a",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "9170036",
         "ab531da" .
@@ -733,6 +749,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-decisions-44>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
@@ -747,6 +764,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df",
         "sha256:11faa29af4e7625f19cbb7ac4ad0f5773c267d1a49fc769e8b6977d849daa3f8",
+        "sha256:18478084d855cdc53c59b6d072cf4f83dcf315c16fa5e1107a3e5cad0915ebd4",
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
@@ -771,6 +789,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "3a88ea441dea512e278215e48b6ec15bb4c8f88c",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "735a10e",
         "9170036",
@@ -831,6 +850,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:d43f99647dfe6cb877ff64f27091c4cbb8fffdf267d7772dcae863165f027db8" ;
     aiprov:filePath "tests/test_capture_path.py" ;
     aiprov:gitCommit "56c0fcb" .
+
+<https://w3id.org/aiprov/prov/entity/test_composite_claims-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
+    aiprov:contentHash "sha256:05f399cbdd79ca5ef358f2ca4fd97a7a19d92cc5eb664bfc5e39e57eb756ed13" ;
+    aiprov:filePath "tests/test_composite_claims.py" ;
+    aiprov:gitCommit "5d252c3b1953374fb00804c4ac824a5011aa03ee" .
 
 <https://w3id.org/aiprov/prov/entity/test_decisions-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1132,6 +1158,13 @@ aiprov:Repair a owl:Class ;
     rdfs:label "Issue 9: modelRole, fallbackOf/fallbackReason, routedBy, judge with Score; log options, report section, two validate FAIL rules, fixture and six tests; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-30T20:13:18.086459+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> a aiprov:AuthoringPass ;
+    rdfs:label "Composite claims (issue 36): premises, composition, computed effective rung; claim/validate/report, schema, docs, tests"@en ;
+    prov:endedAtTime "2026-11-03T23:19:10.876911+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-03T23:19:10.876950+01:00"^^xsd:dateTime ;
+    aiprov:sessionId "thesis-agent-scanner-2026-11-03-2301"^^xsd:string .
 
 <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23> a aiprov:AuthoringPass ;
     rdfs:label "Implement harness identity, model variant and unknown model with a reason (issue 23): schema terms, provlog harness, log options, validate, report, config normaliser, tests"@en ;
