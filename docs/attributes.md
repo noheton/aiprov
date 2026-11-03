@@ -147,3 +147,26 @@ normaliser is the same.
   replaced by `url:sha256:<hex>`; the result is serialised compactly, without ASCII escaping.
 - Any other text: line by line in the original order; trailing blanks dropped; `key = value` or `key: value` with a
   secret-looking key keeps the key and `<secret>` as value; URLs are replaced as above.
+
+## Bulk telemetry tier (`provlog bulk`)
+
+Decisions (claims, rungs, agents, sessions) stay in the graph. Volume that would inflate it, one record per request or
+tool run, goes to a JSONL file in which every line carries the hash of the line before it:
+
+    {"data":{...},"hash":"sha256:...","prev":"sha256:...","seq":1}
+
+`hash` is the sha256 of `prev`, `seq` and the canonical `data` (sorted keys, no blanks), joined by newlines; the first
+`prev` is `sha256:` followed by 64 zeros. `bulk append --file F --data JSON` adds one line under a file lock and reads
+only the last line, so the cost of a write does not depend on the size of the file. Nothing is added by the tool: no
+time, no token count; the caller puts into `data` what the harness or gateway reported, and nothing it estimated.
+`bulk verify --file F` walks the whole chain and names the first bad line. `bulk anchor --id ID --file F --agent A`
+writes one `aiprov:TelemetryChain` into the graph with `aiprov:chainHead` and `aiprov:chainLength` (`--upto N` anchors
+the first N records); the graph never holds a record. `bulk verify --file F --anchor ID` checks that the first
+`chainLength` records still hash to the recorded head, so records added since are fine and a changed, removed or
+reordered earlier record is found. `validate` fails an anchor without one valid head, a length of at least 1 and an
+author; `report` lists the anchors.
+
+Limits: the chain shows that the file was not changed after the anchor, not that the records are true, and not that
+nothing was appended before the next anchor. Whoever can rewrite the file and the graph together can forge both; for
+tamper evidence the graph commit has to be signed or published. Keep secrets and personal data out of `data`: the file
+is not covered by the graph rules. Shards of the graph itself and a derived query index are not part of this change.

@@ -16,6 +16,7 @@ Commands:
                              (hash by default; the text only with --keep-text).
   decision open|decide|supersede --id ...   Record a decision: question, options, recommendation, who chose what
                              (hash by default; `done` only by a registered human; log --used-decision links work to it).
+  bulk append|verify|anchor --file F ...   Bulk telemetry tier: a hash-chained JSONL file; the graph keeps only its head.
   harness --id --kind ... [--version V] [--config-file PATH]   Register the harness (coding-agent CLI, IDE extension,
                              portal chat, batch) an activity ran under; the configuration is hashed, never stored.
   validate                   Conformance: parentless claims, AI-granted
@@ -43,7 +44,11 @@ was drafted with AI assistance and verified by test-run; review before
 production use.
 """
 from __future__ import annotations
-import argparse, datetime, hashlib, os, pathlib, re, sys
+import argparse, datetime, hashlib, json, os, pathlib, re, sys
+try:
+    import fcntl
+except ImportError:  # not available on Windows: appends then run without the file lock
+    fcntl = None
 from rdflib import Graph, Namespace, Literal, URIRef, RDF, RDFS, XSD, OWL
 
 AIPROV = Namespace("https://w3id.org/aiprov/ns#")
@@ -803,6 +808,167 @@ def cmd_decision(a) -> None:
     {"open": _decision_open, "decide": _decision_decide, "supersede": _decision_supersede}[a.action](g, a)
 
 
+# --- bulk telemetry tier (issue 15) ------------------------------------------------------------------------------
+# Volume that would inflate the graph (one record per request or tool run) goes to a JSONL file in which every line
+# carries the hash of the line before it; the graph records only the head of the chain and its length.
+_CHAIN_GENESIS = "sha256:" + "0" * 64
+
+
+def _canon(data: dict) -> str:
+    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _chain_hash(prev: str, seq: int, data_json: str) -> str:
+    return "sha256:" + hashlib.sha256(f"{prev}\n{seq}\n{data_json}".encode("utf-8")).hexdigest()
+
+
+def _check_line(raw: str, seq: "int | None" = None, prev: "str | None" = None) -> dict:
+    """Parse one chain line and check its shape and its own hash; raises ValueError with the reason."""
+    try:
+        rec = json.loads(raw)
+    except ValueError:
+        raise ValueError("not JSON")
+    if (not isinstance(rec, dict) or set(rec) != {"seq", "prev", "data", "hash"} or not isinstance(rec["data"], dict)
+            or type(rec["seq"]) is not int or not isinstance(rec["prev"], str) or not isinstance(rec["hash"], str)):
+        raise ValueError("not a chain record")
+    if seq is not None and rec["seq"] != seq:
+        raise ValueError(f"seq is {rec['seq']}, expected {seq}")
+    if prev is not None and rec["prev"] != prev:
+        raise ValueError("prev does not match the line before")
+    if rec["hash"] != _chain_hash(rec["prev"], rec["seq"], _canon(rec["data"])):
+        raise ValueError("hash does not match the content")
+    return rec
+
+
+def _verify_chain(path: pathlib.Path) -> "tuple[list, str | None]":
+    """Walk the whole file. Returns (heads, error): heads[i] is the head after i records; error names the first bad line."""
+    heads = [_CHAIN_GENESIS]
+    with open(path, encoding="utf-8", newline="") as f:
+        for ln, raw in enumerate(f, 1):
+            if not raw.endswith("\n"):
+                return heads, f"line {ln}: incomplete last line (no newline)"
+            try:
+                rec = _check_line(raw[:-1], ln, heads[-1])
+            except ValueError as e:
+                return heads, f"line {ln}: {e}"
+            heads.append(rec["hash"])
+    return heads, None
+
+
+def _last_line(f, size: int) -> "bytes | None":
+    if size == 0:
+        return None
+    pos, buf = size, b""
+    while pos > 0:
+        step = min(65536, pos)
+        pos -= step
+        f.seek(pos)
+        buf = f.read(step) + buf
+        body = buf[:-1]  # the final newline is the terminator, not a separator
+        if b"\n" in body:
+            return body.rsplit(b"\n", 1)[1]
+    return buf[:-1]
+
+
+def _bulk_data(a) -> dict:
+    if (a.data is None) == (a.data_file is None):
+        sys.exit("give exactly one of --data and --data-file")
+    raw = a.data if a.data is not None else pathlib.Path(a.data_file).read_text(encoding="utf-8")
+    try:
+        data = json.loads(raw)
+    except ValueError as e:
+        sys.exit(f"data: not valid JSON ({e})")
+    if not isinstance(data, dict):
+        sys.exit("data: give one JSON object")
+    return data
+
+
+def _bulk_append(a) -> None:
+    data = _bulk_data(a)
+    path = pathlib.Path(a.file)
+    with open(path, "ab+") as f:
+        if fcntl is not None:
+            fcntl.flock(f, fcntl.LOCK_EX)
+        size = f.seek(0, 2)
+        if size:
+            f.seek(size - 1)
+            if f.read(1) != b"\n":
+                sys.exit(f"{path.name}: the last line is incomplete; run `bulk verify`, nothing was appended")
+        last = _last_line(f, size)
+        if last is None:
+            prev, seq = _CHAIN_GENESIS, 1
+        else:
+            try:
+                rec = _check_line(last.decode("utf-8"))
+            except (ValueError, UnicodeDecodeError) as e:
+                sys.exit(f"{path.name}: the last line is not a valid chain record ({e}); nothing was appended")
+            prev, seq = rec["hash"], rec["seq"] + 1
+        digest = _chain_hash(prev, seq, _canon(data))
+        line = json.dumps({"seq": seq, "prev": prev, "data": data, "hash": digest}, sort_keys=True,
+                          separators=(",", ":"), ensure_ascii=False)
+        f.write((line + "\n").encode("utf-8"))
+    print(f"bulk: record {seq} appended to {path.name}; head {digest}")
+
+
+def _bulk_verify(a) -> None:
+    path = pathlib.Path(a.file)
+    if not path.exists():
+        sys.exit(f"{path}: no such file")
+    heads, err = _verify_chain(path)
+    if err:
+        sys.exit(f"chain broken in {path.name}, {err}")
+    n = len(heads) - 1
+    print(f"chain ok: {n} records, head {heads[-1]}")
+    if a.anchor:
+        g = load()
+        node = ns(a.base, "chain")[a.anchor]
+        if (node, RDF.type, AIPROV.TelemetryChain) not in g:
+            sys.exit(f"anchor {a.anchor} is not a telemetry chain of this graph")
+        head, length = g.value(node, AIPROV.chainHead), g.value(node, AIPROV.chainLength)
+        if head is None or length is None or not isinstance(length.toPython(), int):
+            sys.exit(f"anchor {a.anchor} has no valid head and length")
+        length = length.toPython()
+        if n < length:
+            sys.exit(f"anchor {a.anchor} covers {length} records but the file has only {n}: records are missing")
+        if str(head) != heads[length]:
+            sys.exit(f"anchor {a.anchor}: the head after {length} records is {heads[length]}, the graph recorded {head}: "
+                     "the file differs from what was anchored")
+        print(f"anchor {a.anchor} holds: the first {length} records match the head in the graph"
+              + (f" ({n - length} appended since)" if n > length else ""))
+
+
+def _bulk_anchor(a) -> None:
+    g = load()
+    _require_registered(g, a.base, a.agent)
+    node = ns(a.base, "chain")[a.id]
+    if (node, RDF.type, None) in g:
+        sys.exit(f"chain anchor {a.id} is already logged; the graph is append-only, use a new id")
+    path = pathlib.Path(a.file)
+    if not path.exists():
+        sys.exit(f"{path}: no such file")
+    heads, err = _verify_chain(path)
+    if err:
+        sys.exit(f"chain broken in {path.name}, {err}; nothing was anchored")
+    n = len(heads) - 1
+    if a.upto is not None:
+        if not 1 <= a.upto <= n:
+            sys.exit(f"--upto: give a number from 1 to {n}")
+        n = a.upto
+    if n < 1:
+        sys.exit(f"{path.name} has no records; nothing to anchor")
+    g.add((node, RDF.type, AIPROV.TelemetryChain))
+    g.add((node, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
+    g.add((node, AIPROV.chainHead, Literal(heads[n])))
+    g.add((node, AIPROV.chainLength, Literal(n, datatype=XSD.integer)))
+    g.add((node, AIPROV.recordedAtTime, now()))
+    save(g)
+    print(f"chain:{a.id} anchored: {n} records, head {heads[n]}")
+
+
+def cmd_bulk(a) -> None:
+    {"append": _bulk_append, "verify": _bulk_verify, "anchor": _bulk_anchor}[a.action](a)
+
+
 def _decision_findings(g: Graph) -> list:
     """(severity, label, rows) for validate. FAIL: malformed decision, option not offered, `done` without a registered
     human, bad supersede. WARN: kept text where the data class is unknown or above internal."""
@@ -1156,6 +1322,17 @@ def validate_graph(g: Graph) -> int:
         if not any((ag, AIPROV.model, None) in g for ag in g.objects(act, PROV.wasAssociatedWith)):
             nomodel.append((act,))
     print(f"[{'WARN' if nomodel else ' OK '}] activities via a harness with neither a model nor a stated reason: {len(nomodel)}")
+    # Telemetry chain anchors (issue 15): one valid head, a length of at least 1, an author.
+    badchain = []
+    for ch_ in sorted(set(g.subjects(RDF.type, AIPROV.TelemetryChain)), key=str):
+        heads_, lens_ = list(g.objects(ch_, AIPROV.chainHead)), list(g.objects(ch_, AIPROV.chainLength))
+        good = (len(heads_) == 1 and _HASH_RE.fullmatch(str(heads_[0])) is not None and len(lens_) == 1
+                and isinstance(lens_[0].toPython(), int) and lens_[0].toPython() >= 1
+                and (ch_, PROV.wasAttributedTo, None) in g)
+        if not good:
+            badchain.append((ch_,))
+    print(f"[{'FAIL' if badchain else ' OK '}] telemetry chain anchors without one valid head, a length of at least 1 and an author: {len(badchain)}")
+    fail += len(badchain)
     # Decisions (issue 44)
     for sev, label, rows in _decision_findings(g):
         print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
@@ -1180,7 +1357,8 @@ def validate_graph(g: Graph) -> int:
                        ("record by another agent or in arrears without a source", unsourced),
                        ("session with token sums from more than one capture path", twopaths),
                        ("viaHarness target is not a registered harness", badharness),
-                       ("activity via a harness with neither a model nor a stated reason", nomodel)):
+                       ("activity via a harness with neither a model nor a stated reason", nomodel),
+                       ("telemetry chain anchor malformed", badchain)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -1301,6 +1479,11 @@ def cmd_report(a) -> None:
         for ch in sorted(chans, key=str):
             kept = sum(1 for m_ in chans[ch] if (m_, AIPROV.content, None) in g)
             print(f"   {str(ch).rsplit('/',1)[-1]:24s} {len(chans[ch])} messages, text kept for {kept}")
+    chains = set(g.subjects(RDF.type, AIPROV.TelemetryChain))
+    if chains:
+        print("-- telemetry chains --")
+        for c_ in sorted(chains, key=str):
+            print(f"   {str(c_).rsplit('/', 1)[-1]:24s} {g.value(c_, AIPROV.chainLength)} records, head {g.value(c_, AIPROV.chainHead)}")
     decs = set(g.subjects(RDF.type, AIPROV.Decision))
     if decs:
         print("-- decisions --")
@@ -1803,6 +1986,16 @@ def main() -> None:
     s.add_argument("--decided-at", dest="decided_at", help="decide: when it was decided (ISO 8601); default now")
     s.add_argument("--old", help="supersede: the decision that --id replaces")
 
+    s = sub.add_parser("bulk", help="bulk telemetry tier: a hash-chained JSONL file, its head anchored in the graph")
+    s.add_argument("action", choices=["append", "verify", "anchor"])
+    s.add_argument("--file", required=True, help="the JSONL file of the chain")
+    s.add_argument("--data", help="append: one JSON object")
+    s.add_argument("--data-file", dest="data_file", help="append: a file holding one JSON object")
+    s.add_argument("--id", help="anchor: id of the chain anchor in the graph")
+    s.add_argument("--agent", help="anchor: registered agent that anchors the head")
+    s.add_argument("--upto", type=int, help="anchor: anchor the first N records only (default all)")
+    s.add_argument("--anchor", help="verify: also check the file against this anchor of the graph")
+
     sub.add_parser("validate"); sub.add_parser("report")
 
     s = sub.add_parser("migrate", help="bring the graph to the schema version of this provlog")
@@ -1849,8 +2042,10 @@ def main() -> None:
     s.add_argument("--dashboard", help="also render an HTML dashboard of the extract")
 
     a = p.parse_args()
+    if a.cmd == "bulk" and a.action == "anchor" and not (a.id and a.agent):
+        p.error("bulk anchor needs --id and --agent")
     {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
-     "claim": cmd_claim, "message": cmd_message, "decision": cmd_decision, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
+     "claim": cmd_claim, "message": cmd_message, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
