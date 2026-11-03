@@ -14,6 +14,8 @@ Commands:
                              edit a frozen plan or add validation failures.
   (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
                              --informed-by/--role; agent --acted-on-behalf-of.
+  delimitation --id --claim ... --query Q --searched-in S --searched-on D --result-hash H --nearest REF=DIFF ...
+                             Record the search behind a novelty claim (claim --kind novelty); no score, only a record.
   message --id --channel --agent (--text | --content-hash) ...   Record one message of an agent in a channel
                              (hash by default; the text only with --keep-text).
   decision open|decide|supersede --id ...   Record a decision: question, options, recommendation, who chose what
@@ -741,8 +743,111 @@ def cmd_claim(a) -> None:
     g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
     g.add((c, AIPROV.verificationState, ns(a.base, "verification")[a.state]))
     _add_premises(g, a, c)
+    if a.kind:
+        g.add((c, AIPROV.claimKind, Literal(_clean_state(a.kind))))
+    if a.kind and a.kind.lower() == "novelty" and canon_rung(a.state) in LADDER and LADDER.index(canon_rung(a.state)) >= LADDER.index("ai-confirmed"):
+        sys.exit("a novelty claim reaches ai-confirmed or above only with a delimitation record; add the claim at "
+                 "unverified, record the search with `provlog delimitation`, then raise the rung")
     save(g)
-    print(f"claim:{a.id} added (state {a.state})")
+    print(f"claim:{a.id} added (state {a.state}" + (f", kind {a.kind.lower()}" if a.kind else "") + ")")
+
+
+# --- novelty claims as a delimitation record (issue 16) ------------------------------------------------------------
+def _claim_kind(g: Graph, claim) -> str:
+    v = g.value(claim, AIPROV.claimKind)
+    return str(v) if v is not None else ""
+
+
+def cmd_delimitation(a) -> None:
+    """Record the search behind a claim of kind novelty. Two states, no scale: with a record the claim is
+    delimitation documented, without one it is not documented."""
+    g = load()
+    _require_registered(g, a.base, a.agent)
+    claim = ns(a.base, "claim")[a.claim]
+    if (claim, RDF.type, AIPROV.Claim) not in g:
+        sys.exit(f"--claim: claim {a.claim} is not in the graph")
+    if _claim_kind(g, claim) != "novelty":
+        sys.exit(f"--claim: claim {a.claim} is not of kind novelty (add claims with --kind novelty)")
+    if not a.query or not a.searched_in:
+        sys.exit("give at least one --query and one --searched-in")
+    if not _HASH_RE.fullmatch(a.result_hash):
+        sys.exit("--result-hash: use sha256:<64 hex digits>")
+    try:
+        day = datetime.date.fromisoformat(a.searched_on)
+    except ValueError:
+        sys.exit("--searched-on: use a date as YYYY-MM-DD")
+    works = []
+    for item in a.nearest or []:
+        ref, sep, diff = item.partition("=")
+        if not sep or not ref.strip() or not diff.strip():
+            sys.exit(f"--nearest: '{item}' is not REF=DIFFERENCE (the work, then one line on what differs)")
+        works.append((ref.strip(), diff.strip()))
+    if not works:
+        sys.exit("give at least one --nearest REF=DIFFERENCE")
+    rec = ns(a.base, "delimitation")[a.id]
+    if (rec, RDF.type, None) in g:
+        sys.exit(f"delimitation {a.id} is already logged; the graph is append-only, use a new id")
+    proto = ns(a.base, "delimitation")[f"{a.id}-protocol"]
+    g.add((rec, RDF.type, AIPROV.DelimitationRecord))
+    g.add((rec, RDFS.label, Literal(f"Delimitation of novelty claim {a.claim}", lang="en")))
+    g.add((rec, AIPROV.delimits, claim))
+    g.add((rec, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
+    g.add((rec, AIPROV.recordedAtTime, now()))
+    g.add((rec, AIPROV.searchProtocol, proto))
+    g.add((proto, RDF.type, AIPROV.SearchProtocol))
+    for q in a.query:
+        g.add((proto, AIPROV.searchQuery, Literal(q)))
+    for s_ in a.searched_in:
+        g.add((proto, AIPROV.searchSource, Literal(s_)))
+    g.add((proto, AIPROV.searchedOn, Literal(day.isoformat(), datatype=XSD.date)))
+    g.add((proto, AIPROV.resultSetHash, Literal(a.result_hash)))
+    for i, (ref, diff) in enumerate(works, 1):
+        w = ns(a.base, "delimitation")[f"{a.id}-work-{i}"]
+        g.add((w, RDF.type, AIPROV.NearestWork))
+        g.add((w, AIPROV.workRef, Literal(ref)))
+        g.add((w, AIPROV.difference, Literal(diff)))
+        g.add((rec, AIPROV.nearestWorks, w))
+    if a.similarity_hint:
+        g.add((rec, AIPROV.similarityHint, Literal(a.similarity_hint)))
+    save(g)
+    print(f"delimitation:{a.id} recorded for claim:{a.claim} (a search was made; this does not show the claim is new)")
+
+
+def _novelty_claims(g: Graph) -> list:
+    return sorted(c for c in g.subjects(RDF.type, AIPROV.Claim) if _claim_kind(g, c) == "novelty")
+
+
+def _delimitation_findings(g: Graph) -> list:
+    """(severity, label, rows) for validate (issue 16). FAIL: a record that does not delimit a novelty claim or lacks
+    its search protocol or nearest works; a novelty claim at ai-confirmed or above without a record; a numeric
+    novelty or originality value. No finding about a novelty claim without a record at a low rung: not documented is a
+    state, not an error."""
+    badrec, noproto, unbacked, scored = [], [], [], []
+    for r in set(g.subjects(RDF.type, AIPROV.DelimitationRecord)):
+        targets = list(g.objects(r, AIPROV.delimits))
+        if len(targets) != 1 or (targets[0], RDF.type, AIPROV.Claim) not in g or _claim_kind(g, targets[0]) != "novelty":
+            badrec.append((r,))
+        protos = list(g.objects(r, AIPROV.searchProtocol))
+        ok = len(protos) == 1 and all((protos[0], p, None) in g for p in
+                                      (AIPROV.searchQuery, AIPROV.searchSource, AIPROV.searchedOn, AIPROV.resultSetHash))
+        ok = ok and any(True for _ in g.objects(r, AIPROV.nearestWorks)) and all(
+            (w, AIPROV.workRef, None) in g and (w, AIPROV.difference, None) in g for w in g.objects(r, AIPROV.nearestWorks))
+        if not ok:
+            noproto.append((r,))
+    documented = {t for r in g.subjects(RDF.type, AIPROV.DelimitationRecord) for t in g.objects(r, AIPROV.delimits)}
+    for c in _novelty_claims(g):
+        ranks = [_rung_rank(s) for s in g.objects(c, AIPROV.verificationState)]
+        if c not in documented and ranks and max(ranks) >= LADDER.index("ai-confirmed"):
+            unbacked.append((c,))
+    for s_, p, o in g:
+        local = str(p).rsplit("#", 1)[-1].rsplit("/", 1)[-1].lower()
+        if ("novelty" in local or "originality" in local) and isinstance(o, Literal) and o.datatype in (
+                XSD.integer, XSD.decimal, XSD.double, XSD.float, XSD.int, XSD.long):
+            scored.append((s_,))
+    return [("FAIL", "delimitation records that do not delimit one novelty claim", badrec),
+            ("FAIL", "delimitation records without search protocol or nearest works", noproto),
+            ("FAIL", "novelty claims at ai-confirmed or above without a delimitation record", unbacked),
+            ("FAIL", "numeric novelty or originality values (the schema has none)", scored)]
 
 
 DATA_CLASSES = ["public", "untrusted", "internal", "confidential", "restricted"]
@@ -1529,6 +1634,17 @@ def validate_graph(g: Graph) -> int:
             fail += len(rows)
         for row in rows:
             print('   ↳', label + ':', row[0])
+    # Novelty claims and delimitation records (issue 16)
+    nov = _novelty_claims(g)
+    docd = {t for r in g.subjects(RDF.type, AIPROV.DelimitationRecord) for t in g.objects(r, AIPROV.delimits)}
+    print(f"[ OK ] novelty claims: {len(nov)} (delimitation documented {sum(1 for c in nov if c in docd)}, "
+          f"not documented {sum(1 for c in nov if c not in docd)})")
+    for sev, label, rows in _delimitation_findings(g):
+        print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
+        if sev == "FAIL":
+            fail += len(rows)
+        for row in rows:
+            print("   ↳", label + ":", row[0])
     # Decisions (issue 44)
     for sev, label, rows in _decision_findings(g):
         print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
@@ -1575,6 +1691,11 @@ def cmd_report(a) -> None:
     sessions = set(g.subjects(RDF.type, AIPROV.Session))
     print(f"activities:         {len(set(g.subjects(PROV.endedAtTime, None)) - sessions)}")
     print(f"claims:             {len(set(g.subjects(RDF.type, AIPROV.Claim)))}")
+    _nov = _novelty_claims(g)
+    if _nov:
+        _docd = {t for r in g.subjects(RDF.type, AIPROV.DelimitationRecord) for t in g.objects(r, AIPROV.delimits)}
+        print(f"novelty claims:     {len(_nov)} (delimitation documented {sum(1 for c in _nov if c in _docd)}, "
+              f"not documented {sum(1 for c in _nov if c not in _docd)})")
     nref = len(set(g.subjects(RDF.type, AIPROV.Refusal)))
     if nref:
         print(f"refusals:           {nref}")
@@ -2179,8 +2300,22 @@ def main() -> None:
                    help="id of a claim this claim rests on (repeatable; makes the claim composite)")
     s.add_argument("--composition", metavar="all|any|atleast:N",
                    help="how the premises combine: all (AND, default), any (OR), atleast:N (k of n)")
+    s.add_argument("--kind", help="kind of statement (for example novelty, empirical, definitional, methodological); "
+                                  "a novelty claim needs a delimitation record from ai-confirmed upward")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
+
+    s = sub.add_parser("delimitation", help="record the search behind a novelty claim (queries, sources, nearest works)")
+    s.add_argument("--id", required=True); s.add_argument("--claim", required=True, help="id of a claim of kind novelty")
+    s.add_argument("--agent", required=True)
+    s.add_argument("--query", action="append", help="a query that was run; repeatable")
+    s.add_argument("--searched-in", dest="searched_in", action="append", help="a database or collection searched; repeatable")
+    s.add_argument("--searched-on", dest="searched_on", required=True, help="date of the search, YYYY-MM-DD")
+    s.add_argument("--result-hash", dest="result_hash", required=True, help="sha256:<hex> of the result set that was reviewed")
+    s.add_argument("--nearest", action="append", metavar="REF=DIFFERENCE",
+                   help="a nearest work (DOI or reference) and one line on what differs; repeatable, at least one")
+    s.add_argument("--similarity-hint", dest="similarity_hint",
+                   help="embedding model and version used to find near works; exploratory, never an input to a rung")
 
     s = sub.add_parser("message", help="record one message of an agent in a channel")
     s.add_argument("--id", required=True); s.add_argument("--channel", required=True)
@@ -2273,7 +2408,7 @@ def main() -> None:
     if a.cmd == "bulk" and a.action == "anchor" and not (a.id and a.agent):
         p.error("bulk anchor needs --id and --agent")
     {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
-     "claim": cmd_claim, "message": cmd_message, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
+     "claim": cmd_claim, "delimitation": cmd_delimitation, "message": cmd_message, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
