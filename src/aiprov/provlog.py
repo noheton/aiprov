@@ -14,6 +14,8 @@ Commands:
                              --informed-by/--role; agent --acted-on-behalf-of.
   message --id --channel --agent (--text | --content-hash) ...   Record one message of an agent in a channel
                              (hash by default; the text only with --keep-text).
+  decision open|decide|supersede --id ...   Record a decision: question, options, recommendation, who chose what
+                             (hash by default; `done` only by a registered human; log --used-decision links work to it).
   harness --id --kind ... [--version V] [--config-file PATH]   Register the harness (coding-agent CLI, IDE extension,
                              portal chat, batch) an activity ran under; the configuration is hashed, never stored.
   validate                   Conformance: parentless claims, AI-granted
@@ -501,6 +503,11 @@ def cmd_log(a) -> None:
         if (m_, RDF.type, AIPROV.Message) not in g:
             sys.exit(f"--used-message: message {mid} is not logged; log it with `provlog message` first")
         g.add((act, PROV.used, m_))
+    for did in a.used_decision or []:
+        d_ = ns(a.base, "decision")[did]
+        if not _is_decision(g, d_):
+            sys.exit(f"--used-decision: decision {did} is not logged; open it with `provlog decision open` first")
+        g.add((act, PROV.used, d_))
     for path in a.used or []:
         e = ns(a.base, "source")[pathlib.Path(path).name.replace(".", "-")]
         g.add((e, RDF.type, AIPROV.Source))
@@ -547,6 +554,12 @@ def _record_refusal(base: str, agent: "str | None", step: str, target: str, rung
     save(g)
 
 
+def _not_human_reason(agent: "str | None") -> str:
+    """Why an agent may not take a human-only step; one wording for rungs (issue 22) and decisions (issue 44)."""
+    return (f"agent:{agent} is not a registered HumanAgent" if agent
+            else "no --agent was given, and a registered HumanAgent is required")
+
+
 def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | None",
                        step: "str | None" = None, target: "str | None" = None, record: bool = False) -> None:
     """Exit with the refusal of `promote` when a human-only rung is set by an agent that is not a registered HumanAgent.
@@ -554,9 +567,7 @@ def _refuse_human_only(g: Graph, base: str, state: "str | None", agent: "str | N
     if state and canon_rung(state) in HUMAN_ONLY and not _is_human(g, base, agent):
         if record and step and target:
             _record_refusal(base, agent, step, target, canon_rung(state))
-        why = (f"agent:{agent} is not a registered HumanAgent" if agent
-               else "no --agent was given, and a registered HumanAgent is required")
-        sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {why}. An AI must never grant this rung.")
+        sys.exit(f"REFUSED: rung '{canon_rung(state)}' is human-only; {_not_human_reason(agent)}. An AI must never grant this rung.")
 
 
 def _clean_state(state: str) -> str:
@@ -644,6 +655,196 @@ def cmd_message(a) -> None:
     save(g)
     kept = "text kept" if a.keep_text else "hash only"
     print(f"message:{a.id} logged in channel:{a.channel} ({kept})")
+
+
+# --- decision records (issue 44) ---------------------------------------------------------------------------------
+DECISION_STATES = ["open", "provisional", "done"]
+_OPT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
+
+
+def _digest(text: str) -> str:
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _is_decision(g: Graph, node) -> bool:
+    return (node, RDF.type, AIPROV.Decision) in g
+
+
+def _deciding_acts(g: Graph, dec) -> list:
+    """The aiprov:Deciding activities that used this decision, oldest record first."""
+    acts = [x for x in g.subjects(PROV.used, dec) if (x, RDF.type, AIPROV.Deciding) in g]
+    return sorted(acts, key=lambda x: (str(g.value(x, AIPROV.recordedAtTime) or ""), str(x)))
+
+
+def _decision_state(g: Graph, dec) -> str:
+    """Effective state: the state set by the latest Deciding activity, else open."""
+    acts = _deciding_acts(g, dec)
+    if not acts:
+        return "open"
+    st = g.value(acts[-1], AIPROV.decisionState)
+    return str(st).rsplit("decisionState-", 1)[-1] if st is not None else "open"
+
+
+def _supersedes_chain(g: Graph, start) -> set:
+    seen, todo = set(), [start]
+    while todo:
+        n = todo.pop()
+        for o in g.objects(n, AIPROV.supersedes):
+            if o not in seen:
+                seen.add(o)
+                todo.append(o)
+    return seen
+
+
+def _decision_open(g: Graph, a) -> None:
+    _require_registered(g, a.base, a.agent)
+    dec = ns(a.base, "decision")[a.id]
+    if (dec, RDF.type, None) in g:
+        sys.exit(f"decision {a.id} is already logged; the graph is append-only, use a new id")
+    if not a.question:
+        sys.exit("decision open needs --question")
+    opts: dict = {}
+    for spec in a.option or []:
+        oid, sep, text = spec.partition("=")
+        if not sep or not _OPT_RE.fullmatch(oid) or not text:
+            sys.exit(f"--option: use ID=TEXT with an id of letters, digits, '-' and '_' (got '{spec}')")
+        if oid in opts:
+            sys.exit(f"--option: option {oid} is given twice")
+        opts[oid] = text
+    if len(opts) < 2:
+        sys.exit("a decision offers at least two --option ID=TEXT")
+    if a.recommend and a.recommend not in opts:
+        sys.exit(f"--recommend: {a.recommend} is not one of the options")
+    if a.keep_text and a.data_class not in KEEP_TEXT_OK:
+        sys.exit("--keep-text needs --data-class public, untrusted or internal; the text of a question and its "
+                 "options may carry project content")
+    for iri in [a.asked_in] if a.asked_in else []:
+        if not iri.startswith(("http://", "https://")):
+            sys.exit(f"--asked-in: {iri} is not an http(s) IRI")
+    g.add((dec, RDF.type, AIPROV.Decision))
+    g.add((dec, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
+    g.add((dec, AIPROV.decisionState, AIPROV["decisionState-open"]))
+    g.add((dec, AIPROV.contentHash, Literal(_digest(a.question))))
+    if a.keep_text:
+        g.add((dec, RDFS.label, Literal(a.question)))
+    if a.data_class:
+        g.add((dec, AIPROV.dataClass, Literal(a.data_class)))
+    if a.asked_in:
+        g.add((dec, AIPROV.askedIn, URIRef(a.asked_in)))
+    g.add((dec, AIPROV.recordedAtTime, now()))
+    for oid, text in opts.items():
+        o = ns(a.base, "option")[f"{a.id}-{oid}"]
+        g.add((o, RDF.type, AIPROV.Option))
+        g.add((o, AIPROV.optionOf, dec))
+        g.add((o, AIPROV.contentHash, Literal(_digest(text))))
+        if a.keep_text:
+            g.add((o, RDFS.label, Literal(text)))
+    if a.recommend:
+        g.add((dec, AIPROV.recommendedOption, ns(a.base, "option")[f"{a.id}-{a.recommend}"]))
+    save(g)
+    print(f"decision:{a.id} opened with {len(opts)} options ({'text kept' if a.keep_text else 'hash only'})")
+
+
+def _decision_decide(g: Graph, a) -> None:
+    dec = ns(a.base, "decision")[a.id]
+    if not _is_decision(g, dec):
+        sys.exit(f"decision {a.id} is not logged; open it with `provlog decision open` first")
+    _require_registered(g, a.base, a.agent)
+    if not a.choose:
+        sys.exit("decision decide needs --choose OPTION")
+    opt = ns(a.base, "option")[f"{a.id}-{a.choose}"]
+    if (opt, AIPROV.optionOf, dec) not in g:
+        sys.exit(f"--choose: {a.choose} is not an option of decision {a.id}")
+    if a.state == "done":
+        # one rule with the human-only rungs (issue 22): only a registered HumanAgent closes a decision
+        if not _is_human(g, a.base, a.agent):
+            sys.exit(f"REFUSED: state 'done' is human-only; {_not_human_reason(a.agent)}. An AI may set 'provisional' only.")
+    if _decision_state(g, dec) == "done":
+        sys.exit(f"decision {a.id} is done; a changed decision is a new decision that supersedes it")
+    if a.decided_in and not a.decided_in.startswith(("http://", "https://")):
+        sys.exit(f"--decided-in: {a.decided_in} is not an http(s) IRI")
+    decided = _session_time(a.decided_at, "--decided-at") if a.decided_at else now()
+    n = len(_deciding_acts(g, dec)) + 1
+    act = ns(a.base, "activity")[f"decide-{a.id}-{n}"]
+    g.add((act, RDF.type, AIPROV.Deciding))
+    g.add((act, PROV.used, dec))
+    g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
+    g.add((act, AIPROV.chosenOption, opt))
+    g.add((act, AIPROV.decisionState, AIPROV["decisionState-" + a.state]))
+    if a.decided_in:
+        g.add((act, AIPROV.decidedIn, URIRef(a.decided_in)))
+    g.add((act, PROV.endedAtTime, decided))
+    g.add((act, AIPROV.recordedAtTime, now()))
+    save(g)
+    print(f"decision:{a.id} {a.state}: option {a.choose} chosen by agent:{a.agent}")
+
+
+def _decision_supersede(g: Graph, a) -> None:
+    new, old = ns(a.base, "decision")[a.id], ns(a.base, "decision")[a.old or ""]
+    if not a.old:
+        sys.exit("decision supersede needs --old DECISION")
+    if not _is_decision(g, new):
+        sys.exit(f"decision {a.id} is not logged")
+    if not _is_decision(g, old):
+        sys.exit(f"--old: decision {a.old} is not logged")
+    if new == old:
+        sys.exit("a decision cannot supersede itself")
+    if new in _supersedes_chain(g, old):
+        sys.exit(f"decision {a.old} already supersedes {a.id}; that would be a cycle")
+    if (new, AIPROV.supersedes, old) in g:
+        sys.exit(f"decision {a.id} already supersedes {a.old}")
+    g.add((new, AIPROV.supersedes, old))
+    save(g)
+    print(f"decision:{a.id} supersedes decision:{a.old}")
+
+
+def cmd_decision(a) -> None:
+    g = load()
+    {"open": _decision_open, "decide": _decision_decide, "supersede": _decision_supersede}[a.action](g, a)
+
+
+def _decision_findings(g: Graph) -> list:
+    """(severity, label, rows) for validate. FAIL: malformed decision, option not offered, `done` without a registered
+    human, bad supersede. WARN: kept text where the data class is unknown or above internal."""
+    malformed, badopt, notoffered, ndone, badsup, risky = [], [], [], [], [], []
+    for d in set(g.subjects(RDF.type, AIPROV.Decision)):
+        opts = set(g.subjects(AIPROV.optionOf, d))
+        h, txt = g.value(d, AIPROV.contentHash), g.value(d, RDFS.label)
+        if (d, PROV.wasAttributedTo, None) not in g or h is None or len(opts) < 2 \
+                or (txt is not None and str(h) != _digest(str(txt))):
+            malformed.append((d,))
+        rec = g.value(d, AIPROV.recommendedOption)
+        if rec is not None and rec not in opts:
+            malformed.append((d,))
+        if txt is not None or any((o, RDFS.label, None) in g for o in opts):
+            cls = {str(c) for c in g.objects(d, AIPROV.dataClass)}
+            if not cls or not cls <= KEEP_TEXT_OK:
+                risky.append((d,))
+        for t in g.objects(d, AIPROV.supersedes):
+            if t == d or not _is_decision(g, t) or d in _supersedes_chain(g, t):
+                badsup.append((d,))
+    for o in set(g.subjects(RDF.type, AIPROV.Option)):
+        d, h, txt = g.value(o, AIPROV.optionOf), g.value(o, AIPROV.contentHash), g.value(o, RDFS.label)
+        if d is None or not _is_decision(g, d) or h is None or (txt is not None and str(h) != _digest(str(txt))):
+            badopt.append((o,))
+    for act in set(g.subjects(RDF.type, AIPROV.Deciding)):
+        used = [u for u in g.objects(act, PROV.used) if _is_decision(g, u)]
+        chosen = list(g.objects(act, AIPROV.chosenOption))
+        states = [str(s).rsplit("decisionState-", 1)[-1] for s in g.objects(act, AIPROV.decisionState)]
+        who = list(g.objects(act, PROV.wasAssociatedWith))
+        if len(used) != 1 or len(chosen) != 1 or len(states) != 1 or states[0] not in DECISION_STATES or not who:
+            badopt.append((act,))
+            continue
+        if (chosen[0], AIPROV.optionOf, used[0]) not in g:
+            notoffered.append((act,))
+        if states[0] == "done" and not all((w, RDF.type, AIPROV.HumanAgent) in g for w in who):
+            ndone.append((act,))
+    return [("FAIL", "decisions that are malformed (asker, hash, two options, recommendation, text matching hash)", malformed),
+            ("FAIL", "options or deciding activities that are incomplete", badopt),
+            ("FAIL", "chosen options that the decision did not offer", notoffered),
+            ("FAIL", "decisions set to done by an agent that is not a registered human", ndone),
+            ("FAIL", "supersedes links to a missing decision, to itself or in a cycle", badsup),
+            ("WARN", "decision text kept where the data class is unknown or above internal", risky)]
 
 
 # --- schema versions and migration (issue 42) ---------------------------------------------------------------
@@ -955,6 +1156,13 @@ def validate_graph(g: Graph) -> int:
         if not any((ag, AIPROV.model, None) in g for ag in g.objects(act, PROV.wasAssociatedWith)):
             nomodel.append((act,))
     print(f"[{'WARN' if nomodel else ' OK '}] activities via a harness with neither a model nor a stated reason: {len(nomodel)}")
+    # Decisions (issue 44)
+    for sev, label, rows in _decision_findings(g):
+        print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
+        if sev == "FAIL":
+            fail += len(rows)
+        for row in rows:
+            print("   ↳", label + ":", row[0])
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -1093,6 +1301,14 @@ def cmd_report(a) -> None:
         for ch in sorted(chans, key=str):
             kept = sum(1 for m_ in chans[ch] if (m_, AIPROV.content, None) in g)
             print(f"   {str(ch).rsplit('/',1)[-1]:24s} {len(chans[ch])} messages, text kept for {kept}")
+    decs = set(g.subjects(RDF.type, AIPROV.Decision))
+    if decs:
+        print("-- decisions --")
+        by = {}
+        for d_ in decs:
+            by.setdefault(_decision_state(g, d_), []).append(d_)
+        sup = sum(1 for d_ in decs if (None, AIPROV.supersedes, d_) in g)
+        print("   " + ", ".join(f"{k} {len(by.get(k, []))}" for k in DECISION_STATES) + f", superseded {sup}")
     roots = set(g.subjects(RDF.type, AIPROV.Orchestration))
     if roots:
         print("-- orchestration --")
@@ -1502,6 +1718,8 @@ def main() -> None:
     s.add_argument("--tool", action="append"); s.add_argument("--prompt-file", dest="prompt_file")
     s.add_argument("--transcript"); s.add_argument("--generated", action="append")
     s.add_argument("--used", action="append")
+    s.add_argument("--used-decision", dest="used_decision", action="append",
+                   help="id of a decision (see `provlog decision`) this activity used, e.g. the one that authorised it; repeatable")
     s.add_argument("--used-message", dest="used_message", action="append",
                    help="id of a message (see `provlog message`) this activity used; repeatable")
     s.add_argument("--orchestration", action="store_true",
@@ -1567,6 +1785,24 @@ def main() -> None:
     s.add_argument("--channel-class", dest="channel_class", choices=DATA_CLASSES,
                    help="data class of the channel (write-once)")
 
+    s = sub.add_parser("decision", help="record a decision: the question, its options, the recommendation, who chose what")
+    s.add_argument("action", choices=["open", "decide", "supersede"])
+    s.add_argument("--id", required=True)
+    s.add_argument("--agent", help="registered agent: the asker (open) or the decider (decide)")
+    s.add_argument("--question", help="open: the question; only its sha256 is stored unless --keep-text")
+    s.add_argument("--option", action="append", metavar="ID=TEXT", help="open: an option, at least two; repeatable")
+    s.add_argument("--recommend", metavar="OPTION_ID", help="open: the recommended option")
+    s.add_argument("--keep-text", dest="keep_text", action="store_true",
+                   help="open: also store the question and option texts (only for --data-class public, untrusted or internal)")
+    s.add_argument("--data-class", dest="data_class", choices=DATA_CLASSES, help="open: data class of the question text")
+    s.add_argument("--asked-in", dest="asked_in", help="open: IRI of the issue, pull request or message where it was asked")
+    s.add_argument("--choose", metavar="OPTION_ID", help="decide: the option chosen")
+    s.add_argument("--state", choices=["provisional", "done"], default="done",
+                   help="decide: provisional (an AI may set it) or done (a registered human only)")
+    s.add_argument("--decided-in", dest="decided_in", help="decide: IRI of the place of the decision")
+    s.add_argument("--decided-at", dest="decided_at", help="decide: when it was decided (ISO 8601); default now")
+    s.add_argument("--old", help="supersede: the decision that --id replaces")
+
     sub.add_parser("validate"); sub.add_parser("report")
 
     s = sub.add_parser("migrate", help="bring the graph to the schema version of this provlog")
@@ -1614,7 +1850,7 @@ def main() -> None:
 
     a = p.parse_args()
     {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
-     "claim": cmd_claim, "message": cmd_message, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
+     "claim": cmd_claim, "message": cmd_message, "decision": cmd_decision, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
