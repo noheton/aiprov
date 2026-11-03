@@ -126,6 +126,30 @@ aiprov:sessionType-batch a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
 aiprov:sessionType-evaluation a skos:Concept ; skos:inScheme aiprov:SessionTypes ;
     skos:prefLabel "evaluation"@en ; rdfs:comment "A run whose purpose is to measure a model or a pipeline."@en .
 
+# --- Conversations between agents (issue 43) ---
+aiprov:Channel          a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Channel"@en ;
+    rdfs:comment "A place where agents exchange messages (a chat room, an issue thread). It may carry aiprov:platform, aiprov:channelName and aiprov:dataClass."@en .
+aiprov:platform         a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rdfs:range xsd:string ;
+    rdfs:comment "The kind of system that hosts the channel, in the adopter's own words."@en .
+aiprov:channelName      a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rdfs:range xsd:string ;
+    rdfs:comment "Display name of the channel. Optional; a channel may be known by its identifier alone."@en .
+aiprov:dataClass        a owl:DatatypeProperty ; rdfs:domain aiprov:Channel ; rdfs:range xsd:string ;
+    rdfs:comment "Data class of what the channel holds: public, untrusted, internal, confidential or restricted. validate warns when message text is kept in a channel above internal or of unknown class."@en .
+aiprov:Message          a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "Message"@en ;
+    rdfs:comment "One message of an agent in a channel. prov:wasAttributedTo names the sender; aiprov:contentHash is required; aiprov:content is stored only on request. An activity or a decision uses a message with prov:used."@en .
+aiprov:inChannel       a owl:ObjectProperty ; rdfs:domain aiprov:Message ; rdfs:range aiprov:Channel ;
+    rdfs:comment "The channel the message was posted in."@en .
+aiprov:sentAt          a owl:DatatypeProperty ; rdfs:domain aiprov:Message ; rdfs:range xsd:dateTime ;
+    rdfs:comment "When the message was sent. Absent when unknown; aiprov:recordedAtTime says when it was logged."@en .
+aiprov:inReplyTo       a owl:ObjectProperty ; rdfs:domain aiprov:Message ; rdfs:range aiprov:Message ;
+    rdfs:comment "The message this one replies to. The target is a message of the same graph."@en .
+aiprov:refersTo        a owl:ObjectProperty ; rdfs:domain aiprov:Message ;
+    rdfs:comment "An issue, pull request or commit the message is about, as an IRI."@en .
+aiprov:content         a owl:DatatypeProperty ; rdfs:domain aiprov:Message ; rdfs:range xsd:string ;
+    rdfs:comment "The text of the message. Stored only on request (provlog message --keep-text), where the data class of the channel allows it; aiprov:contentHash is its sha256."@en .
+
 # --- Activity attributes: session & inference telemetry ---
 # Attach directly to the prov:Activity that produced/used the AI output.
 
@@ -135,8 +159,8 @@ aiprov:transcript       a owl:ObjectProperty ;
     rdfs:comment "Links the activity to a preserved conversation transcript entity."@en .
 aiprov:requestId        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Provider request ID for a single inference call."@en .
-aiprov:recordedAtTime   a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:dateTime ;
-    rdfs:comment "When the record of the activity was written, as distinct from when the work happened. prov:startedAtTime and prov:endedAtTime describe the work; this property describes the bookkeeping. They differ whenever an activity is logged in arrears, which is the normal case for an agent session, and keeping them apart is what allows a reader to tell a measured span from the instant a log line was appended."@en .
+aiprov:recordedAtTime   a owl:DatatypeProperty ; rdfs:range xsd:dateTime ;
+    rdfs:comment "When the record of an activity or a message was written, as distinct from when the work happened. prov:startedAtTime and prov:endedAtTime describe the work; this property describes the bookkeeping. They differ whenever an activity is logged in arrears, which is the normal case for an agent session, and keeping them apart is what allows a reader to tell a measured span from the instant a log line was appended."@en .
 aiprov:turnCount        a owl:DatatypeProperty ; rdfs:range xsd:integer .
 
 # Token accounting (integers; omit what the provider does not report)

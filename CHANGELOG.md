@@ -45,6 +45,19 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Schema (issue 43): conversations between agents. `aiprov:Channel` (platform, name, data class) and `aiprov:Message`
+  (`prov:wasAttributedTo` the sender, `aiprov:inChannel`, `aiprov:sentAt`, `aiprov:inReplyTo`, `aiprov:refersTo`,
+  `aiprov:contentHash`, optional `aiprov:content`). New `provlog message --id --channel --agent (--text | --content-hash)
+  [--keep-text] [--reply-to] [--refers-to] [--sent-at] [--platform] [--channel-name] [--channel-class]`: the sha256 of the
+  text is stored by default and the text itself only with `--keep-text`; `aiprov:recordedAtTime` is always written, and
+  `sentAt` only when `--sent-at` is given, so a backfilled message stays distinguishable and no time is invented. `log
+  --used-message ID` lets an activity use a message (`prov:used`). `validate` fails on a message without a sender, on a reply
+  to a message that is not in the graph (a reply target in another graph is not supported before the cross-graph
+  references of issue 37), and on a message without a content hash or whose kept text does not match it; it warns when text
+  is kept in a channel above `internal` or of unknown class. `report` lists messages per channel. `aiprov:recordedAtTime`
+  no longer has the domain `prov:Activity` (it now also describes a message) and the packaged vocabulary copy in
+  `src/aiprov/` gained the term it had lacked. Additive; the migration step is a no-op that stamps the version and the
+  vocabulary refresh adds the new terms. Graphs without messages validate unchanged.
 - Schema (issue 22): an agent is an AI or a person, never both. `aiprov:HumanAgent owl:disjointWith aiprov:AIAgent`;
   `provlog agent --type human` refuses an id that is already an `AIAgent` (and `--type ai` an id that is a
   `HumanAgent`), leaving the graph file unchanged; `validate` fails a node typed as both and lists every such node.
