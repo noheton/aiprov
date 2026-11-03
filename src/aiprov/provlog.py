@@ -246,6 +246,44 @@ def _link_session(g: Graph, a, act) -> None:
     g.add((act, DCT.isPartOf, node))
 
 
+# How a record came to be (issue 24). The order is the precedence when two paths report the same session: the
+# one nearest to the request wins, the others are not added up.
+CAPTURE_PATHS = ["gateway", "harness-record", "harness-export", "script", "self-report", "backfill"]
+
+
+def _capture_path(g: Graph, act) -> "str | None":
+    v = next(iter(g.objects(act, AIPROV.capturePath)), None)
+    return None if v is None else str(v).removeprefix(str(AIPROV) + "capturePath-")
+
+
+def _act_tokens(g: Graph, act) -> int:
+    t = next(iter(g.objects(act, AIPROV.totalTokens)), None)
+    if t is not None:
+        return int(t)
+    return sum(int(o) for p in (AIPROV.inputTokens, AIPROV.outputTokens) for o in g.objects(act, p))
+
+
+def _witness_split(g: Graph) -> "tuple[set, set, list]":
+    """(auxiliary passes, activities not counted because another capture path already reports their session,
+    sessions with two paths). One telemetry witness per session; an activity without a path is kept, since it
+    cannot be shown to repeat another."""
+    aux = set(g.subjects(RDF.type, AIPROV.AuxiliaryPass))
+    token_acts = {x for p in (AIPROV.inputTokens, AIPROV.outputTokens, AIPROV.totalTokens) for x in g.subjects(p, None)}
+    by_session: dict = {}
+    for act in token_acts - aux:
+        for sess in g.objects(act, DCT.isPartOf):
+            by_session.setdefault(sess, []).append(act)
+    dropped: set = set()
+    conflicts: list = []
+    for sess, acts in by_session.items():
+        paths = {pp for pp in (_capture_path(g, x) for x in acts) if pp}
+        if len(paths) > 1:
+            conflicts.append((sess,))
+            best = min(paths, key=lambda pp: CAPTURE_PATHS.index(pp) if pp in CAPTURE_PATHS else 99)
+            dropped |= {x for x in acts if _capture_path(g, x) not in (None, best)}
+    return aux, dropped, conflicts
+
+
 ACT_ATTRS = [  # (cli key, property, xsd type)
     ("session_id", AIPROV.sessionId, XSD.string), ("request_id", AIPROV.requestId, XSD.string),
     ("turns", AIPROV.turnCount, XSD.integer),
@@ -265,7 +303,8 @@ def cmd_log(a) -> None:
     g = load()
     act = ns(a.base, "activity")[a.activity]
     cls = {"authoring": AIPROV.AuthoringPass, "audit": AIPROV.AuditPass,
-           "build": AIPROV.Build, "repair": AIPROV.Repair}.get(a.pass_, PROV.Activity)
+           "build": AIPROV.Build, "repair": AIPROV.Repair,
+           "auxiliary": AIPROV.AuxiliaryPass}.get(a.pass_, PROV.Activity)
     if a.informed_by == a.activity:
         sys.exit("--informed-by: an activity cannot be informed by itself")
     if (a.orchestration or a.informed_by or (act, RDF.type, AIPROV.Orchestration) in g) \
@@ -300,6 +339,20 @@ def cmd_log(a) -> None:
     g.add((act, RDF.type, cls))
     _link_models(g, a, act)
     _link_session(g, a, act)
+    if a.recorded_by:
+        _require_registered(g, a.base, a.recorded_by)
+    if a.capture_path:
+        g.add((act, AIPROV.capturePath, AIPROV["capturePath-" + a.capture_path]))
+    if a.recorded_by:
+        g.add((act, AIPROV.recordedBy, ns(a.base, "agent")[a.recorded_by]))
+    if a.recorded_from:
+        rf = ns(a.base, "entity")[pathlib.Path(a.recorded_from).name.replace(".", "-")]
+        g.add((rf, RDF.type, AIPROV.Artefact))
+        g.add((rf, AIPROV.filePath, Literal(a.recorded_from)))
+        rp = pathlib.Path(a.recorded_from)
+        if rp.exists():
+            g.add((rf, AIPROV.contentHash, Literal("sha256:" + hashlib.sha256(rp.read_bytes()).hexdigest())))
+        g.add((act, AIPROV.recordedFrom, rf))
     if a.label:
         g.add((act, RDFS.label, Literal(a.label, lang="en")))
     g.add((act, PROV.endedAtTime, Literal(a.ended, datatype=XSD.dateTime) if a.ended else now()))
@@ -783,6 +836,17 @@ def validate_graph(g: Graph) -> int:
         if not cls or not cls <= KEEP_TEXT_OK:
             kept_risky.append((m_,))
     print(f"[{'WARN' if kept_risky else ' OK '}] message text kept in a channel above internal or of unknown class: {len(kept_risky)}")
+    # A record written by someone other than the actor, or after the fact, should name what it was written from.
+    unsourced = []
+    for act in set(g.subjects(RDF.type, None)):
+        if (act, AIPROV.recordedFrom, None) in g:
+            continue
+        who = set(g.objects(act, PROV.wasAssociatedWith))
+        if any(rb not in who for rb in g.objects(act, AIPROV.recordedBy)) or _capture_path(g, act) == "backfill":
+            unsourced.append((act,))
+    print(f"[{'WARN' if unsourced else ' OK '}] records made by another agent or in arrears without a source (recordedFrom): {len(unsourced)}")
+    _, _, twopaths = _witness_split(g)
+    print(f"[{'WARN' if twopaths else ' OK '}] sessions with token sums from more than one capture path (only one is counted): {len(twopaths)}")
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -796,7 +860,9 @@ def validate_graph(g: Graph) -> int:
                        ("answer from two model activities", twice), ("bad fallbackOf target", badfb),
                        ("part of a non-session", badpart), ("message without a sender", nosender),
                        ("reply target not a message of this graph", badreply), ("message hash missing or wrong", nohash),
-                       ("message text kept in a channel above internal or of unknown class", kept_risky)):
+                       ("message text kept in a channel above internal or of unknown class", kept_risky),
+                       ("record by another agent or in arrears without a source", unsourced),
+                       ("session with token sums from more than one capture path", twopaths)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -808,8 +874,10 @@ def cmd_validate(a) -> None:
 
 def cmd_report(a) -> None:
     g = load()
+    aux, dropped, _twopaths = _witness_split(g)
+
     def total(prop):
-        return sum(int(o) for _, _, o in g.triples((None, prop, None)))
+        return sum(int(o) for x, _, o in g.triples((None, prop, None)) if x not in aux and x not in dropped)
     print("== aiprov report ==")
     print(f"triples:            {len(g)}")
     sessions = set(g.subjects(RDF.type, AIPROV.Session))
@@ -822,15 +890,35 @@ def cmd_report(a) -> None:
     print(f"output tokens:      {total(AIPROV.outputTokens)}")
     print(f"cache read tokens:  {total(AIPROV.cacheReadTokens)}")
     print(f"total tokens:       {total(AIPROV.totalTokens)}")
-    cost = sum(float(o) for _, _, o in g.triples((None, AIPROV.cost, None)))
+    cost = sum(float(o) for x, _, o in g.triples((None, AIPROV.cost, None)) if x not in aux and x not in dropped)
     cur = {str(o) for _, _, o in g.triples((None, AIPROV.costCurrency, None))} or {"?"}
     print(f"cost:               {cost:.4f} {'/'.join(sorted(cur))}")
     print("-- tokens per agent --")
-    q = """SELECT ?ag (SUM(?t) AS ?tok) (COUNT(DISTINCT ?act) AS ?n) WHERE {
-            ?act prov:wasAssociatedWith ?ag ; aiprov:totalTokens ?t }
-           GROUP BY ?ag ORDER BY DESC(?tok)"""
-    for ag, tok, n in g.query(q):
-        print(f"   {str(ag).rsplit('/',1)[-1]:24s} {int(tok):>10} tok  {int(n)} activities")
+    per: dict = {}
+    for act, t in g.subject_objects(AIPROV.totalTokens):
+        if act in aux or act in dropped:
+            continue
+        for ag in g.objects(act, PROV.wasAssociatedWith):
+            e = per.setdefault(ag, [0, set()])
+            e[0] += int(t)
+            e[1].add(act)
+    for ag, (tok, acts_) in sorted(per.items(), key=lambda kv: (-kv[1][0], str(kv[0]))):
+        print(f"   {str(ag).rsplit('/',1)[-1]:24s} {tok:>10} tok  {len(acts_)} activities")
+    paths: dict = {}
+    for act in set(g.subjects(PROV.endedAtTime, None)) - sessions:
+        k = _capture_path(g, act)
+        if k:
+            paths[k] = paths.get(k, 0) + 1
+    if paths or aux or dropped:
+        print("-- capture paths --")
+        for k in sorted(paths, key=lambda k: CAPTURE_PATHS.index(k) if k in CAPTURE_PATHS else 99):
+            print(f"   {k:24s} {paths[k]} activities")
+        if aux:
+            print(f"   auxiliary passes (tokens kept apart, not in the totals above): {len(aux)} activities, "
+                  f"{sum(_act_tokens(g, x) for x in aux)} tokens")
+        if dropped:
+            print(f"   not counted (the session is already reported by another capture path): {len(dropped)} activities, "
+                  f"{sum(_act_tokens(g, x) for x in dropped)} tokens")
     print("-- verification rungs --")
     q = """SELECT ?s (COUNT(?c) AS ?n) WHERE {
             ?c a aiprov:Claim ; aiprov:verificationState ?s } GROUP BY ?s"""
@@ -1282,7 +1370,7 @@ def main() -> None:
 
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
-    s.add_argument("--pass", dest="pass_", choices=["authoring", "audit", "build", "repair"], default="authoring")
+    s.add_argument("--pass", dest="pass_", choices=["authoring", "audit", "build", "repair", "auxiliary"], default="authoring")
     s.add_argument("--agent"); s.add_argument("--started")
     s.add_argument("--ended", help="end of the work; defaults to now, which is the moment of recording, "
                                    "not necessarily the moment the work finished")
@@ -1317,6 +1405,12 @@ def main() -> None:
                    help="how the session ended, as the harness reports it")
     s.add_argument("--session-started", dest="session_started", help="start of the session (ISO 8601)")
     s.add_argument("--session-ended", dest="session_ended", help="end of the session (ISO 8601)")
+    s.add_argument("--capture-path", dest="capture_path", choices=CAPTURE_PATHS,
+                   help="how this record came to be: " + ", ".join(CAPTURE_PATHS) + " (absent = unknown)")
+    s.add_argument("--recorded-by", dest="recorded_by",
+                   help="registered agent that wrote the record, when it is not the acting agent")
+    s.add_argument("--recorded-from", dest="recorded_from",
+                   help="path of the source a record was written from (a summary, a transcript, a commit)")
 
     s = sub.add_parser("claim")
     s.add_argument("--id", required=True); s.add_argument("--text", required=True)

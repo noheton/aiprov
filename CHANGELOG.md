@@ -45,6 +45,7 @@ Additive; legacy graphs validate unchanged.
   same locally.
 
 ## Unreleased
+- Schema (issue 24): the capture path of a record. `aiprov:capturePath` (scheme `aiprov:CapturePaths`: self-report, harness-record, harness-export, gateway, script, backfill; absent means unknown, no default), `aiprov:recordedBy` and `aiprov:recordedFrom`, and `aiprov:AuxiliaryPass` for model requests outside the agent loop (compaction summary, title). `provlog log --capture-path P --recorded-by AGENT --recorded-from PATH` and `--pass auxiliary`. One telemetry witness per session: `report` counts the tokens of the capture path nearest to the request (gateway, harness-record, harness-export, script, self-report, backfill), prints what it left out, and keeps auxiliary tokens apart from the totals. `validate` warns (never fails) on a record by another agent or in arrears without `recordedFrom`, and on a session with token sums from more than one path. Readers for harness stores (`telemetry --from`) are a follow-up. Additive; the migration step is unchanged, the vocabulary refresh adds the terms.
 - Schema (issue 43): conversations between agents. `aiprov:Channel` (platform, name, data class) and `aiprov:Message`
   (`prov:wasAttributedTo` the sender, `aiprov:inChannel`, `aiprov:sentAt`, `aiprov:inReplyTo`, `aiprov:refersTo`,
   `aiprov:contentHash`, optional `aiprov:content`). New `provlog message --id --channel --agent (--text | --content-hash)

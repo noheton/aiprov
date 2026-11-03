@@ -281,3 +281,28 @@ aiprov:toolVersion      a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; 
 aiprov:addedTriples     a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer .
 aiprov:deprecatedTriples a owl:DatatypeProperty ; rdfs:domain aiprov:Migration ; rdfs:range xsd:integer ;
     rdfs:comment "Number of terms the migration marked owl:deprecated."@en .
+
+#--- Capture path of a record (issue 24) ----------------------------------------
+
+aiprov:capturePath      a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range skos:Concept ;
+    rdfs:comment "How the record of an activity came to be: a concept of the scheme aiprov:CapturePaths. Absent means unknown; no default is assumed."@en .
+aiprov:CapturePaths     a skos:ConceptScheme ;
+    rdfs:comment "Capture paths of a record. When two paths report the same session their token sums are not added up."@en .
+aiprov:capturePath-self-report a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "self-report"@en ; skos:definition "The acting agent logs its own work."@en .
+aiprov:capturePath-harness-record a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "harness-record"@en ; skos:definition "A hook or plugin of the harness writes the record while the work happens."@en .
+aiprov:capturePath-harness-export a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "harness-export"@en ; skos:definition "The record is read later from the harness's own store."@en .
+aiprov:capturePath-gateway a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "gateway"@en ; skos:definition "An API gateway's log is the source."@en .
+aiprov:capturePath-script a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "script"@en ; skos:definition "A deterministic tool logs itself."@en .
+aiprov:capturePath-backfill a skos:Concept ; skos:inScheme aiprov:CapturePaths ;
+    skos:prefLabel "backfill"@en ; skos:definition "Written after the fact by another agent from a secondary source."@en .
+aiprov:recordedBy       a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range prov:Agent ;
+    rdfs:comment "The agent that wrote the record, when it is not the agent that acted."@en .
+aiprov:recordedFrom     a owl:ObjectProperty ; rdfs:domain prov:Activity ; rdfs:range prov:Entity ;
+    rdfs:comment "What a record was written from (a transcript, a summary, a commit); expected for a backfill."@en .
+aiprov:AuxiliaryPass    a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:comment "A model request outside the agent loop (compaction summary, title, classifier). Its tokens are counted but kept apart from the loop's."@en .

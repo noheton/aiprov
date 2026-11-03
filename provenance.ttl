@@ -280,6 +280,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/zenodo-archive> ;
     aiprov:verificationState verif:ai-confirmed .
 
+<https://w3id.org/aiprov/prov/claim/capture-path-one-witness> a aiprov:Claim ;
+    rdfs:label "report counts the tokens of one capture path per session, by a fixed precedence, and keeps auxiliary tokens out of the totals"@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/fix-21-refusal> a aiprov:Claim ;
     rdfs:label "log, claim, source and promote exit non-zero and leave the graph unchanged for an agent id without an AIAgent, HumanAgent or ToolAgent type; validate fails on such a reference (37 tests pass)."@en ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -361,6 +367,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -379,6 +386,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
         "sha256:7474c7ae6881b073e8189c47f95fbac447124e38390723e9147fb96183a576ae",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
+        "sha256:865504fa359b5cc18f17286cdc25b125e17c2c2a2e26b9b98b5a1c54a67ea8fa",
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
@@ -389,6 +397,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "07d9604",
         "1ddf1a3",
         "2129332",
+        "56c0fcb",
         "735a10e",
         "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
         "aa04337",
@@ -484,6 +493,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
@@ -493,10 +503,12 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4a11763782f160fb55c74c0deaac8f4c6ae6567b6ada89d11a52dd9b8d223182",
         "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0",
         "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972",
+        "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
     aiprov:gitCommit "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
+        "56c0fcb",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "aa04337",
         "ab531da",
@@ -652,6 +664,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers>,
         <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
@@ -665,6 +678,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:11faa29af4e7625f19cbb7ac4ad0f5773c267d1a49fc769e8b6977d849daa3f8",
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
+        "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
@@ -680,6 +694,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "07d9604",
         "1ddf1a3",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
+        "56c0fcb",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "735a10e",
         "aa04337",
@@ -725,6 +740,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:170fc4e14cdd78a6176e1b9f56d3027a9c9c72b1c74c85777f4208ef2c04c0ee" ;
     aiprov:filePath "tests/test_agent_types.py" ;
     aiprov:gitCommit "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5" .
+
+<https://w3id.org/aiprov/prov/entity/test_capture_path-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24> ;
+    aiprov:contentHash "sha256:d43f99647dfe6cb877ff64f27091c4cbb8fffdf267d7772dcae863165f027db8" ;
+    aiprov:filePath "tests/test_capture_path.py" ;
+    aiprov:gitCommit "56c0fcb" .
 
 <https://w3id.org/aiprov/prov/entity/test_extract_dashboard-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -957,6 +979,12 @@ aiprov:AIAgent a owl:Class ;
     prov:wasAssociatedWith agent:claude-opus-5-5 ;
     aiprov:sessionId "ses_e73662937ffeld6gOKquerG5wc"^^xsd:string ;
     aiprov:usedTool "opencode" .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24> a aiprov:AuthoringPass ;
+    rdfs:label "Implement the capture path of a record (issue 24): schema terms, log options, report witness rule, validate warnings, tests"@en ;
+    prov:endedAtTime "2026-11-03T14:11:54.835563+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-03T14:11:54.835597+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/demo-page> a aiprov:AuthoringPass ;
     rdfs:label "Demo page for GitHub Pages on the owner's choice: pitch, a demo graph produced by running provlog on invented data, a five-step explanation, the commands as run; build fails when provlog behaves differently; workflow deploys from main; no telemetry recorded"@en ;
