@@ -1443,6 +1443,8 @@ def validate_graph(g: Graph) -> int:
     docd = {t for r in g.subjects(RDF.type, AIPROV.DelimitationRecord) for t in g.objects(r, AIPROV.delimits)}
     print(f"[ OK ] novelty claims: {len(nov)} (delimitation documented {sum(1 for c in nov if c in docd)}, "
           f"not documented {sum(1 for c in nov if c not in docd)})")
+    if nov:
+        print("       limitation: a delimitation record shows that a search was made, not that the claim is new")
     for sev, label, rows in _delimitation_findings(g):
         print(f"[{sev if rows else ' OK '}] {label}: {len(rows)}")
         if sev == "FAIL":
@@ -1500,6 +1502,7 @@ def cmd_report(a) -> None:
         _docd = {t for r in g.subjects(RDF.type, AIPROV.DelimitationRecord) for t in g.objects(r, AIPROV.delimits)}
         print(f"novelty claims:     {len(_nov)} (delimitation documented {sum(1 for c in _nov if c in _docd)}, "
               f"not documented {sum(1 for c in _nov if c not in _docd)})")
+        print("                    limitation: a delimitation record shows that a search was made, not that the claim is new")
     nref = len(set(g.subjects(RDF.type, AIPROV.Refusal)))
     if nref:
         print(f"refusals:           {nref}")
