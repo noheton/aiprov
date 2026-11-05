@@ -117,3 +117,14 @@ def test_merge_resolves_external_references_or_warns(tmp_path):
     # with the graph that defines the data entity as well, every reference resolves
     r = run(B_DATA, ["merge", "--from", str(shutil_copy(data, "data.ttl"))], main)
     assert "external references not resolved" not in r.stdout, r.stdout + r.stderr
+
+
+def test_validate_fails_an_external_node_with_a_path_or_a_label(tmp_path):
+    code = repo(tmp_path, "c", B_CODE)
+    ok(B_CODE, ["log", "--activity", "a1", "--agent", "m1", "--pass", "authoring",
+                "--used-external", DATA_ENT, "--defined-in", G_DATA], code)
+    assert "carry a file path or a label: 0" in ok(B_CODE, ["validate"], code).stdout
+    ttl = code / "provenance.ttl"
+    ttl.write_text(ttl.read_text() + f'\n<{DATA_ENT}> <https://w3id.org/aiprov/ns#filePath> "restricted/x.yaml" .\n')
+    r = run(B_CODE, ["validate"], code)
+    assert r.returncode != 0 and "carry a file path or a label: 1" in r.stdout
