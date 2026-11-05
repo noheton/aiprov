@@ -322,6 +322,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/external-node-no-path-or-label> a aiprov:Claim ;
+    rdfs:label "validate fails a node marked rdfs:isDefinedBy that carries aiprov:filePath or rdfs:label; one new test covers it, 100 tests pass locally"@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/fix-21-refusal> a aiprov:Claim ;
     rdfs:label "log, claim, source and promote exit non-zero and leave the graph unchanged for an agent id without an AIAgent, HumanAgent or ToolAgent type; validate fails on such a reference (37 tests pass)."@en ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -419,6 +425,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -435,6 +442,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c",
         "sha256:5d2a4fcc24653a6bfae321fc05141b54503d024298fd175b2bf1ce0cf5b1a244",
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
+        "sha256:6de522387cf8a207b694ffec72b100d6a02d4e3ced7102ca8d9d7dc0625c8758",
         "sha256:7474c7ae6881b073e8189c47f95fbac447124e38390723e9147fb96183a576ae",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
         "sha256:865504fa359b5cc18f17286cdc25b125e17c2c2a2e26b9b98b5a1c54a67ea8fa",
@@ -447,6 +455,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "CHANGELOG.md" ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
+        "1562fed",
         "1ddf1a3",
         "2129332",
         "56c0fcb",
@@ -750,6 +759,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -763,6 +773,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
+        "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
@@ -781,6 +792,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "090fc8a",
+        "1562fed",
         "1ddf1a3",
         "3a88ea441dea512e278215e48b6ec15bb4c8f88c",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
@@ -856,10 +868,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/test_external_references-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37> ;
-    aiprov:contentHash "sha256:8400939d8c8c0eaadb5e1845cd4d032e2945d6b793fbddb9b83a094103d41cec" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> ;
+    aiprov:contentHash "sha256:17aa88ec0594e312f269b939c080f20cb4e577ca790b7f5a2724a7f3c09bf87f",
+        "sha256:8400939d8c8c0eaadb5e1845cd4d032e2945d6b793fbddb9b83a094103d41cec" ;
     aiprov:filePath "tests/test_external_references.py" ;
-    aiprov:gitCommit "d7ce016" .
+    aiprov:gitCommit "1562fed",
+        "d7ce016" .
 
 <https://w3id.org/aiprov/prov/entity/test_extract_dashboard-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1008,12 +1023,12 @@ verif:source-vendored a aiprov:VerificationState ;
 <https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
     aiprov:filePath "CHANGELOG.md" .
 
+<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
+    aiprov:filePath "provenance.ttl" .
+
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
     rdfs:subClassOf prov:Person .
-
-aiprov:Source a owl:Class ;
-    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1> a aiprov:Build ;
     rdfs:label "Release candidate 0.2.0-rc.1: version bump and changelog on the owner's go (thesis issue 10)"@en ;
@@ -1033,6 +1048,9 @@ agent:florian-krebs a aiprov:HumanAgent ;
     aiprov:filePath "CONTRIBUTING.md" .
 
 aiprov:Contribution a owl:Class ;
+    rdfs:subClassOf prov:Entity .
+
+aiprov:Source a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/doi-badge-pages> a aiprov:AuthoringPass ;
@@ -1060,6 +1078,14 @@ aiprov:Contribution a owl:Class ;
     rdfs:label "Social preview checked against GitHub's repository card template (safe area 80 px): it fitted; the block was centred in the safe area and the margin made a constant of the script; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> a aiprov:AuthoringPass ;
+    rdfs:label "validate fails an external node with a file path or a label (round comment on #37)"@en ;
+    prov:endedAtTime "2026-11-05T14:10:46.667511+01:00"^^xsd:dateTime ;
+    prov:used <https://w3id.org/aiprov/prov/source/provenance-ttl> ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-05T14:10:46.667545+01:00"^^xsd:dateTime ;
+    aiprov:sessionId "thesis-agent-run-1400"^^xsd:string .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;
