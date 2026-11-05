@@ -96,3 +96,15 @@ def test_no_numeric_novelty_attribute_exists(tmp_path):
         f.write(f'\n<{BASE}claim/n1> <https://w3id.org/aiprov/ns#noveltyScore> 0.9 .\n')
     r = run(["validate"], tmp_path)
     assert r.returncode != 0 and "numeric novelty" in r.stdout
+
+
+def test_limitation_is_stated_in_validate_and_report(tmp_path):
+    setup(tmp_path)
+    for out in (ok(["validate"], tmp_path).stdout, ok(["report"], tmp_path).stdout):
+        assert "not that the claim is new" in out
+
+
+def test_no_limitation_line_without_novelty_claims(tmp_path):
+    ok(["init"], tmp_path)
+    assert "not that the claim is new" not in ok(["validate"], tmp_path).stdout
+    assert "not that the claim is new" not in ok(["report"], tmp_path).stdout
