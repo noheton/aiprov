@@ -1281,6 +1281,10 @@ def validate_graph(g: Graph) -> int:
     print(f"[{'FAIL' if dangling else ' OK '}] wasInformedBy targets that are not logged activities: {len(dangling)}")
     fail += len(dangling)
     print(f"[ OK ] external references (nodes defined in another graph): {len(_external_refs(g))}")
+    leaky = [n for n in _external_refs(g)
+             if any((n, prop, None) in g for prop in (AIPROV.filePath, RDFS.label))]
+    print(f"[{'FAIL' if leaky else ' OK '}] external references that carry a file path or a label: {len(leaky)}")
+    fail += len(leaky)
     unplanned_agent = list(g.query("""SELECT ?a ?ag WHERE { ?a prov:wasInformedBy ?o ;
             prov:wasAssociatedWith ?ag . ?o a aiprov:Orchestration ; aiprov:plannedAgent ?any .
             FILTER NOT EXISTS { ?o aiprov:plannedAgent ?ag } }"""))
