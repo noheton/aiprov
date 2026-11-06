@@ -304,6 +304,18 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/claim-15-chain-limit> a aiprov:Claim ;
+    rdfs:label "The hash chain shows that the file was not changed after the anchor; it does not show that the records are true, and whoever can rewrite file and graph together can forge both."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/claim-15-tests> a aiprov:Claim ;
+    rdfs:label "With the change, the full aiprov test suite passes (99 tests, 6 of them new); ruff reports 38 findings against 30 on main, all of the kinds already present (quoted annotations, import order) plus one UP012 and two in the new test file."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/fix-21-refusal> a aiprov:Claim ;
     rdfs:label "log, claim, source and promote exit non-zero and leave the graph unchanged for an agent id without an AIAgent, HumanAgent or ToolAgent type; validate fails on such a reference (37 tests pass)."@en ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -399,6 +411,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -419,6 +432,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:865504fa359b5cc18f17286cdc25b125e17c2c2a2e26b9b98b5a1c54a67ea8fa",
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
+        "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
@@ -429,6 +443,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "2129332",
         "56c0fcb",
         "735a10e",
+        "9170036",
         "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
         "aa04337",
         "ab531da",
@@ -527,6 +542,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-decisions-44>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
@@ -536,8 +552,10 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4f27d528113b787d1b0fd92212d9fcd0aa6957859f2a5d9f0995ab456c6c325c",
         "sha256:51abbf2b58d33e475b8698caff5b208143aa4cbead96b163ce6429abff0edfa0",
         "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972",
+        "sha256:7ae4622a35d9589ab6de0b3fcfabd1531162d96884669e7d5695c5f036b3e0e2",
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
+        "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
@@ -546,6 +564,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "9170036",
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
@@ -566,13 +585,16 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
         "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c",
+        "sha256:a34edb27b2c06e21ba8e5b8a896b5016e0e2cdeaea349fe0b44d7316eb9abbef",
         "sha256:ce8616dd8bd415a5c24472b072486de95de532faabf70dca4b6e5fb30133724c" ;
     aiprov:filePath "docs/attributes.md" ;
     aiprov:gitCommit "090fc8a",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "9170036",
         "ab531da" .
 
 <https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
@@ -714,6 +736,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-decisions-44>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -734,6 +757,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:a26fc61b043a25e9c4c40ab0e9ea3178f6f58a6b1577e3338e8781de18d6b3b9",
         "sha256:a7863dfd260b1e9f515850f8db58550c4027d5f3262e685820af9d6dd323ffe8",
         "sha256:a8b1d3c2b57588483f11d5824f25127a1b8515c85173abf2356c0bac79b60851",
+        "sha256:bf10171dc5fccda9b8060de653b00ffaa183db844997463c3723e9229f2a27bc",
         "sha256:c190933f9e5309a3e4bf8888c4c3c13e36fd5e4a2163c1e28eabc434b2ab250b",
         "sha256:e19bf9eaa7ae25e74dab66db4d1b75eef9b8ddd13cd58b2879fec552c9ebf473",
         "sha256:e6b805d56b0a1630ff2a325afa16a6720643edf0b1447e362e165d51d43a0c75",
@@ -749,6 +773,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "56c0fcb",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "735a10e",
+        "9170036",
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
@@ -792,6 +817,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:170fc4e14cdd78a6176e1b9f56d3027a9c9c72b1c74c85777f4208ef2c04c0ee" ;
     aiprov:filePath "tests/test_agent_types.py" ;
     aiprov:gitCommit "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5" .
+
+<https://w3id.org/aiprov/prov/entity/test_bulk_telemetry-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
+    aiprov:contentHash "sha256:06844b180c22455e7109db06702eaf48f0289ee2a98a8fe1fbeeeeac727db495" ;
+    aiprov:filePath "tests/test_bulk_telemetry.py" ;
+    aiprov:gitCommit "9170036" .
 
 <https://w3id.org/aiprov/prov/entity/test_capture_path-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1140,6 +1172,12 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     prov:used <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-03T20:14:44.413906+01:00"^^xsd:dateTime .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> a aiprov:AuthoringPass ;
+    rdfs:label "Bulk telemetry tier (issue 15): provlog bulk append/verify/anchor, aiprov:TelemetryChain, validate and report, docs, tests"@en ;
+    prov:endedAtTime "2026-11-04T00:12:33.691431+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-04T00:12:33.691466+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;

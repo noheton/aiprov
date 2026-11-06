@@ -369,3 +369,12 @@ aiprov:modelVariant     a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdf
     rdfs:comment "The reasoning variant in force for an activity (for example low, max). On the activity, not the agent, because the variant can change per request."@en .
 aiprov:modelUnknownReason a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
     rdfs:comment "Why the model of an activity is not known (for example: not reported by the harness), stated instead of an empty or guessed model."@en .
+
+# --- Bulk telemetry tier (issue 15) ---
+aiprov:TelemetryChain   a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "TelemetryChain"@en ;
+    rdfs:comment "The anchor of a hash-chained JSONL file of bulk telemetry (requests, tool runs). The records stay in the file; the graph holds only the head after aiprov:chainLength records. prov:wasAttributedTo names who anchored it."@en .
+aiprov:chainHead        a owl:DatatypeProperty ; rdfs:domain aiprov:TelemetryChain ; rdfs:range xsd:string ;
+    rdfs:comment "sha256:<hex> head of the chain after aiprov:chainLength records. Each line of the file hashes the line before it, so a changed, removed or reordered record changes the head."@en .
+aiprov:chainLength      a owl:DatatypeProperty ; rdfs:domain aiprov:TelemetryChain ; rdfs:range xsd:integer ;
+    rdfs:comment "Number of records the head covers. The file may have grown since; `provlog bulk verify --anchor` checks that the first records still match."@en .
