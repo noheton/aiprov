@@ -426,6 +426,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -442,6 +443,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:53b0a8f35bd1f1f6045460d1cf925633aff7b548f46529b17ceb9096af54586c",
         "sha256:5d2a4fcc24653a6bfae321fc05141b54503d024298fd175b2bf1ce0cf5b1a244",
         "sha256:65bf1a37867659b08198a8f38ead1a25e555a341437c13c19284d4db01cb47b6",
+        "sha256:6663caa3f5b45a6ba067b4cb8968f396bc21179fc260e5c0ee26a8d6ea8cd35a",
         "sha256:6de522387cf8a207b694ffec72b100d6a02d4e3ced7102ca8d9d7dc0625c8758",
         "sha256:7474c7ae6881b073e8189c47f95fbac447124e38390723e9147fb96183a576ae",
         "sha256:84ec940491c77c5b73164cb9412b0d2b632111fb6afa43a522f53380df6c3cc1",
@@ -466,6 +468,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
         "d7ce016",
+        "dce5ab1",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b910ad445f6084d8273fc1c909336c137089e0",
@@ -605,18 +608,21 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
     aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
         "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c",
-        "sha256:a34edb27b2c06e21ba8e5b8a896b5016e0e2cdeaea349fe0b44d7316eb9abbef",
         "sha256:840f2832bcdb7dd9acd6641c71529a547e61bdc1d0ba25de6f049eac78a8ec8c",
-        "sha256:ce8616dd8bd415a5c24472b072486de95de532faabf70dca4b6e5fb30133724c" ;
+        "sha256:a34edb27b2c06e21ba8e5b8a896b5016e0e2cdeaea349fe0b44d7316eb9abbef",
+        "sha256:ce8616dd8bd415a5c24472b072486de95de532faabf70dca4b6e5fb30133724c",
+        "sha256:fa4932ad11c58a7a16eeb2ec0abbec02ff43fcf8a9766d423009a818e185178e" ;
     aiprov:filePath "docs/attributes.md" ;
     aiprov:gitCommit "090fc8a",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "9170036",
         "ab531da",
-        "d7ce016" .
+        "d7ce016",
+        "dce5ab1" .
 
 <https://w3id.org/aiprov/prov/entity/build-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -760,6 +766,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -784,6 +791,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:bf10171dc5fccda9b8060de653b00ffaa183db844997463c3723e9229f2a27bc",
         "sha256:c190933f9e5309a3e4bf8888c4c3c13e36fd5e4a2163c1e28eabc434b2ab250b",
         "sha256:c88fead1d798c445ee91fa231b24ba4ed2767361b21d709bf96dacfe0885e074",
+        "sha256:ca38c87965212d6ebdab5822a7f9fe0b97409a7fae7b482bfbd1bd9d68e3120b",
         "sha256:e19bf9eaa7ae25e74dab66db4d1b75eef9b8ddd13cd58b2879fec552c9ebf473",
         "sha256:e6b805d56b0a1630ff2a325afa16a6720643edf0b1447e362e165d51d43a0c75",
         "sha256:eaba3d06f512a97df424a233522944bfe0751eba86e83d0f632fafec08d38ba6",
@@ -804,6 +812,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
         "d7ce016",
+        "dce5ab1",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
@@ -1053,6 +1062,12 @@ aiprov:Contribution a owl:Class ;
 aiprov:Source a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37> a aiprov:Repair ;
+    rdfs:label "Rebase of the cross-graph reference branch onto main after the bulk telemetry merge; conflicts in changelog, attributes doc and graph resolved by keeping both sides"@en ;
+    prov:endedAtTime "2026-11-07T12:07:39.048395+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-07T12:07:39.048435+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/doi-badge-pages> a aiprov:AuthoringPass ;
     rdfs:label "DOI badge row in the README and the DOI on the demo page (badge, cite-as link, Cite section read from CITATION.cff) on the owner's request; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T23:05:26.350312+01:00"^^xsd:dateTime ;
@@ -1178,10 +1193,6 @@ aiprov:Build a owl:Class ;
     rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers> a aiprov:AuthoringPass ;
     rdfs:label "Issue 9: modelRole, fallbackOf/fallbackReason, routedBy, judge with Score; log options, report section, two validate FAIL rules, fixture and six tests; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-30T20:13:18.086459+01:00"^^xsd:dateTime ;
@@ -1214,6 +1225,10 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     foaf:name "Claude Opus (requested by alias through a gateway; served model not established)" ;
     aiprov:model "opus"^^xsd:string ;
     aiprov:provider "gateway alias"^^xsd:string .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> a aiprov:AuthoringPass ;
     rdfs:label "Issue 8: aiprov:Session with type, start, end and outcome; log --session options (write-once); report by session type; validate FAIL for isPartOf of a non-session; fixture and seven tests; no telemetry recorded"@en ;
@@ -1278,15 +1293,15 @@ aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
     rdfs:subClassOf prov:Activity .
 
-verif:unverified a aiprov:VerificationState ;
-    rdfs:label "unverified"@en ;
-    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
-    aiprov:ladderPosition 0 .
-
 agent:claude-opus-5-5 a aiprov:AIAgent ;
     foaf:name "Claude Opus 5.5" ;
     aiprov:model "claude-opus-5-5"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+verif:unverified a aiprov:VerificationState ;
+    rdfs:label "unverified"@en ;
+    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
+    aiprov:ladderPosition 0 .
 
 aiprov:Claim a owl:Class ;
     rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
