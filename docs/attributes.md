@@ -73,6 +73,17 @@ model ID so accounting stays comparable.
 | prov:wasAttributedTo | → agent | mandatory for claims |
 | aiprov:verificationState | → rung | mandatory for claims |
 
+## Composite claims (`aiprov:hasPremise`, `aiprov:composition`)
+A claim may rest on other claims. `provlog claim --premise ID [--premise ID ...] --composition all|any|atleast:N`
+writes `aiprov:hasPremise` (a subproperty of `prov:wasDerivedFrom`), `aiprov:composition` (`aiprov:AllOf`, `aiprov:AnyOf`,
+`aiprov:AtLeast` with `aiprov:minPremises`); premises may be composite themselves. The **effective rung** is computed, never
+written: AllOf the weakest premise, AnyOf the best, AtLeast k the k-th best, in each case never above the own rung of the claim.
+A premise in state `contested` is refuted: AllOf fails with one refuted premise, AnyOf only when all are, AtLeast k when fewer
+than k remain (effective rung `refuted`). Human-only rungs stay human-only; the effective rung cannot exceed what the premises carry.
+`claim` and `promote` refuse a rung above the effective rung. `validate` fails on a premise that is not a claim, a cycle and
+`minPremises` above the number of premises; it warns on a composite without premises and on a claim stated above its effective
+rung (for example premises added to an already promoted claim). `report` shows own and effective rung and the limiting premises.
+
 ## Verification ladder
 
 Rung names answer "who checked what". Position is machine-readable via
