@@ -170,3 +170,28 @@ Limits: the chain shows that the file was not changed after the anchor, not that
 nothing was appended before the next anchor. Whoever can rewrite the file and the graph together can forge both; for
 tamper evidence the graph commit has to be signed or published. Keep secrets and personal data out of `data`: the file
 is not covered by the graph rules. Shards of the graph itself and a derived query index are not part of this change.
+
+## References across provenance graphs
+
+A project split into several repositories keeps one `provenance.ttl` per repository. Work often crosses the border: a
+gate run in one repository used a commit of another, a fix was informed by a run elsewhere. Copying the foreign node
+would leak what the split protects, so a graph refers to it instead.
+
+- `provlog log --used-external IRI --defined-in GRAPH_IRI` (prov:used) and `--informed-by-external IRI --defined-in GRAPH_IRI`
+  (prov:wasInformedBy). Both are repeatable. The node gets `rdfs:isDefinedBy GRAPH_IRI` and nothing else, except what you
+  add: `--external-hash sha256:<hex>` and `--external-commit SHA`, allowed when the call names exactly one external
+  reference. There is no path and no label for a foreign node, by design, and no `rdf:type`: the graph that defines the node
+  types it, so merging the two graphs later does not count as a retype.
+- `validate` accepts a `wasInformedBy` target that is defined elsewhere and prints `external references: N` (nodes marked
+  `rdfs:isDefinedBy` and not defined in this graph).
+- `merge` prints a WARN, with unchanged exit code, for external references that the merged graphs still do not define.
+
+Two layouts work. **One base per repository**: each graph has its own base; an external IRI is minted by the other
+repository and is unrelated to this base. **One base with a prefix per repository** (for example `.../prov/`,
+`.../prov/data/`, `.../prov/ci/`): the IRIs of all graphs live in one space, which makes the references easy to read and
+to resolve after a merge. For repositories meant to be joined, use the shared base with prefixes; otherwise keep one base
+each.
+
+**Disclosure.** A bare content hash of a small or guessable file can be confirmed by anyone who can guess the content, so
+the hash of restricted material is itself a weak disclosure. `--external-hash` is optional; whether to publish it is for the
+owner of the restricted graph to decide.
