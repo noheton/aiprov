@@ -376,6 +376,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/rebase-composite-36-textual-only> a aiprov:Claim ;
+    rdfs:label "The rebase of the composite-claims branch onto main resolved textual conflicts only (both sides kept in the changelog, the validate section and the graph); the 110 tests of the suite pass and validate shows no FAIL."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-composite-36> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/session-types-legacy-unchanged> a aiprov:Claim ;
     rdfs:label "Graphs that do not use dcterms:isPartOf on an activity validate and report exactly as before the session change (checked by test_legacy_graph_without_sessions_is_unchanged and by the existing 36 tests, which pass unchanged)."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -439,8 +445,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:865504fa359b5cc18f17286cdc25b125e17c2c2a2e26b9b98b5a1c54a67ea8fa",
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
-        "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
         "sha256:a46be1944ff32439aba19ed98f55a807ca2f636c70b17aaa2aa096042da9de19",
+        "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
@@ -566,8 +572,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:7ae4622a35d9589ab6de0b3fcfabd1531162d96884669e7d5695c5f036b3e0e2",
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
-        "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
+        "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
@@ -1004,20 +1010,29 @@ verif:source-vendored a aiprov:VerificationState ;
     aiprov:sessionId "ses_e73662937ffeld6gOKquerG5wc"^^xsd:string ;
     aiprov:usedTool "opencode" .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-composite-36> a aiprov:Repair ;
+    rdfs:label "Rebase of the composite-claims branch (issue 36) onto main after the bulk telemetry merge; conflicts only in CHANGELOG, validate section and graph, both sides kept"@en ;
+    prov:endedAtTime "2026-11-07T04:06:58.302783+01:00"^^xsd:dateTime ;
+    prov:used <https://w3id.org/aiprov/prov/source/CHANGELOG-md>,
+        <https://w3id.org/aiprov/prov/source/provenance-ttl>,
+        <https://w3id.org/aiprov/prov/source/provlog-py> ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-07T04:06:58.302818+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
-<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
-    aiprov:filePath "CHANGELOG.md" .
+<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
+    aiprov:filePath "provenance.ttl" .
+
+<https://w3id.org/aiprov/prov/source/provlog-py> a aiprov:Source ;
+    aiprov:filePath "src/aiprov/provlog.py" .
 
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
     rdfs:subClassOf prov:Person .
-
-aiprov:Source a owl:Class ;
-    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/release-0-2-0-rc-1> a aiprov:Build ;
     rdfs:label "Release candidate 0.2.0-rc.1: version bump and changelog on the owner's go (thesis issue 10)"@en ;
@@ -1032,6 +1047,9 @@ aiprov:Source a owl:Class ;
 agent:florian-krebs a aiprov:HumanAgent ;
     foaf:name "Florian Krebs" ;
     aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
+
+<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
+    aiprov:filePath "CHANGELOG.md" .
 
 <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
     aiprov:filePath "CONTRIBUTING.md" .
@@ -1064,6 +1082,9 @@ aiprov:Contribution a owl:Class ;
     rdfs:label "Social preview checked against GitHub's repository card template (safe area 80 px): it fitted; the block was centred in the safe area and the margin made a constant of the script; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+aiprov:Source a owl:Class ;
+    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;
@@ -1150,10 +1171,6 @@ aiprov:Build a owl:Class ;
     rdfs:comment "Deterministic build/compile/CI activity."@en ;
     rdfs:subClassOf prov:Activity .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-multi-model-answers> a aiprov:AuthoringPass ;
     rdfs:label "Issue 9: modelRole, fallbackOf/fallbackReason, routedBy, judge with Score; log options, report section, two validate FAIL rules, fixture and six tests; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-30T20:13:18.086459+01:00"^^xsd:dateTime ;
@@ -1193,6 +1210,10 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     foaf:name "Claude Opus (requested by alias through a gateway; served model not established)" ;
     aiprov:model "opus"^^xsd:string ;
     aiprov:provider "gateway alias"^^xsd:string .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> a aiprov:AuthoringPass ;
     rdfs:label "Issue 8: aiprov:Session with type, start, end and outcome; log --session options (write-once); report by session type; validate FAIL for isPartOf of a non-session; fixture and seven tests; no telemetry recorded"@en ;
@@ -1257,15 +1278,15 @@ aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
     rdfs:subClassOf prov:Activity .
 
-verif:unverified a aiprov:VerificationState ;
-    rdfs:label "unverified"@en ;
-    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
-    aiprov:ladderPosition 0 .
-
 agent:claude-opus-5-5 a aiprov:AIAgent ;
     foaf:name "Claude Opus 5.5" ;
     aiprov:model "claude-opus-5-5"^^xsd:string ;
     aiprov:provider "Anthropic"^^xsd:string .
+
+verif:unverified a aiprov:VerificationState ;
+    rdfs:label "unverified"@en ;
+    rdfs:comment "Recorded, nothing checked yet by anyone. Default state at creation."@en ;
+    aiprov:ladderPosition 0 .
 
 aiprov:Claim a owl:Class ;
     rdfs:comment "An assertion in any artefact that warrants attribution and verification."@en ;
