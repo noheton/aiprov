@@ -580,11 +580,13 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
         "sha256:20b1222944162961e91b0d44181ff9fd56d04a5340c0cafb78241748d15e0e13",
         "sha256:2ef5623d42986eeb5c2b13c6e7211cfe25cce3ac8ef8460c074f272b58ee7fe9",
+        "sha256:34311939408f77bbb60f5eca37a82d2e5db377d37a12972ed6839a51b97b13ac",
         "sha256:4771d7fd3964ff52c9d7ff6ba87065ae54c2987ebcf2d1b63beff14796555d0f",
         "sha256:4a11763782f160fb55c74c0deaac8f4c6ae6567b6ada89d11a52dd9b8d223182",
         "sha256:4f27d528113b787d1b0fd92212d9fcd0aa6957859f2a5d9f0995ab456c6c325c",
@@ -594,6 +596,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
+        "sha256:c3d28fa32a395d26231fabe7672b8b770c78e69e3f2ac3e080dcff2a682e973a",
         "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
@@ -608,6 +611,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
+        "dafec5fcc08d6b0d60726f9dce3794ff2e485f25",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f80a31d" .
 
@@ -790,6 +794,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -805,6 +810,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
         "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
+        "sha256:6be0ae16980b17a16886103accaeadde1332e99976656c408ac609dbd58746d2",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
@@ -838,6 +844,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "b956d1d6cc59621cd378e6184021594071a54686",
         "d7ce016",
         "dce5ab1",
+        "dafec5fcc08d6b0d60726f9dce3794ff2e485f25",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
@@ -871,6 +878,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:3dba4b60d575ed78510b4f932010c6534cca468bb398a94e2476bbb8e865e291" ;
     aiprov:filePath "tests/fixtures/session-bad.ttl" ;
     aiprov:gitCommit "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568" .
+
+<https://w3id.org/aiprov/prov/entity/standin-bad-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count> ;
+    aiprov:contentHash "sha256:872794811b26cec605cbe8f6bd61be7c63dbada6fbfeb10f9f22e95e1c61aa29" ;
+    aiprov:filePath "tests/fixtures/standin-bad.ttl" ;
+    aiprov:gitCommit "dafec5fcc08d6b0d60726f9dce3794ff2e485f25" .
 
 <https://w3id.org/aiprov/prov/entity/test_agent_types-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -995,6 +1009,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:7a8e799377c714bfe3f9a38055536dca7c067e77046ab043f3cb362c679b7fe5" ;
     aiprov:filePath "tests/test_repository_provenance.py" ;
     aiprov:gitCommit "1f8bf61" .
+
+<https://w3id.org/aiprov/prov/entity/test_role_standin-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count> ;
+    aiprov:contentHash "sha256:6bc16f308465ebf169f415aad57ad7ec23a41a22f65a9e5d4c457109f4698e1e" ;
+    aiprov:filePath "tests/test_role_standin.py" ;
+    aiprov:gitCommit "dafec5fcc08d6b0d60726f9dce3794ff2e485f25" .
 
 <https://w3id.org/aiprov/prov/entity/test_sessions-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1151,6 +1172,11 @@ aiprov:Source a owl:Class ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-05T14:10:46.667545+01:00"^^xsd:dateTime ;
     aiprov:sessionId "thesis-agent-run-1400"^^xsd:string .
+<https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count> a aiprov:AuthoringPass ;
+    rdfs:label "Role stand-ins and omitted counts (issue 12)"@en ;
+    prov:endedAtTime "2026-11-10T15:14:27.636519+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-10T15:14:27.636553+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;
