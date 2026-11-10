@@ -300,6 +300,21 @@ aiprov:contradicts    a owl:ObjectProperty ;
 aiprov:repairs        a owl:ObjectProperty ;
     rdfs:comment "A Repair activity amends generation metadata of a claim without invalidating its content."@en .
 
+#--- Composite claims: premises, composition, effective rung --------------
+
+aiprov:hasPremise       a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasDerivedFrom ;
+    rdfs:domain aiprov:Claim ; rdfs:range aiprov:Claim ;
+    rdfs:comment 'A claim that this claim rests on. A subproperty of prov:wasDerivedFrom, so plain PROV tools still see the dependency. Premises may be composite themselves (a DAG, no cycles).'@en .
+aiprov:CompositionKind  a owl:Class ;
+    rdfs:comment 'How the premises of a claim combine.'@en .
+aiprov:composition      a owl:ObjectProperty ; rdfs:domain aiprov:Claim ; rdfs:range aiprov:CompositionKind ;
+    rdfs:comment 'Combination of the premises. The effective rung is computed and never written: AllOf the weakest premise, AnyOf the best, AtLeast the k-th best (aiprov:minPremises), never above the own rung of the claim. Absent with premises means AllOf.'@en .
+aiprov:AllOf            a aiprov:CompositionKind ; rdfs:label 'all of (AND)'@en .
+aiprov:AnyOf            a aiprov:CompositionKind ; rdfs:label 'any of (OR)'@en .
+aiprov:AtLeast          a aiprov:CompositionKind ; rdfs:label 'at least k of n'@en .
+aiprov:minPremises      a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:integer ;
+    rdfs:comment 'k for aiprov:AtLeast: how many premises must hold.'@en .
+
 #--- Schema version and migration ---------------------------------------------
 
 aiprov:schemaVersion    a owl:DatatypeProperty ; rdfs:range xsd:string ;
