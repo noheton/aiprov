@@ -418,6 +418,12 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-composite-36> ;
     aiprov:verificationState verif:unverified .
 
+<https://w3id.org/aiprov/prov/claim/rebase-delimitation-16-textual-only> a aiprov:Claim ;
+    rdfs:label "The rebase of the delimitation branch onto main resolved textual conflicts only (both sides kept in the changelog, the schema, the validate section, the docs and the graph); the 119 tests of the suite pass and validate exits 0."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-10-rebase-delimitation-16> ;
+    aiprov:verificationState verif:unverified .
+
 <https://w3id.org/aiprov/prov/claim/session-types-legacy-unchanged> a aiprov:Claim ;
     rdfs:label "Graphs that do not use dcterms:isPartOf on an activity validate and report exactly as before the session change (checked by test_legacy_graph_without_sessions_is_unchanged and by the existing 36 tests, which pass unchanged)."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -492,9 +498,9 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:865504fa359b5cc18f17286cdc25b125e17c2c2a2e26b9b98b5a1c54a67ea8fa",
         "sha256:8c1505bf4417bb9151105a4170d7df3b6417455f6a2c59b527d1b634c6e08e75",
         "sha256:98fc688d712cfca2d5727e83b746456dacedbcaface80a393137706b7cd9e6d3",
+        "sha256:9ca4cbbc4b2e96a38f33ec9e586bf1ff6285c62c04909dd3120065b484542317",
         "sha256:a46be1944ff32439aba19ed98f55a807ca2f636c70b17aaa2aa096042da9de19",
         "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
-        "sha256:9ca4cbbc4b2e96a38f33ec9e586bf1ff6285c62c04909dd3120065b484542317",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
         "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
@@ -505,8 +511,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "1ddf1a3",
         "2129332",
         "56c0fcb",
-        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5ac6731",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "735a10e",
         "9170036",
         "971364ac8a4d8ed17eae6fafe68895502f48dbc6",
@@ -628,8 +634,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
-        "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:c5b84a596e0fd81ff2b976b54f868805fadef11c006b5ff5af0d18c8f4f4a15f",
+        "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
@@ -872,8 +878,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "3a88ea441dea512e278215e48b6ec15bb4c8f88c",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
-        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5ac6731",
+        "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
         "735a10e",
         "9170036",
@@ -1121,21 +1127,30 @@ verif:source-vendored a aiprov:VerificationState ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-07T04:06:58.302818+01:00"^^xsd:dateTime .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-10-rebase-delimitation-16> a aiprov:Repair ;
+    rdfs:label "Rebase of the delimitation branch (issue 16) onto main after the composite-claims merge; conflicts in changelog, schema, validate section, docs and graph, both sides kept"@en ;
+    prov:endedAtTime "2026-11-10T23:08:55.922282+01:00"^^xsd:dateTime ;
+    prov:used <https://w3id.org/aiprov/prov/source/CHANGELOG-md>,
+        <https://w3id.org/aiprov/prov/source/aiprov-schema-ttl>,
+        <https://w3id.org/aiprov/prov/source/attributes-md>,
+        <https://w3id.org/aiprov/prov/source/provenance-ttl>,
+        <https://w3id.org/aiprov/prov/source/provlog-py> ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-10T23:08:55.922317+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
-<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
-    aiprov:filePath "provenance.ttl" .
-
-<https://w3id.org/aiprov/prov/source/provlog-py> a aiprov:Source ;
-    aiprov:filePath "src/aiprov/provlog.py" .
 <https://w3id.org/aiprov/prov/source/AGENTS-md> a aiprov:Source ;
     aiprov:filePath "AGENTS.md" .
 
-<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
-    aiprov:filePath "CHANGELOG.md" .
+<https://w3id.org/aiprov/prov/source/aiprov-schema-ttl> a aiprov:Source ;
+    aiprov:filePath "src/aiprov/aiprov-schema.ttl" .
+
+<https://w3id.org/aiprov/prov/source/attributes-md> a aiprov:Source ;
+    aiprov:filePath "docs/attributes.md" .
 
 <https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
     aiprov:filePath "provenance.ttl" .
@@ -1158,11 +1173,11 @@ agent:florian-krebs a aiprov:HumanAgent ;
     foaf:name "Florian Krebs" ;
     aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
 
-<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
-    aiprov:filePath "CHANGELOG.md" .
+<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
+    aiprov:filePath "provenance.ttl" .
 
-<https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
-    aiprov:filePath "CONTRIBUTING.md" .
+<https://w3id.org/aiprov/prov/source/provlog-py> a aiprov:Source ;
+    aiprov:filePath "src/aiprov/provlog.py" .
 
 aiprov:Contribution a owl:Class ;
     rdfs:subClassOf prov:Entity .
@@ -1203,8 +1218,9 @@ aiprov:Source a owl:Class ;
     prov:endedAtTime "2026-10-25T22:06:57.329199+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
 
-aiprov:Source a owl:Class ;
-    rdfs:subClassOf prov:Entity .
+<https://w3id.org/aiprov/prov/source/CHANGELOG-md> a aiprov:Source ;
+    aiprov:filePath "CHANGELOG.md" .
+
 <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
     aiprov:filePath "CONTRIBUTING.md" .
 
@@ -1353,9 +1369,8 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     aiprov:model "opus"^^xsd:string ;
     aiprov:provider "gateway alias"^^xsd:string .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
+aiprov:Source a owl:Class ;
+    rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> a aiprov:AuthoringPass ;
     rdfs:label "Issue 8: aiprov:Session with type, start, end and outcome; log --session options (write-once); report by session type; validate FAIL for isPartOf of a non-session; fixture and seven tests; no telemetry recorded"@en ;
@@ -1369,11 +1384,6 @@ aiprov:Repair a owl:Class ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-03T20:14:44.413906+01:00"^^xsd:dateTime .
 
-<https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> a aiprov:AuthoringPass ;
-    rdfs:label "Bulk telemetry tier (issue 15): provlog bulk append/verify/anchor, aiprov:TelemetryChain, validate and report, docs, tests"@en ;
-    prov:endedAtTime "2026-11-04T00:12:33.691431+01:00"^^xsd:dateTime ;
-    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
-    aiprov:recordedAtTime "2026-11-04T00:12:33.691466+01:00"^^xsd:dateTime .
 <https://w3id.org/aiprov/prov/activity/2026-11-03-delimitation-16> a aiprov:AuthoringPass ;
     rdfs:label "Novelty claims as a delimitation record, not a score (issue 16): schema terms, provlog claim --kind and delimitation, validate rules, report counts, tests"@en ;
     prov:endedAtTime "2026-11-03T21:11:02.360994+01:00"^^xsd:dateTime ;
@@ -1381,6 +1391,12 @@ aiprov:Repair a owl:Class ;
         <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-03T21:11:02.361029+01:00"^^xsd:dateTime .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> a aiprov:AuthoringPass ;
+    rdfs:label "Bulk telemetry tier (issue 15): provlog bulk append/verify/anchor, aiprov:TelemetryChain, validate and report, docs, tests"@en ;
+    prov:endedAtTime "2026-11-04T00:12:33.691431+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-04T00:12:33.691466+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/fix-human-only-steps> a aiprov:AuthoringPass ;
     rdfs:label "Fix for issue 18: claim and source refuse human-only verification steps for agents that are not registered humans; promote names a state off the ladder instead of a traceback; six tests"@en ;
@@ -1391,6 +1407,10 @@ aiprov:Repair a owl:Class ;
     rdfs:label "Salmon badge: source picture saved from the session store, cropped to a transparent circle by assets/make_icon.py, provenance record, README header (issue 20); no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version> a aiprov:AuthoringPass ;
     rdfs:label "provlog migrate, schema version in the graph, dashboard reads every version (#42)"@en ;
