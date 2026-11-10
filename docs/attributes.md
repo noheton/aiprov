@@ -4,7 +4,7 @@ All properties live in `https://w3id.org/aiprov/ns#`. Attach each to the
 node listed. Omit anything the provider does not report — never estimate
 silently.
 
-## On agents (aiprov:AIAgent / HumanAgent / ToolAgent)
+## On agents (aiprov:AIAgent / HumanAgent / ToolAgent / RoleStandIn)
 
 | Property | Type | Notes / API mapping |
 |---|---|---|
@@ -17,8 +17,11 @@ silently.
 | aiprov:knowledgeCutoff | date | from model card |
 | aiprov:orcid | anyURI | humans |
 | aiprov:affiliation | string | humans |
+| aiprov:role | string | role stand-ins only (`--type role --role R`): the role the agent stands for, e.g. `requester`. A stand-in carries no other agent attribute and can never grant a human-only rung |
 
 ## On activities (prov:Activity subclasses)
+
+`aiprov:omittedCount` (non-negative integer, optional, on an activity or collection): how many items a list that was cut short leaves out. A count only; it says nothing about the omitted items.
 
 Pass classes: `aiprov:AuthoringPass`, `aiprov:AuditPass`, `aiprov:Build`,
 `aiprov:Repair`.
