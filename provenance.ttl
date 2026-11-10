@@ -595,8 +595,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:7ae4622a35d9589ab6de0b3fcfabd1531162d96884669e7d5695c5f036b3e0e2",
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
-        "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
         "sha256:c3d28fa32a395d26231fabe7672b8b770c78e69e3f2ac3e080dcff2a682e973a",
+        "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
         "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
@@ -775,6 +775,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:contentHash "sha256:4a2cce16a2db4d6dd2a02ada9b8c3e7d7615d0be141801e1728f526d13397b15" ;
     aiprov:filePath ".github/workflows/pages.yml" ;
     aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
+
+<https://w3id.org/aiprov/prov/entity/provenance-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-11-rebase-role-standin-12> ;
+    aiprov:contentHash "sha256:3714aa86fdb0b52992a41e11a10f97aa02e4cc9d98092fa1e2a9fd0da743c423" ;
+    aiprov:filePath "provenance.ttl" ;
+    aiprov:gitCommit "dfe2386" .
 
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5,
@@ -1086,6 +1093,12 @@ verif:source-vendored a aiprov:VerificationState ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-07T04:06:58.302818+01:00"^^xsd:dateTime .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-11-rebase-role-standin-12> a aiprov:Repair ;
+    rdfs:label "Rebase of the role stand-in branch onto main after the composite-claims merge; textual conflicts in provenance.ttl only, both sides kept (issue 12)"@en ;
+    prov:endedAtTime "2026-11-11T00:04:23.739023+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-11T00:04:23.739060+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
@@ -1309,10 +1322,6 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     aiprov:model "opus"^^xsd:string ;
     aiprov:provider "gateway alias"^^xsd:string .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-session-types> a aiprov:AuthoringPass ;
     rdfs:label "Issue 8: aiprov:Session with type, start, end and outcome; log --session options (write-once); report by session type; validate FAIL for isPartOf of a non-session; fixture and seven tests; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-30T20:07:32.274831+01:00"^^xsd:dateTime ;
@@ -1340,6 +1349,10 @@ aiprov:Repair a owl:Class ;
     rdfs:label "Salmon badge: source picture saved from the session store, cropped to a transparent circle by assets/make_icon.py, provenance record, README header (issue 20); no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version> a aiprov:AuthoringPass ;
     rdfs:label "provlog migrate, schema version in the graph, dashboard reads every version (#42)"@en ;
