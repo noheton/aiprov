@@ -8,6 +8,8 @@ Commands:
                              (tokens, cost, model, session, tools, prompt hash)
                              and optionally the entities it generated/used.
   claim   --id ...           Add a claim bound to a parent activity + agent.
+  (cross-graph) log --used-external IRI | --informed-by-external IRI --defined-in GRAPH_IRI: reference a node
+                             that another repository's graph defines, without copying it.
   merge   --from SHARD...    Union per-agent shard graphs into the main graph; refuses shards that
                              edit a frozen plan or add validation failures.
   (multi-agent) log --orchestration --planned-role/--planned-agent, then sub-activities with
@@ -400,6 +402,39 @@ ACT_ATTRS = [  # (cli key, property, xsd type)
 ]
 
 
+SHA256_REF = re.compile(r"^sha256:[0-9a-f]{64}$")
+
+
+def _external_node(g: Graph, iri: str, defined_in: str, hash_: str | None, commit: str | None) -> URIRef:
+    """A node that another provenance graph defines (issue 37). Only rdfs:isDefinedBy, optionally the content
+    hash and the commit are written: never a path or a label, so a restricted node is not leaked into a less
+    restricted graph. The node stays untyped; the graph that defines it types it, so a merge does not retype it."""
+    if not defined_in or not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:\S+$", defined_in):
+        sys.exit("--defined-in must be the IRI of the graph that defines the referenced node")
+    if not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:\S+$", iri):
+        sys.exit(f"external reference {iri!r} is not an absolute IRI")
+    node = URIRef(iri)
+    if (node, RDF.type, None) in g and (node, RDFS.isDefinedBy, None) not in g:
+        sys.exit(f"{iri} is defined in this graph; it is not an external reference")
+    if hash_ and not SHA256_REF.match(hash_):
+        sys.exit("--external-hash must be sha256:<64 hex digits>")
+    for prop, val, opt in ((AIPROV.contentHash, hash_, "--external-hash"), (AIPROV.gitCommit, commit, "--external-commit")):
+        old = [str(o) for o in g.objects(node, prop)]
+        if val and old and val not in old:
+            sys.exit(f"{opt}: {iri} already carries a different value; the graph is append-only")
+    g.add((node, RDFS.isDefinedBy, URIRef(defined_in)))
+    if hash_:
+        g.add((node, AIPROV.contentHash, Literal(hash_)))
+    if commit:
+        g.add((node, AIPROV.gitCommit, Literal(commit)))
+    return node
+
+
+def _external_refs(g: Graph) -> list:
+    """Nodes that point to another graph with rdfs:isDefinedBy and are not defined here (no type)."""
+    return sorted(n for n in set(g.subjects(RDFS.isDefinedBy, None)) if (n, RDF.type, None) not in g)
+
+
 def cmd_log(a) -> None:
     g = load()
     act = ns(a.base, "activity")[a.activity]
@@ -518,6 +553,18 @@ def cmd_log(a) -> None:
         g.add((e, RDF.type, AIPROV.Source))
         g.add((e, AIPROV.filePath, Literal(path)))
         g.add((act, PROV.used, e))
+    ext_used, ext_informed = a.used_external or [], a.informed_by_external or []
+    if (a.defined_in or a.external_hash or a.external_commit) and not (ext_used or ext_informed):
+        sys.exit("--defined-in, --external-hash and --external-commit belong to --used-external or --informed-by-external")
+    if ext_used or ext_informed:
+        if (a.external_hash or a.external_commit) and len(ext_used) + len(ext_informed) != 1:
+            sys.exit("--external-hash and --external-commit describe one node: give exactly one external reference")
+        for iri in ext_used:
+            g.add((act, PROV.used, _external_node(g, iri, a.defined_in, a.external_hash, a.external_commit)))
+        for iri in ext_informed:
+            if iri == str(act):
+                sys.exit("--informed-by-external: an activity cannot be informed by itself")
+            g.add((act, PROV.wasInformedBy, _external_node(g, iri, a.defined_in, a.external_hash, a.external_commit)))
     save(g)
     print(f"act:{a.activity} logged ({len(g)} triples total)")
 
@@ -1330,9 +1377,15 @@ def validate_graph(g: Graph) -> int:
         print(f"[INFO] refused human-only steps recorded: {nref}")
     # Orchestration (multi-agent runs): delegation links must resolve and obey the declared plan.
     dangling = list(g.query("""SELECT ?a ?p WHERE { ?a prov:wasInformedBy ?p .
-            FILTER NOT EXISTS { ?p prov:endedAtTime ?t } }"""))
+            FILTER NOT EXISTS { ?p prov:endedAtTime ?t }
+            FILTER NOT EXISTS { ?p rdfs:isDefinedBy ?elsewhere } }"""))
     print(f"[{'FAIL' if dangling else ' OK '}] wasInformedBy targets that are not logged activities: {len(dangling)}")
     fail += len(dangling)
+    print(f"[ OK ] external references (nodes defined in another graph): {len(_external_refs(g))}")
+    leaky = [n for n in _external_refs(g)
+             if any((n, prop, None) in g for prop in (AIPROV.filePath, RDFS.label))]
+    print(f"[{'FAIL' if leaky else ' OK '}] external references that carry a file path or a label: {len(leaky)}")
+    fail += len(leaky)
     unplanned_agent = list(g.query("""SELECT ?a ?ag WHERE { ?a prov:wasInformedBy ?o ;
             prov:wasAssociatedWith ?ag . ?o a aiprov:Orchestration ; aiprov:plannedAgent ?any .
             FILTER NOT EXISTS { ?o aiprov:plannedAgent ?ag } }"""))
@@ -1964,6 +2017,11 @@ def cmd_merge(a) -> None:
             for st in ladder:
                 if st != keep:
                     g.remove((node, AIPROV.verificationState, st))
+    unresolved = _external_refs(g)
+    if unresolved and merged:
+        print(f"[WARN] external references not resolved by the merged graphs: {len(unresolved)}")
+        for n in unresolved:
+            print("   ↳", n)
     if merged and not a.dry_run:
         save(g)
     for path, n in merged:
@@ -2067,6 +2125,16 @@ def main() -> None:
     s.add_argument("--planned-agent", dest="planned_agent", action="append",
                    help="agent id, or ID:ROLE to bind the agent to one role; must be registered already")
     s.add_argument("--informed-by", dest="informed_by", help="activity id (prov:wasInformedBy)")
+    s.add_argument("--used-external", dest="used_external", action="append", metavar="IRI",
+                   help="IRI of an entity that another provenance graph defines (prov:used); needs --defined-in; "
+                        "only the IRI, an optional hash and commit are written, never a path or label; repeatable")
+    s.add_argument("--informed-by-external", dest="informed_by_external", action="append", metavar="IRI",
+                   help="IRI of an activity that another provenance graph defines (prov:wasInformedBy); needs --defined-in")
+    s.add_argument("--defined-in", dest="defined_in", metavar="GRAPH_IRI",
+                   help="IRI of the provenance graph that defines the external node (rdfs:isDefinedBy)")
+    s.add_argument("--external-hash", dest="external_hash", metavar="sha256:HEX",
+                   help="content hash of the external entity (optional; a hash of restricted material is a weak disclosure)")
+    s.add_argument("--external-commit", dest="external_commit", metavar="SHA", help="commit of the external entity (optional)")
     s.add_argument("--role", help="role of this sub-activity within the orchestration")
     s.add_argument("--model-role", dest="model_role",
                    help="what the model did within one answer: answer, draft, revise, judge, route (or your own)")
