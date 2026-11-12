@@ -100,7 +100,23 @@ def cmd_init(a) -> None:
 def cmd_agent(a) -> None:
     g = load()
     s = ns(a.base, "agent")[a.id]
-    cls = {"ai": AIPROV.AIAgent, "human": AIPROV.HumanAgent, "tool": AIPROV.ToolAgent}[a.type]
+    cls = {"ai": AIPROV.AIAgent, "human": AIPROV.HumanAgent, "tool": AIPROV.ToolAgent,
+           "role": AIPROV.RoleStandIn}[a.type]
+    # A role stand-in (issue 12) stands for a role, never for a person, a model or a tool.
+    if a.type == "role":
+        if not getattr(a, "role", None):
+            sys.exit("REFUSED: --type role needs --role, the role the stand-in stands for")
+        for key in ("model", "model_version", "provider", "endpoint", "context_window", "knowledge_cutoff",
+                    "orcid", "affiliation"):
+            if getattr(a, key, None) is not None:
+                sys.exit(f"REFUSED: a role stand-in carries no --{key.replace('_', '-')}; it stands for a role")
+        if any((s, RDF.type, c) in g for c in (AIPROV.AIAgent, AIPROV.HumanAgent, AIPROV.ToolAgent)):
+            sys.exit(f"REFUSED: agent:{a.id} is registered as an AI agent, a person or a tool and cannot also be a role stand-in")
+    else:
+        if getattr(a, "role", None):
+            sys.exit("REFUSED: --role belongs to --type role")
+        if (s, RDF.type, AIPROV.RoleStandIn) in g:
+            sys.exit(f"REFUSED: agent:{a.id} is registered as a role stand-in and cannot also be of another type")
     # An agent is an AI or a person, never both (issue 22): a self-registration as a person would otherwise
     # turn a model into an agent that may grant the human-only rungs.
     if a.type == "human" and (s, RDF.type, AIPROV.AIAgent) in g:
@@ -127,6 +143,8 @@ def cmd_agent(a) -> None:
         v = getattr(a, key, None)
         if v is not None:
             g.add((s, prop, Literal(v, datatype=dt)))
+    if a.type == "role":
+        g.add((s, AIPROV.role, Literal(a.role)))
     if getattr(a, "acted_on_behalf_of", None):
         g.add((s, PROV.actedOnBehalfOf, ns(a.base, "agent")[a.acted_on_behalf_of]))
     save(g)
@@ -399,6 +417,7 @@ ACT_ATTRS = [  # (cli key, property, xsd type)
     ("stop_reason", AIPROV.stopReason, XSD.string),
     ("cost", AIPROV.cost, XSD.decimal), ("currency", AIPROV.costCurrency, XSD.string),
     ("energy_wh", AIPROV.energyWh, XSD.decimal), ("tool_calls", AIPROV.toolCalls, XSD.integer),
+    ("omitted_count", AIPROV.omittedCount, XSD.integer),
 ]
 
 
@@ -438,6 +457,9 @@ def _external_refs(g: Graph) -> list:
 def cmd_log(a) -> None:
     g = load()
     act = ns(a.base, "activity")[a.activity]
+    oc = getattr(a, "omitted_count", None)
+    if oc is not None and not re.fullmatch(r"\d+", str(oc)):
+        sys.exit(f"--omitted-count: '{oc}' is not a non-negative integer")
     cls = {"authoring": AIPROV.AuthoringPass, "audit": AIPROV.AuditPass,
            "build": AIPROV.Build, "repair": AIPROV.Repair,
            "auxiliary": AIPROV.AuxiliaryPass}.get(a.pass_, PROV.Activity)
@@ -569,7 +591,7 @@ def cmd_log(a) -> None:
     print(f"act:{a.activity} logged ({len(g)} triples total)")
 
 
-AGENT_CLASSES = (AIPROV.AIAgent, AIPROV.HumanAgent, AIPROV.ToolAgent)
+AGENT_CLASSES = (AIPROV.AIAgent, AIPROV.HumanAgent, AIPROV.ToolAgent, AIPROV.RoleStandIn)
 
 
 def _is_registered(g: Graph, base: str, agent: str) -> bool:
@@ -1364,7 +1386,8 @@ def validate_graph(g: Graph) -> int:
     unreg = list(g.query("""SELECT DISTINCT ?ag WHERE {
             { ?x prov:wasAssociatedWith ?ag } UNION { ?x prov:wasAttributedTo ?ag }
             FILTER NOT EXISTS { ?ag a aiprov:AIAgent } FILTER NOT EXISTS { ?ag a aiprov:HumanAgent }
-            FILTER NOT EXISTS { ?ag a aiprov:ToolAgent } }"""))
+            FILTER NOT EXISTS { ?ag a aiprov:ToolAgent }
+            FILTER NOT EXISTS { ?ag a aiprov:RoleStandIn } }"""))
     print(f"[{'FAIL' if unreg else ' OK '}] agents referenced but not registered: {len(unreg)}")
     fail += len(unreg)
     # An agent is an AI or a person, never both (issue 22). There is no automatic repair: it is unknown which type
@@ -1372,6 +1395,25 @@ def validate_graph(g: Graph) -> int:
     dual = [(n,) for n in sorted(set(g.subjects(RDF.type, AIPROV.AIAgent)) & set(g.subjects(RDF.type, AIPROV.HumanAgent)))]
     print(f"[{'FAIL' if dual else ' OK '}] agents typed as both AI and human: {len(dual)}")
     fail += len(dual)
+    # Role stand-ins (issue 12): never also a person, an AI agent or a tool, and never the grantor of a human-only rung.
+    other_kinds = (set(g.subjects(RDF.type, AIPROV.AIAgent)) | set(g.subjects(RDF.type, AIPROV.HumanAgent))
+                   | set(g.subjects(RDF.type, AIPROV.ToolAgent)))
+    standin_mixed = [(n,) for n in sorted(set(g.subjects(RDF.type, AIPROV.RoleStandIn)) & other_kinds, key=str)]
+    print(f"[{'FAIL' if standin_mixed else ' OK '}] role stand-ins also typed as a person, AI agent or tool: {len(standin_mixed)}")
+    fail += len(standin_mixed)
+    standin_rungs = list(g.query('''SELECT ?act ?ag WHERE {
+              ?act a aiprov:AuditPass ; rdfs:label ?l ; prov:wasAssociatedWith ?ag .
+              ?ag a aiprov:RoleStandIn .
+              FILTER(REGEX(STR(?l), "-> (human-confirmed|human-read|lit-read)")) }'''))
+    print(f"[{'FAIL' if standin_rungs else ' OK '}] human-only rungs granted by role stand-ins: {len(standin_rungs)}")
+    fail += len(standin_rungs)
+    badomit = []
+    for n_, v_ in sorted(g.subject_objects(AIPROV.omittedCount), key=lambda t: (str(t[0]), str(t[1]))):
+        if not (isinstance(v_, Literal) and v_.datatype == XSD.integer and isinstance(v_.toPython(), int)
+                and v_.toPython() >= 0):
+            badomit.append((n_,))
+    print(f"[{'FAIL' if badomit else ' OK '}] omitted counts that are not a non-negative integer: {len(badomit)}")
+    fail += len(badomit)
     nref = len(set(g.subjects(RDF.type, AIPROV.Refusal)))
     if nref:
         print(f"[INFO] refused human-only steps recorded: {nref}")
@@ -1554,7 +1596,10 @@ def validate_graph(g: Graph) -> int:
                        ("session with token sums from more than one capture path", twopaths),
                        ("viaHarness target is not a registered harness", badharness),
                        ("activity via a harness with neither a model nor a stated reason", nomodel),
-                       ("telemetry chain anchor malformed", badchain)):
+                       ("telemetry chain anchor malformed", badchain),
+                       ("role stand-in also typed as a person, AI agent or tool (remove the wrong rdf:type)", standin_mixed),
+                       ("human-only rung granted by a role stand-in", standin_rungs),
+                       ("omitted count that is not a non-negative integer", badomit)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -2094,13 +2139,14 @@ def main() -> None:
     s = sub.add_parser("init"); s.add_argument("--force", action="store_true")
 
     s = sub.add_parser("agent")
-    s.add_argument("--id", required=True); s.add_argument("--type", choices=["ai", "human", "tool"], required=True)
+    s.add_argument("--id", required=True); s.add_argument("--type", choices=["ai", "human", "tool", "role"], required=True)
     for f in ["name", "model", "model_version", "provider", "endpoint", "context_window",
               "knowledge_cutoff", "orcid", "affiliation"]:
         s.add_argument("--" + f.replace("_", "-"), dest=f)
     s.add_argument("--acted-on-behalf-of", dest="acted_on_behalf_of",
                    help="agent id this agent acts for (prov:actedOnBehalfOf), e.g. orchestrator")
     s.add_argument("--by", help="agent id that registers a person (default: $PROV_ACTOR); recorded as aiprov:registeredBy")
+    s.add_argument("--role", help="with --type role: the role the stand-in stands for (for example requester, reviewer)")
 
     s = sub.add_parser("log")
     s.add_argument("--activity", required=True); s.add_argument("--label")
