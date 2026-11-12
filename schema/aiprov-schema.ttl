@@ -313,6 +313,31 @@ aiprov:AnyOf            a aiprov:CompositionKind ; rdfs:label 'any of (OR)'@en .
 aiprov:AtLeast          a aiprov:CompositionKind ; rdfs:label 'at least k of n'@en .
 aiprov:minPremises      a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:integer ;
     rdfs:comment 'k for aiprov:AtLeast: how many premises must hold.'@en .
+#--- Novelty claims as a delimitation record (no score) ------------------
+
+aiprov:claimKind        a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:string ;
+    rdfs:comment "Plain annotation of what kind of statement a claim is (for example novelty, empirical, definitional, methodological). Open vocabulary; it is not a rung and changes no rule except for the kind novelty."@en .
+aiprov:DelimitationRecord a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:comment "The record behind a claim of kind novelty: which search was made, and which works come nearest and how they differ. It shows that a search was made and against what; it does not show that the claim is new. Coverage is incomplete (databases, languages, grey literature, work not yet published). A claim is delimitation documented when such a record exists, otherwise not documented; there is no scale and no numeric novelty attribute."@en .
+aiprov:delimits         a owl:ObjectProperty ; rdfs:domain aiprov:DelimitationRecord ; rdfs:range aiprov:Claim .
+aiprov:SearchProtocol   a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:comment "The search behind a delimitation record: queries, sources searched, date and the sha256 of the result set."@en .
+aiprov:searchProtocol   a owl:ObjectProperty ; rdfs:domain aiprov:DelimitationRecord ; rdfs:range aiprov:SearchProtocol .
+aiprov:searchQuery      a owl:DatatypeProperty ; rdfs:domain aiprov:SearchProtocol ; rdfs:range xsd:string .
+aiprov:searchSource     a owl:DatatypeProperty ; rdfs:domain aiprov:SearchProtocol ; rdfs:range xsd:string ;
+    rdfs:comment "A database, index or collection that was searched."@en .
+aiprov:searchedOn       a owl:DatatypeProperty ; rdfs:domain aiprov:SearchProtocol ; rdfs:range xsd:date .
+aiprov:resultSetHash    a owl:DatatypeProperty ; rdfs:domain aiprov:SearchProtocol ; rdfs:range xsd:string ;
+    rdfs:comment "sha256:<hex> of the exact result set that was reviewed."@en .
+aiprov:NearestWork      a owl:Class ; rdfs:subClassOf prov:Entity .
+aiprov:nearestWorks     a owl:ObjectProperty ; rdfs:domain aiprov:DelimitationRecord ; rdfs:range aiprov:NearestWork ;
+    rdfs:comment "One of the works that come nearest to the claim."@en .
+aiprov:workRef          a owl:DatatypeProperty ; rdfs:domain aiprov:NearestWork ; rdfs:range xsd:string ;
+    rdfs:comment "DOI or reference of the work."@en .
+aiprov:difference       a owl:DatatypeProperty ; rdfs:domain aiprov:NearestWork ; rdfs:range xsd:string ;
+    rdfs:comment "One line saying what differs between the work and the claim."@en .
+aiprov:similarityHint   a owl:DatatypeProperty ; rdfs:domain aiprov:DelimitationRecord ; rdfs:range xsd:string ;
+    rdfs:comment "Optional embedding model and version used to find near works. Exploratory; never an input to a rung or a measure of originality."@en .
 
 #--- Schema version and migration ---------------------------------------------
 
