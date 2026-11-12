@@ -340,16 +340,16 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
     aiprov:verificationState verif:unverified .
 
-<https://w3id.org/aiprov/prov/claim/composite-effective-rung-rule-36> a aiprov:Claim ;
-    rdfs:label "The effective rung of a composite claim is computed from its premises (AllOf weakest, AnyOf best, AtLeast k the k-th best, never above its own rung); a premise stated as contested counts as refuted, and a claim stated above its premises' limit is capped at unverified rather than below."@en ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
-    aiprov:verificationState verif:unverified .
-
 <https://w3id.org/aiprov/prov/claim/claim-37-tests> a aiprov:Claim ;
     rdfs:label "With the change, the full aiprov test suite passes (99 tests, 6 of them new) and ruff reports the same 64 findings as main."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/composite-effective-rung-rule-36> a aiprov:Claim ;
+    rdfs:label "The effective rung of a composite claim is computed from its premises (AllOf weakest, AnyOf best, AtLeast k the k-th best, never above its own rung); a premise stated as contested counts as refuted, and a claim stated above its premises' limit is capped at unverified rather than below."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
     aiprov:verificationState verif:unverified .
 
 <https://w3id.org/aiprov/prov/claim/external-node-no-path-or-label> a aiprov:Claim ;
@@ -465,15 +465,13 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-10-31-issue22-agent-types>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
-        <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
-
         <https://w3id.org/aiprov/prov/activity/2026-11-03-delimitation-16>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
-
-        <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -519,10 +517,9 @@ aiprov:verificationState a owl:ObjectProperty ;
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
+        "d4222f8482a2167f9a5d58a940f5c4e5428cd267",
         "d7ce016",
         "dce5ab1",
-
-        "d4222f8482a2167f9a5d58a940f5c4e5428cd267",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b910ad445f6084d8273fc1c909336c137089e0",
@@ -814,6 +811,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath ".github/workflows/pages.yml" ;
     aiprov:gitCommit "93238e02cd80e8b026f7c1dc59202393be3e7d61" .
 
+<https://w3id.org/aiprov/prov/entity/provenance-ttl> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-12-rebase-delimitation-16> ;
+    aiprov:contentHash "sha256:9bb475035b20027e0c409b70b657405ef81ad70751fcfc9bde4a6b3c8d59d3d2" ;
+    aiprov:filePath "provenance.ttl" ;
+    aiprov:gitCommit "b160d50" .
+
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5,
         agent:claude-opus-alias,
@@ -826,16 +830,14 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-capture-path-24>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-decisions-44>,
-        <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
-
         <https://w3id.org/aiprov/prov/activity/2026-11-03-delimitation-16>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
-
-        <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -851,9 +853,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
-        "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
-
         "sha256:7ec15810986a5d6f40184417eba45adb3a90dc91660f82c5419163d4b670f16b",
+        "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
@@ -886,10 +887,9 @@ aiprov:verificationState a owl:ObjectProperty ;
         "aa04337",
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
+        "d4222f8482a2167f9a5d58a940f5c4e5428cd267",
         "d7ce016",
         "dce5ab1",
-
-        "d4222f8482a2167f9a5d58a940f5c4e5428cd267",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
@@ -959,16 +959,6 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/test_decisions.py" ;
     aiprov:gitCommit "3a88ea441dea512e278215e48b6ec15bb4c8f88c" .
 
-<https://w3id.org/aiprov/prov/entity/test_external_references-py> a aiprov:Artefact ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
-        <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> ;
-    aiprov:contentHash "sha256:17aa88ec0594e312f269b939c080f20cb4e577ca790b7f5a2724a7f3c09bf87f",
-        "sha256:8400939d8c8c0eaadb5e1845cd4d032e2945d6b793fbddb9b83a094103d41cec" ;
-    aiprov:filePath "tests/test_external_references.py" ;
-    aiprov:gitCommit "1562fed",
-        "d7ce016" .
-
 <https://w3id.org/aiprov/prov/entity/test_delimitation-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-delimitation-16>,
@@ -978,6 +968,16 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/test_delimitation.py" ;
     aiprov:gitCommit "5ac6731",
         "d4222f8482a2167f9a5d58a940f5c4e5428cd267" .
+
+<https://w3id.org/aiprov/prov/entity/test_external_references-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> ;
+    aiprov:contentHash "sha256:17aa88ec0594e312f269b939c080f20cb4e577ca790b7f5a2724a7f3c09bf87f",
+        "sha256:8400939d8c8c0eaadb5e1845cd4d032e2945d6b793fbddb9b83a094103d41cec" ;
+    aiprov:filePath "tests/test_external_references.py" ;
+    aiprov:gitCommit "1562fed",
+        "d7ce016" .
 
 <https://w3id.org/aiprov/prov/entity/test_extract_dashboard-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1138,6 +1138,13 @@ verif:source-vendored a aiprov:VerificationState ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-10T23:08:55.922317+01:00"^^xsd:dateTime .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-12-rebase-delimitation-16> a aiprov:Repair ;
+    rdfs:label "Third rebase of the delimitation branch onto main after the cross-graph reference merge; conflicts in changelog and graph resolved by keeping both sides"@en ;
+    prov:endedAtTime "2026-11-12T15:09:22.355325+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-12T15:09:22.355366+01:00"^^xsd:dateTime ;
+    aiprov:sessionId "thesis-agent-run-1501"^^xsd:string .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
@@ -1151,9 +1158,6 @@ verif:source-vendored a aiprov:VerificationState ;
 
 <https://w3id.org/aiprov/prov/source/attributes-md> a aiprov:Source ;
     aiprov:filePath "docs/attributes.md" .
-
-<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
-    aiprov:filePath "provenance.ttl" .
 
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
@@ -1173,16 +1177,10 @@ agent:florian-krebs a aiprov:HumanAgent ;
     foaf:name "Florian Krebs" ;
     aiprov:orcid "0000-0001-6033-801X"^^xsd:anyURI .
 
-<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
-    aiprov:filePath "provenance.ttl" .
-
 <https://w3id.org/aiprov/prov/source/provlog-py> a aiprov:Source ;
     aiprov:filePath "src/aiprov/provlog.py" .
 
 aiprov:Contribution a owl:Class ;
-    rdfs:subClassOf prov:Entity .
-
-aiprov:Source a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37> a aiprov:Repair ;
@@ -1190,7 +1188,6 @@ aiprov:Source a owl:Class ;
     prov:endedAtTime "2026-11-07T12:07:39.048395+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-07T12:07:39.048435+01:00"^^xsd:dateTime .
-
 
 <https://w3id.org/aiprov/prov/activity/doi-badge-pages> a aiprov:AuthoringPass ;
     rdfs:label "DOI badge row in the README and the DOI on the demo page (badge, cite-as link, Cite section read from CITATION.cff) on the owner's request; no telemetry recorded"@en ;
@@ -1224,6 +1221,15 @@ aiprov:Source a owl:Class ;
 <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
     aiprov:filePath "CONTRIBUTING.md" .
 
+<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
+    aiprov:filePath "provenance.ttl" .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16> a aiprov:AuthoringPass ;
+    rdfs:label "Print the delimitation limitation in validate and report (comment round of #16)"@en ;
+    prov:endedAtTime "2026-11-05T04:08:10.826846+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-05T04:08:10.826882+01:00"^^xsd:dateTime .
+
 <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37> a aiprov:AuthoringPass ;
     rdfs:label "validate fails an external node with a file path or a label (round comment on #37)"@en ;
     prov:endedAtTime "2026-11-05T14:10:46.667511+01:00"^^xsd:dateTime ;
@@ -1231,12 +1237,6 @@ aiprov:Source a owl:Class ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-05T14:10:46.667545+01:00"^^xsd:dateTime ;
     aiprov:sessionId "thesis-agent-run-1400"^^xsd:string .
-
-<https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16> a aiprov:AuthoringPass ;
-    rdfs:label "Print the delimitation limitation in validate and report (comment round of #16)"@en ;
-    prov:endedAtTime "2026-11-05T04:08:10.826846+01:00"^^xsd:dateTime ;
-    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
-    aiprov:recordedAtTime "2026-11-05T04:08:10.826882+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;
@@ -1408,10 +1408,6 @@ aiprov:Source a owl:Class ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version> a aiprov:AuthoringPass ;
     rdfs:label "provlog migrate, schema version in the graph, dashboard reads every version (#42)"@en ;
     prov:endedAtTime "2026-10-30T23:23:42.827356+01:00"^^xsd:dateTime ;
@@ -1442,6 +1438,10 @@ aiprov:VerificationState a owl:Class ;
     prov:used <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-03T05:14:08.190711+01:00"^^xsd:dateTime .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
