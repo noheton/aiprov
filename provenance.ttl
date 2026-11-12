@@ -316,16 +316,16 @@ aiprov:verificationState a owl:ObjectProperty ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15> ;
     aiprov:verificationState verif:unverified .
 
-<https://w3id.org/aiprov/prov/claim/composite-effective-rung-rule-36> a aiprov:Claim ;
-    rdfs:label "The effective rung of a composite claim is computed from its premises (AllOf weakest, AnyOf best, AtLeast k the k-th best, never above its own rung); a premise stated as contested counts as refuted, and a claim stated above its premises' limit is capped at unverified rather than below."@en ;
-    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
-    aiprov:verificationState verif:unverified .
-
 <https://w3id.org/aiprov/prov/claim/claim-37-tests> a aiprov:Claim ;
     rdfs:label "With the change, the full aiprov test suite passes (99 tests, 6 of them new) and ruff reports the same 64 findings as main."@en ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-external-references-37> ;
+    aiprov:verificationState verif:unverified .
+
+<https://w3id.org/aiprov/prov/claim/composite-effective-rung-rule-36> a aiprov:Claim ;
+    rdfs:label "The effective rung of a composite claim is computed from its premises (AllOf weakest, AnyOf best, AtLeast k the k-th best, never above its own rung); a premise stated as contested counts as refuted, and a claim stated above its premises' limit is capped at unverified rather than below."@en ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-03-composite-claims-36> ;
     aiprov:verificationState verif:unverified .
 
 <https://w3id.org/aiprov/prov/claim/external-node-no-path-or-label> a aiprov:Claim ;
@@ -778,10 +778,13 @@ aiprov:verificationState a owl:ObjectProperty ;
 
 <https://w3id.org/aiprov/prov/entity/provenance-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
-    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-11-rebase-role-standin-12> ;
-    aiprov:contentHash "sha256:3714aa86fdb0b52992a41e11a10f97aa02e4cc9d98092fa1e2a9fd0da743c423" ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-11-rebase-role-standin-12>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-12-rebase-role-standin-12> ;
+    aiprov:contentHash "sha256:3714aa86fdb0b52992a41e11a10f97aa02e4cc9d98092fa1e2a9fd0da743c423",
+        "sha256:a5b97c271a058c5eecf0d8a445656d030ee5351012bbc5c1dfb8df1e963c14bb" ;
     aiprov:filePath "provenance.ttl" ;
-    aiprov:gitCommit "dfe2386" .
+    aiprov:gitCommit "319fae1",
+        "dfe2386" .
 
 <https://w3id.org/aiprov/prov/entity/provlog-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5,
@@ -816,8 +819,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
-        "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
         "sha256:6be0ae16980b17a16886103accaeadde1332e99976656c408ac609dbd58746d2",
+        "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
         "sha256:8fa5f2694170ebf69be5445b0f91dc7cd639d60a8534ec2a13336c4edcc10c38",
@@ -850,8 +853,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "ab531da",
         "b956d1d6cc59621cd378e6184021594071a54686",
         "d7ce016",
-        "dce5ab1",
         "dafec5fcc08d6b0d60726f9dce3794ff2e485f25",
+        "dce5ab1",
         "ebd9503",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
@@ -1099,19 +1102,20 @@ verif:source-vendored a aiprov:VerificationState ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-11T00:04:23.739060+01:00"^^xsd:dateTime .
 
+<https://w3id.org/aiprov/prov/activity/2026-11-12-rebase-role-standin-12> a aiprov:Repair ;
+    rdfs:label "Second rebase of the role stand-in branch onto main after the external-references merge (#12)"@en ;
+    prov:endedAtTime "2026-11-12T14:06:06.547447+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-12T14:06:06.547494+01:00"^^xsd:dateTime ;
+    aiprov:sessionId "thesis-agent-run-1401"^^xsd:string .
+
 <https://w3id.org/aiprov/prov/activity/identity-salmon> a aiprov:AuthoringPass ;
     rdfs:label "docs/identity.md: salmon identity, acronym, image brief and the rights of a generated picture (issue 20). Recorded afterwards by claude-opus-5-5 in the same OpenCode session after a model switch; no telemetry recorded"@en ;
     prov:endedAtTime "2026-10-25T21:51:56.831129+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-fable-5-1 .
 
-<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
-    aiprov:filePath "provenance.ttl" .
-
 <https://w3id.org/aiprov/prov/source/provlog-py> a aiprov:Source ;
     aiprov:filePath "src/aiprov/provlog.py" .
-
-<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
-    aiprov:filePath "provenance.ttl" .
 
 aiprov:HumanAgent a owl:Class ;
     rdfs:label "Human agent"@en ;
@@ -1137,10 +1141,10 @@ agent:florian-krebs a aiprov:HumanAgent ;
 <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> a aiprov:Source ;
     aiprov:filePath "CONTRIBUTING.md" .
 
-aiprov:Contribution a owl:Class ;
-    rdfs:subClassOf prov:Entity .
+<https://w3id.org/aiprov/prov/source/provenance-ttl> a aiprov:Source ;
+    aiprov:filePath "provenance.ttl" .
 
-aiprov:Source a owl:Class ;
+aiprov:Contribution a owl:Class ;
     rdfs:subClassOf prov:Entity .
 
 <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37> a aiprov:Repair ;
@@ -1185,6 +1189,7 @@ aiprov:Source a owl:Class ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-05T14:10:46.667545+01:00"^^xsd:dateTime ;
     aiprov:sessionId "thesis-agent-run-1400"^^xsd:string .
+
 <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count> a aiprov:AuthoringPass ;
     rdfs:label "Role stand-ins and omitted counts (issue 12)"@en ;
     prov:endedAtTime "2026-11-10T15:14:27.636519+01:00"^^xsd:dateTime ;
@@ -1350,10 +1355,6 @@ agent:claude-opus-alias a aiprov:AIAgent ;
     prov:endedAtTime "2026-10-25T21:51:57.015937+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-opus-5-5 .
 
-aiprov:Repair a owl:Class ;
-    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
-    rdfs:subClassOf prov:Activity .
-
 <https://w3id.org/aiprov/prov/activity/2026-10-30-migrate-schema-version> a aiprov:AuthoringPass ;
     rdfs:label "provlog migrate, schema version in the graph, dashboard reads every version (#42)"@en ;
     prov:endedAtTime "2026-10-30T23:23:42.827356+01:00"^^xsd:dateTime ;
@@ -1384,6 +1385,10 @@ aiprov:VerificationState a owl:Class ;
     prov:used <https://w3id.org/aiprov/prov/source/CONTRIBUTING-md> ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-03T05:14:08.190711+01:00"^^xsd:dateTime .
+
+aiprov:Repair a owl:Class ;
+    rdfs:comment "Fixes a structural defect in the graph itself (e.g. backfilled parent)."@en ;
+    rdfs:subClassOf prov:Activity .
 
 aiprov:AuthoringPass a owl:Class ;
     rdfs:comment "AI or human produces/edits an artefact."@en ;
