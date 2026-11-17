@@ -1,0 +1,22 @@
+@prefix agent: <https://example.org/prov/agent/> .
+@prefix aiprov: <https://w3id.org/aiprov/ns#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Invented data for issue 12: a stand-in that is also a tool, a stand-in that grants a human-only rung,
+# and omitted counts that are negative or not an integer.
+agent:standin-mixed a aiprov:RoleStandIn, aiprov:ToolAgent ; aiprov:role "requester" .
+agent:standin-granter a aiprov:RoleStandIn ; aiprov:role "reviewer" .
+<https://example.org/prov/activity/standin-promotion> a aiprov:AuditPass ;
+    rdfs:label "Promotion of src1: unverified -> human-read (fixture)"@en ;
+    prov:wasAssociatedWith agent:standin-granter ;
+    prov:endedAtTime "2026-11-10T10:00:00Z"^^xsd:dateTime .
+<https://example.org/prov/activity/omit-negative> a prov:Activity ;
+    prov:wasAssociatedWith agent:standin-granter ;
+    prov:endedAtTime "2026-11-10T10:00:00Z"^^xsd:dateTime ;
+    aiprov:omittedCount "-3"^^xsd:integer .
+<https://example.org/prov/activity/omit-text> a prov:Activity ;
+    prov:wasAssociatedWith agent:standin-granter ;
+    prov:endedAtTime "2026-11-10T10:00:00Z"^^xsd:dateTime ;
+    aiprov:omittedCount "many" .

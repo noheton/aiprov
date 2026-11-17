@@ -56,6 +56,13 @@ aiprov:ToolAgent        a owl:Class ; rdfs:subClassOf prov:SoftwareAgent ;
     rdfs:label "Deterministic tool"@en ;
     rdfs:comment "Non-AI software (compiler, linter, CI job) acting in the pipeline."@en .
 
+aiprov:RoleStandIn      a owl:Class ; rdfs:subClassOf prov:Agent ;
+    owl:disjointWith prov:Person, aiprov:AIAgent ;
+    rdfs:label "Role stand-in"@en ;
+    rdfs:comment "An agent that stands for a role (for example requester or reviewer), not for a person or a model; for shared graphs that must not name persons. Carries aiprov:role. Never also a person, an AI agent or a tool: validate fails a node typed as both. It can never grant a human-only rung: claim, source and the promotion step refuse it, and validate fails a promotion associated with one."@en .
+aiprov:omittedCount     a owl:DatatypeProperty ; rdfs:range xsd:integer ;
+    rdfs:comment "How many items an activity or collection leaves out of a list that was cut short (for example the paths beyond the first N of a large change). A count only: it says nothing about the omitted items. Non-negative; validate fails a negative or non-integer value."@en .
+
 # AI-agent attributes
 aiprov:model            a owl:DatatypeProperty ; rdfs:domain aiprov:AIAgent ;
     rdfs:range xsd:string ; rdfs:comment "Model identifier, e.g. claude-fable-5."@en .
@@ -92,8 +99,8 @@ aiprov:plannedAgent     a owl:ObjectProperty ; rdfs:domain aiprov:Orchestration 
     rdfs:comment "An agent instance registered before the orchestration (repeatable). If any is declared, sub-activities must be associated with one of them."@en .
 aiprov:plannedBinding   a owl:DatatypeProperty ; rdfs:domain aiprov:Orchestration ; rdfs:range xsd:string ;
     rdfs:comment "Binds a planned agent to one role: the string AGENT-IRI|ROLE (repeatable). An agent with at least one binding may act only in its bound roles."@en .
-aiprov:role             a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
-    rdfs:comment "Role of a sub-activity within an orchestration."@en .
+aiprov:role             a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Role of a sub-activity within an orchestration, or the role a role stand-in agent stands for."@en .
 
 aiprov:modelRole        a owl:DatatypeProperty ; rdfs:domain prov:Activity ; rdfs:range xsd:string ;
     rdfs:comment "What a model did within one answer: answer, draft, revise, judge or route (recommended values; adopters may add their own). Several activities with a model role, informed by one Orchestration, produce one answer."@en .
