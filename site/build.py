@@ -188,7 +188,8 @@ def draw(g: rdflib.Graph) -> str:
             nodes.append(node_svg("activity", cx, cy, title, sub, str(g.value(s, RDFS.label) or title)))
         elif AIPROV.Claim in types:
             kinds[key] = "claim"
-            state = str(g.value(s, AIPROV.verificationState)).rsplit("/", 1)[-1]
+            state = str(g.value(s, AIPROV.verificationState)).rsplit("/", 1)[-1].removeprefix("ns#rung-").removeprefix("rung-")
+            state = state.rsplit("#rung-", 1)[-1]
             text = str(g.value(s, RDFS.label))
             nodes.append(node_svg("claim", cx, cy, text, f"claim {key.split('/', 1)[1]}", f"claim: {text} ({state})", pill=state))
         elif AIPROV.Source in types or AIPROV.Artefact in types:
@@ -226,7 +227,7 @@ def draw(g: rdflib.Graph) -> str:
     # The ladder: seven steps, the top two for humans only.
     ladder_states = sorted(
         (int(g.value(s, AIPROV.ladderPosition)), str(s).rsplit("/", 1)[-1], str(g.value(s, RDFS.label)))
-         for s in g.subjects(RDF.type, AIPROV.VerificationState))
+         for s in g.subjects(RDF.type, AIPROV.VerificationState) if "#rung-" not in str(s))
     lx0, ly0, gap = 20, 570, 8
     bw = (1040 - 2 * lx0 - 6 * gap) / 7
     ladder = ['<text x="20" y="548" class="lt">The verification ladder</text>']
