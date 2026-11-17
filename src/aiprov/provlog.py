@@ -1226,9 +1226,34 @@ def _step_no_change(g: Graph) -> int:
     return 0
 
 
+def _step_vendored_property(g: Graph) -> int:
+    """0.2.0 -> 0.3.0 (issue 10): the rung source-vendored is deprecated. A node at that rung moves to the highest
+    earlier rung its promotions record, else to unverified (never raised), and the fallback is marked on the node
+    with aiprov:rungFallback. A vendored copy is not invented: the file is unknown to the graph."""
+    rungs = [n for n in set(g.subjects(RDF.type, AIPROV.VerificationState)) if str(n).endswith("/verification/source-vendored")]
+    deprecated = sum(_deprecate(g, n) for n in rungs)
+    pos = LADDER.index("source-vendored")
+    for node in sorted({n for n, st in g.subject_objects(AIPROV.verificationState)
+                        if str(st).rsplit("/", 1)[-1] == "source-vendored"}, key=str):
+        base = str(next(iter(g.objects(node, AIPROV.verificationState)))).rsplit("verification/", 1)[0]
+        best = -1
+        for act in g.subjects(PROV.used, node):
+            for lab in g.objects(act, RDFS.label):
+                m = re.search(r": (\S+) -> (\S+)", str(lab))
+                if m:
+                    r = canon_rung(m.group(1))
+                    if r in LADDER and LADDER.index(r) < pos:
+                        best = max(best, LADDER.index(r))
+        state = LADDER[best] if best >= 0 else "unverified"
+        _set_state(g, base, node, state)
+        if best < 0:
+            g.add((node, AIPROV.rungFallback, Literal(state)))
+    return deprecated
+
+
 # key: the version migrated FROM; the step leads to the next entry of SCHEMA_VERSIONS and returns the number of
 # terms it marked deprecated. A release that changes a term adds its step here and keeps the previous fixture.
-MIGRATION_STEPS = {"0.1.0": _step_no_change, "0.2.0": _step_no_change}
+MIGRATION_STEPS = {"0.1.0": _step_no_change, "0.2.0": _step_vendored_property}
 
 
 def apply_steps(g: Graph, frm: str, to: str) -> int:
@@ -1407,6 +1432,16 @@ def validate_graph(g: Graph) -> int:
               FILTER(REGEX(STR(?l), "-> (human-confirmed|human-read|lit-read)")) }'''))
     print(f"[{'FAIL' if standin_rungs else ' OK '}] human-only rungs granted by role stand-ins: {len(standin_rungs)}")
     fail += len(standin_rungs)
+    # Vendored files (issue 10): a stored copy names its path and its hash; a node still at the deprecated rung is reported.
+    badvend = []
+    for src_, ent_ in sorted(g.subject_objects(AIPROV.vendoredFile), key=lambda t: (str(t[0]), str(t[1]))):
+        if not (any(True for _ in g.objects(ent_, AIPROV.filePath)) and any(True for _ in g.objects(ent_, AIPROV.contentHash))):
+            badvend.append((f"{src_}: vendored file {ent_} lacks a path or a hash",))
+    print(f"[{'FAIL' if badvend else ' OK '}] vendored files without path or hash: {len(badvend)}")
+    fail += len(badvend)
+    oldrung = [(n_,) for n_, st_ in g.subject_objects(AIPROV.verificationState)
+               if str(st_).rsplit("/", 1)[-1] == "source-vendored"]
+    print(f"[{'WARN' if oldrung else ' OK '}] nodes at the deprecated rung source-vendored (run `provlog migrate`): {len(oldrung)}")
     badomit = []
     for n_, v_ in sorted(g.subject_objects(AIPROV.omittedCount), key=lambda t: (str(t[0]), str(t[1]))):
         if not (isinstance(v_, Literal) and v_.datatype == XSD.integer and isinstance(v_.toPython(), int)
@@ -1599,7 +1634,9 @@ def validate_graph(g: Graph) -> int:
                        ("telemetry chain anchor malformed", badchain),
                        ("role stand-in also typed as a person, AI agent or tool (remove the wrong rdf:type)", standin_mixed),
                        ("human-only rung granted by a role stand-in", standin_rungs),
-                       ("omitted count that is not a non-negative integer", badomit)):
+                       ("omitted count that is not a non-negative integer", badomit),
+                       ("vendored file without path or hash", badvend),
+                       ("node at the deprecated rung source-vendored", oldrung)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -1903,6 +1940,8 @@ def cmd_source(a) -> None:
     state = canon_rung(a.state) if a.state else "unverified"
     _require_registered(g, a.base, a.agent)
     _refuse_human_only(g, a.base, state, a.agent, "source", a.id, getattr(a, "record_refusals", False))
+    if state == "source-vendored":
+        sys.exit("the rung source-vendored is deprecated (issue 10): use --vendor FILE and set the rung by what was checked")
     meta = None
     if a.verify:
         if not a.doi:
@@ -1933,6 +1972,16 @@ def cmd_source(a) -> None:
         if meta.get("container"):
             g.add((s, DCT.isPartOf, Literal(meta["container"])))
     _set_state(g, a.base, s, state)
+    if getattr(a, "vendor", None):
+        vp = pathlib.Path(a.vendor)
+        if not vp.is_file():
+            sys.exit(f"--vendor: no such file {a.vendor}")
+        ent = ns(a.base, "entity")["vendored-" + a.id]
+        g.add((ent, RDF.type, AIPROV.Artefact))
+        g.add((ent, AIPROV.filePath, Literal(a.vendor)))
+        g.add((ent, AIPROV.contentHash, Literal("sha256:" + hashlib.sha256(vp.read_bytes()).hexdigest())))
+        g.add((s, AIPROV.vendoredFile, ent))
+        g.add((s, AIPROV.vendoredAt, now()))
     if a.verify:
         act = ns(a.base, "activity")[f"verify-src-{a.id}"]
         g.add((act, RDF.type, AIPROV.AuditPass))
@@ -1964,6 +2013,8 @@ def cmd_promote(a) -> None:
     a.to = canon_rung(a.to)
     if a.to not in LADDER:
         sys.exit(f"unknown rung '{a.to}'; ladder: {' -> '.join(LADDER)}")
+    if a.to == "source-vendored":
+        sys.exit("the rung source-vendored is deprecated (issue 10): record the copy with `source --vendor FILE`")
     if cur not in LADDER:
         sys.exit(f"'{a.id}' is at '{cur}', which is not on the ladder ({' -> '.join(LADDER)}); "
                  f"moving it is a graph repair, not a promotion")
@@ -2292,6 +2343,7 @@ def main() -> None:
     s.add_argument("--id", required=True)
     s.add_argument("--doi"); s.add_argument("--url"); s.add_argument("--title")
     s.add_argument("--state", choices=LADDER + sorted(RUNG_ALIASES))
+    s.add_argument("--vendor", metavar="FILE", help="store the hash and path of FILE as the vendored copy of the source (aiprov:vendoredFile); the rung is not changed")
     s.add_argument("--verify", action="store_true",
                    help="resolve the DOI via Crossref/OpenAlex and promote to retrieved")
     s.add_argument("--agent", help="agent performing the verification")
