@@ -582,6 +582,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-canonical-rungs-11>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-reason-claim-51>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
@@ -601,6 +602,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
         "sha256:c3d28fa32a395d26231fabe7672b8b770c78e69e3f2ac3e080dcff2a682e973a",
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
+        "sha256:ce117e8bc89037147a17523d7cf32208f2cb709850416c45fcf50eb61c1c7d36",
         "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
@@ -611,6 +613,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "56c0fcb",
         "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "663fbc7eadbf3a8f0b3873eadc11b92ce19c9839",
         "8b19e9c",
         "9170036",
         "aa04337",
@@ -639,8 +642,10 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-harness-23>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-reason-claim-51>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension> ;
-    aiprov:contentHash "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
+    aiprov:contentHash "sha256:0e9154bcd1bc86424166e838342a3eca17816cba031e45980be545a38905e6e3",
+        "sha256:0ee29997b32fcca97af59fa6b954507acd42e7e01ae1c09c4855b11fa7d2b4d1",
         "sha256:169962a635e1b0c5f2bfda7451648e82a3cf1062d9adaecac6416181e833276f",
         "sha256:48f8cef66ed3ca7abce58663e555a0a139bd35c096802a1fed025940b519374c",
         "sha256:840f2832bcdb7dd9acd6641c71529a547e61bdc1d0ba25de6f049eac78a8ec8c",
@@ -651,6 +656,7 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "090fc8a",
         "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "663fbc7eadbf3a8f0b3873eadc11b92ce19c9839",
         "9170036",
         "ab531da",
         "d7ce016",
@@ -812,6 +818,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-canonical-rungs-11>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-reason-claim-51>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
@@ -822,6 +829,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/orchestration-review-fixes>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df",
+        "sha256:06d6d2c6e72228a0a9e9ca8a70cd2ff0291a4020935fb70df93a9a9ae02a03f6",
         "sha256:11faa29af4e7625f19cbb7ac4ad0f5773c267d1a49fc769e8b6977d849daa3f8",
         "sha256:18478084d855cdc53c59b6d072cf4f83dcf315c16fa5e1107a3e5cad0915ebd4",
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
@@ -857,6 +865,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "56c0fcb",
         "5d252c3b1953374fb00804c4ac824a5011aa03ee",
         "5d5f2dc67f3a618b9cd607cdf647de6dbe97b568",
+        "663fbc7eadbf3a8f0b3873eadc11b92ce19c9839",
         "735a10e",
         "8b19e9c",
         "9170036",
@@ -1024,6 +1033,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/test_orchestration.py" ;
     aiprov:gitCommit "ab531da",
         "ebd9503" .
+
+<https://w3id.org/aiprov/prov/entity/test_reason_claims-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-17-reason-claim-51> ;
+    aiprov:contentHash "sha256:5a2e029518798fb536bf55a0fccbf53708e3daddd312eb8f2a1a4cc4cd1c118e" ;
+    aiprov:filePath "tests/test_reason_claims.py" ;
+    aiprov:gitCommit "663fbc7eadbf3a8f0b3873eadc11b92ce19c9839" .
 
 <https://w3id.org/aiprov/prov/entity/test_registered_agents-py> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -1233,6 +1249,12 @@ aiprov:Source a owl:Class ;
     prov:endedAtTime "2026-11-10T15:14:27.636519+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-10T15:14:27.636553+01:00"^^xsd:dateTime .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-17-reason-claim-51> a aiprov:AuthoringPass ;
+    rdfs:label "Reason of an activity as a claim with reasonSource (#51)"@en ;
+    prov:endedAtTime "2026-11-17T13:04:02.127500+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-17T13:04:02.127540+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;
