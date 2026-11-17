@@ -1289,6 +1289,25 @@ def _tool_version() -> str:
         return __version__
 
 
+def _commit_from_direct_url(text) -> "str | None":
+    """The git commit an installation came from, read from the distribution's direct_url.json (PEP 610)."""
+    try:
+        return (json.loads(text).get("vcs_info") or {}).get("commit_id")
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
+def version_line() -> str:
+    """provlog's version and, when installed from git, the commit, so a log says which rules ran."""
+    commit = None
+    try:
+        from importlib.metadata import distribution
+        commit = _commit_from_direct_url(distribution("aiprov").read_text("direct_url.json"))
+    except Exception:  # noqa: BLE001 - not installed as a distribution: version only
+        pass
+    return f"aiprov {_tool_version()}" + (f" (commit {commit[:7]})" if commit else "")
+
+
 def cmd_migrate(a) -> None:
     if not GRAPH.exists():
         sys.exit("no provenance.ttl in this directory; nothing to migrate")
@@ -1647,6 +1666,7 @@ def validate_graph(g: Graph) -> int:
 
 
 def cmd_validate(a) -> None:
+    print(version_line())
     sys.exit(1 if validate_graph(load()) else 0)
 
 
@@ -2059,6 +2079,7 @@ def cmd_promote(a) -> None:
     g.add((act, PROV.endedAtTime, now()))
     g.add((act, PROV.used, node))
     g.add((act, PROV.wasAssociatedWith, agent))
+    g.add((act, AIPROV.validatorVersion, Literal(version_line())))
     save(g)
     print(f"{a.id}: {cur} -> {a.to} (logged as AuditPass, agent:{a.agent})")
 
@@ -2208,6 +2229,7 @@ def cmd_extract(a) -> None:
 def main() -> None:
     p = argparse.ArgumentParser(prog="provlog", description=__doc__)
     p.add_argument("--base", default=DEFAULT_BASE, help="instance-IRI base")
+    p.add_argument("--version", action="version", version=version_line())
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("init"); s.add_argument("--force", action="store_true")
