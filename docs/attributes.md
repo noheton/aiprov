@@ -100,7 +100,7 @@ and write, so fair2r graphs consolidate onto this ladder automatically.
 | 1 | needs-research | A check was attempted/demanded and did not succeed (e.g. DOI unresolvable). Do not cite. | — |
 | 2 | reference-resolved | The reference EXISTS: DOI/URL resolved in a registry, metadata captured. Says nothing about content. | retrieved, lit-retrieved |
 | 3 | ai-confirmed | An AI checked the source CONTENT supports the claim. Highest rung an AI may grant. | ai-checked |
-| 4 | source-vendored | A copy of the source is preserved in the repo, immune to link rot | — |
+| 4 | source-vendored | Deprecated since 0.3.0 (issue 10): record the stored copy with `aiprov:vendoredFile` instead; kept for reading older graphs | — |
 | 5 | human-confirmed | A HUMAN spot-checked that the source supports the claim. Human-only. | — |
 | 6 | human-read | A HUMAN read the source in full. Top of the ladder. Human-only. | lit-read |
 

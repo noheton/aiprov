@@ -260,6 +260,12 @@ aiprov:contentHash      a owl:DatatypeProperty ; rdfs:range xsd:string ;
 aiprov:gitCommit        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Commit hash binding the entity to repository state."@en .
 aiprov:filePath         a owl:DatatypeProperty ; rdfs:range xsd:string .
+aiprov:vendoredFile     a owl:ObjectProperty ; rdfs:domain aiprov:Source ; rdfs:range prov:Entity ;
+    rdfs:comment "The stored copy of a source: an entity with aiprov:filePath and aiprov:contentHash (sha256). Says that these bytes were kept, not who checked what; the rung of the source is independent of it (issue 10)."@en .
+aiprov:vendoredAt       a owl:DatatypeProperty ; rdfs:domain aiprov:Source ; rdfs:range xsd:dateTime ;
+    rdfs:comment "When the copy of the source was stored."@en .
+aiprov:rungFallback     a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Set by migration 0.2.0 -> 0.3.0 on a source that sat at the deprecated rung source-vendored: the rung it was moved to when the graph did not record an earlier one (the lowest rung, unverified). A migration never raises a rung; this marks the cases where the earlier rung is unknown."@en .
 aiprov:doi              a owl:DatatypeProperty ; rdfs:range xsd:anyURI .
 
 #--- Verification ladder -------------------------------------------------
@@ -293,7 +299,8 @@ verif:ai-confirmed    a aiprov:VerificationState ; aiprov:ladderPosition 3 ;
     rdfs:comment "An AI agent checked that the source CONTENT supports the associated claim (abstract/full-text cross-check). This is the highest rung an AI may grant; it is a machine judgement, not a human one."@en .
 verif:source-vendored a aiprov:VerificationState ; aiprov:ladderPosition 4 ;
     rdfs:label "source vendored"@en ;
-    rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads."@en .
+    rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads. Deprecated since 0.3.0 (issue 10): record vendoring with aiprov:vendoredFile, independent of the rung; kept so that older graphs can be read."@en ;
+    owl:deprecated true .
 verif:human-confirmed a aiprov:VerificationState ; aiprov:ladderPosition 5 ;
     rdfs:label "human-confirmed"@en ;
     rdfs:comment "A HUMAN checked that the source supports the claim (targeted spot-check, not necessarily a full read). Human-only: an AI agent must never grant this rung."@en .
