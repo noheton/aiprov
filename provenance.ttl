@@ -829,7 +829,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:a5b97c271a058c5eecf0d8a445656d030ee5351012bbc5c1dfb8df1e963c14bb" ;
     aiprov:filePath "provenance.ttl" ;
     aiprov:gitCommit "319fae1",
-        "dfe2386" .
+        "dfe2386" ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-12-rebase-delimitation-16> ;
     aiprov:contentHash "sha256:9bb475035b20027e0c409b70b657405ef81ad70751fcfc9bde4a6b3c8d59d3d2" ;
     aiprov:filePath "provenance.ttl" ;
