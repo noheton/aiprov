@@ -581,6 +581,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-03-messages-43>,
         <https://w3id.org/aiprov/prov/activity/2026-11-04-bulk-telemetry-15>,
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
@@ -594,6 +595,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:5ea1b9b57fd4824a837cb7a53137a43475229e520e04b9ea81fba216dec66972",
         "sha256:7ae4622a35d9589ab6de0b3fcfabd1531162d96884669e7d5695c5f036b3e0e2",
         "sha256:895d9da0cdb64f9ee64a1bb44230f0395f8befffe6622b98988b46881a3b5460",
+        "sha256:9871436f6ddf7f8c56c437c0ec51988e1edcf5b7893deea89f8e3c98b3e52b85",
         "sha256:b40b54e4fb890abf2d4e3f8c9640628c38ca6057992fbf035ae2ef47dbf689ad",
         "sha256:c3d28fa32a395d26231fabe7672b8b770c78e69e3f2ac3e080dcff2a682e973a",
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
@@ -613,7 +615,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "b956d1d6cc59621cd378e6184021594071a54686",
         "dafec5fcc08d6b0d60726f9dce3794ff2e485f25",
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
-        "f80a31d" .
+        "f80a31d",
+        "fbddc41" .
 
 <https://w3id.org/aiprov/prov/entity/aiprov-social-preview-png> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
@@ -805,6 +808,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
@@ -820,6 +824,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:5910b1069d41fbc279ad50e45ba640e3b224fdb4250eb06bd034dd0bb68a728f",
         "sha256:6750664e77d8b94e3db17d802416a14173a65fa25e75390e675ceeb0af967f9d",
         "sha256:6be0ae16980b17a16886103accaeadde1332e99976656c408ac609dbd58746d2",
+        "sha256:81a488a1fd81ed888fe8cc5437bf8c0701a61ed41952a15d55dfa4382cefb703",
         "sha256:87b905c4a6c792330c1b7e1777574a9f4631e5a795619110d30c0c2b5c3b27d6",
         "sha256:8aff191dddee40b28f42e7d8fbc474036d738fd6dd9422e0ed52056223bfc394",
         "sha256:8b723dc5c0a029f5afa1ab4ba5d79523ce30299d7563f08f7cf7d2af026643bb",
@@ -859,7 +864,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "ed093ffa9a3eb366e6beb979d5d10451b6d6b9c5",
         "f4b83c8e6c76a12573f5d20435d631d9769ac349",
         "f4b910ad445f6084d8273fc1c909336c137089e0",
-        "f80a31d" .
+        "f80a31d",
+        "fbddc41" .
 
 <https://w3id.org/aiprov/prov/entity/pull_request_template-md> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-sonnet-5-5 ;
@@ -1045,6 +1051,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:gitCommit "a51b275",
         "aa04337" .
 
+<https://w3id.org/aiprov/prov/entity/test_vendored_property-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10> ;
+    aiprov:contentHash "sha256:cfcf4eaa68d0d88b2786efada6275c317ef453d544140da61487e574f8e1e16e" ;
+    aiprov:filePath "tests/test_vendored_property.py" ;
+    aiprov:gitCommit "fbddc41" .
+
 <https://w3id.org/aiprov/prov/entity/unregistered-agent-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents> ;
@@ -1152,6 +1165,12 @@ aiprov:Contribution a owl:Class ;
     prov:endedAtTime "2026-11-07T12:07:39.048395+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-07T12:07:39.048435+01:00"^^xsd:dateTime .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10> a aiprov:AuthoringPass ;
+    rdfs:label "Issue 10: vendoring as property, migration step, validate rules, tests"@en ;
+    prov:endedAtTime "2026-11-17T09:56:40.351817+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-17T09:56:40.351854+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/doi-badge-pages> a aiprov:AuthoringPass ;
     rdfs:label "DOI badge row in the README and the DOI on the demo page (badge, cite-as link, Cite section read from CITATION.cff) on the owner's request; no telemetry recorded"@en ;
