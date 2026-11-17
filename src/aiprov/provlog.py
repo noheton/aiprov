@@ -1617,6 +1617,23 @@ def validate_graph(g: Graph) -> int:
             fail += len(rows)
         for row in rows:
             print("   ↳", label + ":", row[0])
+    # R6 (issue 5): a check is well formed, answered only by a registered human, and a claim at a human-only rung has no open check
+    badchk, chk_ai, chk_open = [], [], []
+    for c in g.subjects(RDF.type, AIPROV.Check):
+        if not all(next(g.objects(c, pr), None) is not None for pr in (AIPROV.checksClaim, AIPROV.checksSource, AIPROV.excerptHash, AIPROV.question, AIPROV.answer)):
+            badchk.append((c,))
+        ans = str(next(g.objects(c, AIPROV.answer), "unanswered"))
+        who = next(g.objects(c, AIPROV.answeredBy), None)
+        if ans != "unanswered" and (ans not in ANSWERS or who is None or (who, RDF.type, AIPROV.HumanAgent) not in g):
+            chk_ai.append((c,))
+    for cl in g.subjects(AIPROV.verificationState, None):
+        st = rung_name(next(g.objects(cl, AIPROV.verificationState)))
+        if st in HUMAN_ONLY and (cl, RDF.type, AIPROV.Claim) in g and _unsettled_checks(g, cl):
+            chk_open.append((cl,))
+    print(f"[{'FAIL' if badchk else ' OK '}] checks without claim, source, excerpt hash, question or answer: {len(badchk)}")
+    print(f"[{'FAIL' if chk_ai else ' OK '}] checks answered by anyone but a registered human, or with an unknown answer: {len(chk_ai)}")
+    print(f"[{'FAIL' if chk_open else ' OK '}] claims at a human-only rung with a check not answered yes: {len(chk_open)}")
+    fail += len(badchk) + len(chk_ai) + len(chk_open)
     unversioned = not any(True for _ in g.subjects(AIPROV.schemaVersion, None))
     print(f"[{'WARN' if unversioned else ' OK '}] graph states its schema version"
           + (" (none; run `provlog migrate`)" if unversioned else ""))
@@ -1640,6 +1657,8 @@ def validate_graph(g: Graph) -> int:
                        ("human-only rung granted by a role stand-in", standin_rungs),
                        ("omitted count that is not a non-negative integer", badomit),
                        ("vendored file without path or hash", badvend),
+                       ("malformed check", badchk), ("check answered by a non-human", chk_ai),
+                       ("claim at a human-only rung with an open check", chk_open),
                        ("node at the deprecated rung source-vendored", oldrung)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
@@ -2046,6 +2065,10 @@ def cmd_promote(a) -> None:
                  f"demotions/no-ops are graph repairs, not promotions")
     agent = ns(a.base, "agent")[a.agent]
     _refuse_human_only(g, a.base, a.to, a.agent, "promote", a.id, getattr(a, "record_refusals", False))
+    if a.to in HUMAN_ONLY and (node, RDF.type, AIPROV.Claim) in g:
+        open_ = _unsettled_checks(g, node)
+        if open_:
+            sys.exit(f"{a.id} has checks not answered yes: {', '.join(str(c).rsplit('/', 1)[-1] for c in open_)} (R6)")
     lim = _premise_limit(g, node)
     if lim is not None and LADDER.index(a.to) > max(lim, 0):
         sys.exit(f'{a.id} rests on premises; its effective rung is at most {_rank_name(lim)}, so it '
@@ -2061,6 +2084,67 @@ def cmd_promote(a) -> None:
     g.add((act, PROV.wasAssociatedWith, agent))
     save(g)
     print(f"{a.id}: {cur} -> {a.to} (logged as AuditPass, agent:{a.agent})")
+
+
+ANSWERS = ("yes", "partly", "no")
+
+
+def cmd_check(a) -> None:
+    """Prepare one question about one claim and one section of one source (issue 5). Stored as unanswered."""
+    g = load()
+    _require_registered(g, a.base, a.agent)
+    claim, src = ns(a.base, "claim")[a.claim], ns(a.base, "source")[a.source]
+    if (claim, RDF.type, AIPROV.Claim) not in g:
+        sys.exit(f"no claim '{a.claim}' in graph")
+    if (src, RDF.type, AIPROV.Source) not in g:
+        sys.exit(f"no source '{a.source}' in graph")
+    ex = pathlib.Path(a.excerpt_file)
+    if not ex.is_file():
+        sys.exit(f"--excerpt-file: no such file {a.excerpt_file}")
+    c = ns(a.base, "check")[a.id]
+    if (c, None, None) in g:
+        sys.exit(f"check '{a.id}' exists")
+    g.add((c, RDF.type, AIPROV.Check))
+    g.add((c, AIPROV.checksClaim, claim))
+    g.add((c, AIPROV.checksSource, src))
+    g.add((c, AIPROV.locator, Literal(a.locator)))
+    g.add((c, AIPROV.excerptHash, Literal("sha256:" + hashlib.sha256(ex.read_bytes()).hexdigest())))
+    g.add((c, AIPROV.question, Literal(a.question)))
+    g.add((c, AIPROV.answer, Literal("unanswered")))
+    g.add((c, PROV.generatedAtTime, now()))
+    g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
+    if a.slice:
+        g.add((c, AIPROV.slice, URIRef(a.slice)))
+    save(g)
+    print(f"check:{a.id} prepared (unanswered)")
+
+
+def cmd_answer(a) -> None:
+    g = load()
+    _require_registered(g, a.base, a.agent)
+    # same rule as the human-only rungs: an answer is a human act
+    _refuse_human_only(g, a.base, "human-confirmed", a.agent, "answer", a.check, getattr(a, "record_refusals", False))
+    c = ns(a.base, "check")[a.check]
+    if (c, RDF.type, AIPROV.Check) not in g:
+        sys.exit(f"no check '{a.check}' in graph")
+    if a.answer not in ANSWERS:
+        sys.exit(f"answer must be one of {', '.join(ANSWERS)}")
+    if any(str(o) != "unanswered" for o in g.objects(c, AIPROV.answer)):
+        sys.exit(f"check '{a.check}' is already answered")
+    g.remove((c, AIPROV.answer, None))
+    g.add((c, AIPROV.answer, Literal(a.answer)))
+    g.add((c, AIPROV.answeredBy, ns(a.base, "agent")[a.agent]))
+    g.add((c, AIPROV.answeredAt, now()))
+    save(g)
+    print(f"check:{a.check} answered {a.answer} (agent:{a.agent})")
+
+
+def _checks_of(g: Graph, claim) -> list:
+    return list(g.subjects(AIPROV.checksClaim, claim))
+
+
+def _unsettled_checks(g: Graph, claim) -> list:
+    return [c for c in _checks_of(g, claim) if str(next(g.objects(c, AIPROV.answer), "unanswered")) != "yes"]
 
 
 def _rung_rank(state) -> int:
@@ -2383,6 +2467,17 @@ def main() -> None:
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
+    s = sub.add_parser("check", help="prepare one question about a claim and a section of a source (stored as unanswered)")
+    s.add_argument("--id", required=True); s.add_argument("--claim", required=True); s.add_argument("--source", required=True)
+    s.add_argument("--locator", required=True); s.add_argument("--question", required=True)
+    s.add_argument("--excerpt-file", dest="excerpt_file", required=True, help="the quote shown; only its sha256 is stored")
+    s.add_argument("--slice"); s.add_argument("--agent", required=True)
+
+    s = sub.add_parser("answer", help="answer a check (human only)")
+    s.add_argument("--check", required=True); s.add_argument("--answer", required=True, choices=ANSWERS)
+    s.add_argument("--agent", required=True)
+    s.add_argument("--record-refusals", dest="record_refusals", action="store_true")
+
     s = sub.add_parser("extract")
     s.add_argument("--graph", help="input TTL (default provenance.ttl)")
     s.add_argument("--seed-types", nargs="+", required=True,
@@ -2397,7 +2492,7 @@ def main() -> None:
         p.error("bulk anchor needs --id and --agent")
     {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
      "claim": cmd_claim, "message": cmd_message, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
-     "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
+     "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "check": cmd_check, "answer": cmd_answer, "search": cmd_search}[a.cmd](a)
 
 
 if __name__ == "__main__":
