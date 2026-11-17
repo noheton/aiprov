@@ -19,7 +19,7 @@ FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 RUNG_ALIASES = {"retrieved": "reference-resolved",
                 "lit-retrieved": "reference-resolved",
                 "ai-checked": "ai-confirmed",
-                "lit-read": "human-read"}
+                "lit-read": "human-verified", "human-confirmed": "human-verified", "human-read": "human-verified"}
 
 INT_PROPS = ["inputTokens", "outputTokens", "cacheReadTokens", "cacheWriteTokens",
              "reasoningTokens", "totalTokens", "toolCalls", "turnCount", "maxTokens"]
@@ -216,7 +216,7 @@ background:var(--card);border:1px solid var(--line);padding:14px 16px;font:12.5p
 .rbar i{display:block;height:100%;background:var(--blue)}
 .rungs .hu i{background:var(--green)}.rungs .warn i{background:var(--amber)}
 .st{font:11px var(--mono);padding:1px 7px;border:1px solid currentColor;white-space:nowrap}
-.st-human-confirmed,.st-human-read{color:var(--green)}
+.st-human-verified{color:var(--green)}
 .st-ai-confirmed,.st-reference-resolved,.st-source-vendored{color:var(--blue)}
 .st-needs-research{color:var(--amber)}.st-unverified{color:var(--red)}
 .gwrap{background:var(--card);border:1px solid var(--line);position:relative}
@@ -303,7 +303,7 @@ $("#acts tbody").innerHTML=A.map(a=>{
  <td><b>${esc(a.label)}</b><div class="mono" style="color:var(--dim)">${esc(a.id)}</div></td>
  <td><span class="tag ${a.pass}">${a.pass}</span></td><td class="mono">${esc(a.agent||"—")}</td>
  <td class="mono" style="color:var(--dim)">${esc(tel)||"—"}</td><td>${tok}</td></tr>`}).join("");
-const LADDER=["unverified","needs-research","reference-resolved","ai-confirmed","source-vendored","human-confirmed","human-read"];
+const LADDER=["unverified","needs-research","reference-resolved","ai-confirmed","source-vendored","human-verified"];
 const rc={};D.claims.forEach(c=>rc[c.state]=(rc[c.state]||0)+1);
 const maxR=Math.max(1,...Object.values(rc));
 $("#rungs").innerHTML=LADDER.map(r=>{const n=rc[r]||0;
@@ -403,7 +403,7 @@ $("#glegend").innerHTML=usedKinds.map(k=>{const d=KIND[k]||KIND.activity;
  return `<span><i class="sw" style="background:${d.c}"></i>${d.l||k}</span>`}).join("")+
  EDGE.map(([n,c,s])=>`<span><i class="ln" style="border-color:${c};border-top-style:${s}"></i>${n}</span>`).join("");
 })();
-$("#foot").textContent="Static export of "+D.source+". Human-only rungs (human-confirmed, human-read) can never be granted by an AI agent. AI note: dashboard generated with AI assistance from the graph; verify against provenance.ttl before relying on it.";
+$("#foot").textContent="Static export of "+D.source+". The human-only rung (human-verified) can never be granted by an AI agent. AI note: dashboard generated with AI assistance from the graph; verify against provenance.ttl before relying on it.";
 </script></body></html>"""
 
 

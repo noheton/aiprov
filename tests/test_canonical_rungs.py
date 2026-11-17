@@ -57,7 +57,7 @@ def test_both_forms_are_one_rung(tmp_path):
     assert run(["validate"], tmp_path).returncode == 0
     g = load(tmp_path)
     same = URIRef("http://www.w3.org/2002/07/owl#sameAs")
-    a, b = URIRef(BASE + "verification/human-read"), AIPROV["rung-human-read"]
+    a, b = URIRef(BASE + "verification/human-verified"), AIPROV["rung-human-verified"]
     assert (a, same, b) in g or (b, same, a) in g
 
 

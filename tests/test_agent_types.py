@@ -100,7 +100,7 @@ def test_record_refusals_writes_one_refusal_and_nothing_else(tmp_path):
     assert {s for s, _, _ in new} == {node}
     assert str(next(after.objects(node, AIPROV.refusedStep))) == "claim"
     assert str(next(after.objects(node, AIPROV.refusedTarget))) == "c1"
-    assert str(next(after.objects(node, AIPROV.refusedRung))) == "human-read"
+    assert str(next(after.objects(node, AIPROV.refusedRung))) == "human-verified"
     assert run(["validate"], tmp_path).returncode == 0
     assert "refusals:           1" in run(["report"], tmp_path).stdout
 

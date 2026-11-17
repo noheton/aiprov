@@ -93,3 +93,23 @@ def test_source_refuses_the_legacy_alias_for_an_ai_agent(tmp_path):
     r = run(["source", "--id", "s-alias", "--url", "https://example.org/a", "--state", "lit-read",
              "--agent", "model-x"], tmp_path)
     assert r.returncode != 0 and "human-only" in (r.stdout + r.stderr)
+
+
+def test_human_verified_needs_a_check_depth_and_records_it(tmp_path):
+    graph(tmp_path)
+    run(["agent", "--id", "person-y", "--type", "human", "--name", "P"], tmp_path)
+    run(["claim", "--id", "c-d", "--text", "x", "--parent", "draft-1", "--agent", "model-x"], tmp_path)
+    r = run(["promote", "--id", "c-d", "--to", "human-verified", "--agent", "person-y"], tmp_path)
+    assert r.returncode != 0 and "check-depth" in r.stdout + r.stderr
+    r = run(["promote", "--id", "c-d", "--to", "human-verified", "--agent", "person-y", "--check-depth", "full-read"], tmp_path)
+    assert r.returncode == 0, r.stderr
+    assert "full-read" in (tmp_path / "provenance.ttl").read_text()
+    assert run(["validate"], tmp_path).returncode == 0
+
+
+def test_legacy_rung_name_implies_depth(tmp_path):
+    graph(tmp_path)
+    run(["agent", "--id", "person-y", "--type", "human", "--name", "P"], tmp_path)
+    run(["claim", "--id", "c-l", "--text", "x", "--parent", "draft-1", "--agent", "model-x"], tmp_path)
+    assert run(["promote", "--id", "c-l", "--to", "human-confirmed", "--agent", "person-y"], tmp_path).returncode == 0
+    assert "spot-check" in (tmp_path / "provenance.ttl").read_text()

@@ -1362,7 +1362,7 @@ def validate_graph(g: Graph) -> int:
               ?act a aiprov:AuditPass ; rdfs:label ?l ;
                    prov:wasAssociatedWith ?ag .
               ?ag a aiprov:AIAgent .
-              FILTER(REGEX(STR(?l), "-> (human-confirmed|human-read|lit-read)")) }"""
+              FILTER(REGEX(STR(?l), "-> (human-verified|human-confirmed|human-read|lit-read)")) }"""
     bad = list(g.query(q3))
     print(f"[{'FAIL' if bad else ' OK '}] human-only rungs granted by AI agents: {len(bad)}")
     fail += len(bad)
@@ -1371,7 +1371,7 @@ def validate_graph(g: Graph) -> int:
     # hand-curated graphs, so WARN, not FAIL.
     q3w = """SELECT ?n WHERE {
               ?n aiprov:verificationState ?s .
-              FILTER(REGEX(STR(?s), "(human-confirmed|human-read|lit-read)$"))
+              FILTER(REGEX(STR(?s), "(human-verified|human-confirmed|human-read|lit-read)$"))
               FILTER NOT EXISTS {
                 ?act prov:used ?n ; prov:wasAssociatedWith ?h .
                 ?h a aiprov:HumanAgent . } }"""
@@ -1380,7 +1380,7 @@ def validate_graph(g: Graph) -> int:
           f"human promotion activity: {len(unwit)}")
     q3b = """SELECT ?s ?st WHERE { ?s a aiprov:Source ;
               aiprov:verificationState ?st .
-            FILTER(REGEX(STR(?st), "(retrieved|reference-resolved|ai-confirmed|source-vendored|human-confirmed|human-read|lit-read)$"))
+            FILTER(REGEX(STR(?st), "(retrieved|reference-resolved|ai-confirmed|source-vendored|human-verified|human-confirmed|human-read|lit-read)$"))
             FILTER NOT EXISTS { ?s aiprov:doi ?d }
             FILTER NOT EXISTS { ?s <http://purl.org/dc/terms/source> ?u } }"""
     noref = list(g.query(q3b))
@@ -1433,7 +1433,7 @@ def validate_graph(g: Graph) -> int:
     standin_rungs = list(g.query('''SELECT ?act ?ag WHERE {
               ?act a aiprov:AuditPass ; rdfs:label ?l ; prov:wasAssociatedWith ?ag .
               ?ag a aiprov:RoleStandIn .
-              FILTER(REGEX(STR(?l), "-> (human-confirmed|human-read|lit-read)")) }'''))
+              FILTER(REGEX(STR(?l), "-> (human-verified|human-confirmed|human-read|lit-read)")) }'''))
     print(f"[{'FAIL' if standin_rungs else ' OK '}] human-only rungs granted by role stand-ins: {len(standin_rungs)}")
     fail += len(standin_rungs)
     # Vendored files (issue 10): a stored copy names its path and its hash; a node still at the deprecated rung is reported.
@@ -1794,13 +1794,18 @@ def cmd_report(a) -> None:
 
 
 LADDER = ["unverified", "needs-research", "reference-resolved", "ai-confirmed",
-          "source-vendored", "human-confirmed", "human-read"]
-HUMAN_ONLY = {"human-confirmed", "human-read"}
+          "source-vendored", "human-verified"]
+HUMAN_ONLY = {"human-verified"}
+# Depth implied by a legacy rung name (issue 48); a new grant must state it (--check-depth)
+LEGACY_DEPTH = {"human-confirmed": "spot-check", "human-read": "full-read", "lit-read": "full-read"}
+CHECK_DEPTHS = ("spot-check", "full-read")
 # Legacy rung names normalize to canonical ones (fair2r lit-*; early aiprov)
 RUNG_ALIASES = {"retrieved": "reference-resolved",
                 "lit-retrieved": "reference-resolved",
                 "ai-checked": "ai-confirmed",
-                "lit-read": "human-read"}
+                "human-confirmed": "human-verified",
+                "human-read": "human-verified",
+                "lit-read": "human-verified"}
 
 
 def canon_rung(name: str) -> str:
@@ -2033,7 +2038,13 @@ def cmd_promote(a) -> None:
     cur = "unverified"
     for st in g.objects(node, AIPROV.verificationState):
         cur = rung_name(st)
+    given = a.to
     a.to = canon_rung(a.to)
+    depth = None
+    if a.to in HUMAN_ONLY:
+        depth = getattr(a, "check_depth", None) or LEGACY_DEPTH.get(given)
+        if depth not in CHECK_DEPTHS:
+            sys.exit(f"promotion to {a.to} needs --check-depth {'|'.join(CHECK_DEPTHS)} (issue 48): no depth is recorded silently")
     if a.to not in LADDER:
         sys.exit(f"unknown rung '{a.to}'; ladder: {' -> '.join(LADDER)}")
     if a.to == "source-vendored":
@@ -2059,6 +2070,8 @@ def cmd_promote(a) -> None:
     g.add((act, PROV.endedAtTime, now()))
     g.add((act, PROV.used, node))
     g.add((act, PROV.wasAssociatedWith, agent))
+    if depth:
+        g.add((act, AIPROV.checkDepth, Literal(depth)))
     save(g)
     print(f"{a.id}: {cur} -> {a.to} (logged as AuditPass, agent:{a.agent})")
 
@@ -2380,6 +2393,8 @@ def main() -> None:
     s.add_argument("--to", required=True, help="target rung")
     s.add_argument("--agent", required=True)
     s.add_argument("--note")
+    s.add_argument("--check-depth", dest="check_depth", choices=CHECK_DEPTHS,
+                   help="how thoroughly the human checked; required for human-verified unless a legacy rung name implies it")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 
