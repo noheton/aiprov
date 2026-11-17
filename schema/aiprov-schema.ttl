@@ -259,6 +259,21 @@ aiprov:contentHash      a owl:DatatypeProperty ; rdfs:range xsd:string ;
 aiprov:gitCommit        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Commit hash binding the entity to repository state."@en .
 aiprov:filePath         a owl:DatatypeProperty ; rdfs:range xsd:string .
+aiprov:Check            a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:comment "One question about one claim and one section of one source: what a human was asked and answered (issue 5). The quote shown is not stored, only its hash."@en .
+aiprov:checksClaim      a owl:ObjectProperty ; rdfs:domain aiprov:Check ; rdfs:range aiprov:Claim .
+aiprov:checksSource     a owl:ObjectProperty ; rdfs:domain aiprov:Check ; rdfs:range aiprov:Source .
+aiprov:locator          a owl:DatatypeProperty ; rdfs:domain aiprov:Check ; rdfs:range xsd:string ;
+    rdfs:comment "Section, page or paragraph of the source."@en .
+aiprov:excerptHash      a owl:DatatypeProperty ; rdfs:domain aiprov:Check ; rdfs:range xsd:string ;
+    rdfs:comment "sha256 of the exact quote that was shown; the quote is not stored."@en .
+aiprov:question         a owl:DatatypeProperty ; rdfs:domain aiprov:Check ; rdfs:range xsd:string .
+aiprov:answer           a owl:DatatypeProperty ; rdfs:domain aiprov:Check ; rdfs:range xsd:string ;
+    rdfs:comment "unanswered, yes, partly or no. Set only by a human agent."@en .
+aiprov:answeredBy       a owl:ObjectProperty ; rdfs:domain aiprov:Check ; rdfs:range aiprov:HumanAgent .
+aiprov:answeredAt       a owl:DatatypeProperty ; rdfs:domain aiprov:Check ; rdfs:range xsd:dateTime .
+aiprov:slice            a owl:ObjectProperty ; rdfs:domain aiprov:Check ;
+    rdfs:comment "The issue or document in which the questions were put."@en .
 aiprov:vendoredFile     a owl:ObjectProperty ; rdfs:domain aiprov:Source ; rdfs:range prov:Entity ;
     rdfs:comment "The stored copy of a source: an entity with aiprov:filePath and aiprov:contentHash (sha256). Says that these bytes were kept, not who checked what; the rung of the source is independent of it (issue 10)."@en .
 aiprov:vendoredAt       a owl:DatatypeProperty ; rdfs:domain aiprov:Source ; rdfs:range xsd:dateTime ;
