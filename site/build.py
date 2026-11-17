@@ -49,7 +49,7 @@ SCENARIO = [
          "--agent", "model-x", "--state", "ai-confirmed"], 0),
     (3, ["claim", "--id", "c-tests", "--text", "All public functions are tested.", "--parent", "draft-report",
          "--agent", "model-x", "--state", "unverified"], 0),
-    (4, ["promote", "--id", "c-speed", "--to", "human-confirmed", "--agent", "alice",
+    (4, ["promote", "--id", "c-speed", "--to", "human-verified", "--check-depth", "full-read", "--agent", "alice",
          "--note", "Re-ran the benchmark myself"], 0),
     (5, ["claim", "--id", "c-tests", "--text", "All public functions are tested.", "--parent", "draft-report",
          "--agent", "model-x", *HUMAN_READ], 1),
@@ -60,7 +60,7 @@ SCENARIO = [
 LAYOUT = {
     "agent/alice": (115, 105),
     "agent/model-x": (115, 325),
-    "activity/promote-c-speed-human-confirmed": (455, 105),
+    "activity/promote-c-speed-human-verified": (455, 105),
     "activity/draft-report": (455, 325),
     "source/notes-md": (455, 480),
     "claim/c-speed": (835, 165),
@@ -76,7 +76,7 @@ FILL = {
 }
 STATE_COLOUR = {
     "unverified": "#8a96a3", "needs-research": "#b0773a", "reference-resolved": "#5b8bd0",
-    "ai-confirmed": "#2b86c5", "source-vendored": "#3c7fa0", "human-confirmed": "#2e9e6a", "human-read": "#1d7a4f",
+    "ai-confirmed": "#2b86c5", "source-vendored": "#3c7fa0", "human-verified": "#2e9e6a", "human-read": "#1d7a4f",
 }
 LABEL_AT = {"wasGeneratedBy": 0.42}
 SVG_STYLE = (
@@ -182,7 +182,7 @@ def draw(g: rdflib.Graph) -> str:
             kind = "AuthoringPass" if AIPROV.AuthoringPass in types else "AuditPass"
             tokens = g.value(s, AIPROV.totalTokens)
             if kind == "AuditPass":
-                title, sub = "promotion of c-speed", "AuditPass, human-confirmed"
+                title, sub = "promotion of c-speed", "AuditPass, human-verified"
             else:
                 title, sub = key.split("/", 1)[1], f"AuthoringPass, {int(tokens):,} tokens" if tokens else "AuthoringPass"
             nodes.append(node_svg("activity", cx, cy, title, sub, str(g.value(s, RDFS.label) or title)))
@@ -244,7 +244,7 @@ def draw(g: rdflib.Graph) -> str:
                   f'<text x="{(hx0 + hx1) / 2:.1f}" y="{ly0 - 20}" text-anchor="middle" class="hl">humans only</text>'
                   f'<circle cx="{hx1 - 12:.1f}" cy="{ly0 - 26}" r="13" class="mk"/>'
                   f'<text x="{hx1 - 12:.1f}" y="{ly0 - 21}" text-anchor="middle" class="mkt">5</text>')
-    a3, a5, a0 = centres["ai-confirmed"], centres["human-confirmed"], centres["unverified"]
+    a3, a5, a0 = centres["ai-confirmed"], centres["human-verified"], centres["unverified"]
     ladder.append(f'<path d="M{a3:.1f},{ly0 + 44} C{a3:.1f},{ly0 + 80} {a5:.1f},{ly0 + 80} {a5:.1f},{ly0 + 46}" class="pp" marker-end="url(#arrg)"/>'
                   f'<text x="{(a3 + a5) / 2:.1f}" y="{ly0 + 92}" text-anchor="middle" class="pt">c-speed, promoted by Alice (4)</text>'
                   f'<text x="{a0:.1f}" y="{ly0 + 62}" text-anchor="middle" class="pt">c-tests stays here</text>')

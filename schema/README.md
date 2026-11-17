@@ -8,7 +8,7 @@ for artefacts produced with AI in the loop.
 - Classes: `AIAgent`, `HumanAgent`, `ToolAgent` (agents); `AuthoringPass`, `AuditPass`,
   `Build`, `Repair` (activities); `Artefact`, `Claim`, `Source`, `Prompt` (entities);
   `VerificationState` with `ladderPosition`.
-- Invariants: no parentless claim; the rungs `human-confirmed` and `human-read` may only be
+- Invariants: no parentless claim; the rungs `human-verified` may only be
   granted by a `HumanAgent`.
 - Attribute catalogue with provider-API mappings: [`../docs/attributes.md`](../docs/attributes.md).
 

@@ -9,7 +9,7 @@ migration script.
 - Every schema change, additive ones too, adds one migration step to `MIGRATION_STEPS` in `provlog.py` (it may be a no-op) and, at each release, the fixture graph of the previous version in `tests/fixtures/versions/`. `tests/test_migrate.py` migrates every fixture there and validates the result.
 - Every PR runs the tests; a schema change adds or updates a fixture.
 - The repository logs its own AI-assisted work in `provenance.ttl` (`provlog log …`); please do the
-  same for AI-assisted contributions, and never grant `human-confirmed`/`human-read` from an AI agent.
+  same for AI-assisted contributions, and never grant `human-verified` from an AI agent.
 - By contributing you agree to the MIT licence.
 
 AI agents and humans working with AI follow `AGENTS.md`: the session is logged in `provenance.ttl`, and CI validates the

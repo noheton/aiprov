@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Breaking (issue 48): the rungs `human-confirmed` and `human-read` are merged into one human-only rung `human-verified` (position 5). The old names and `lit-read` stay accepted as aliases. A new promotion to the rung records `aiprov:checkDepth` (`spot-check` or `full-read`), given with `promote --check-depth`; it is required, a legacy rung name implies it (human-confirmed: spot-check, human-read and lit-read: full-read). Needs a minor bump with a migration note; existing graphs keep reading.
+
 ## 0.1.0 — 2026-10-23
 Archived on Zenodo: 10.5281/zenodo.23651334 (concept 10.5281/zenodo.23651333).
 First packaged release. Content identical to the aiprov skill bundle generalised from F(AI)²R:

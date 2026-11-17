@@ -301,15 +301,14 @@ verif:source-vendored a aiprov:VerificationState ; aiprov:ladderPosition 4 ;
     rdfs:label "source vendored"@en ;
     rdfs:comment "A copy of the source is preserved inside the repository, immune to link rot; the vendored bytes are what any later audit reads. Deprecated since 0.3.0 (issue 10): record vendoring with aiprov:vendoredFile, independent of the rung; kept so that older graphs can be read."@en ;
     owl:deprecated true .
-verif:human-confirmed a aiprov:VerificationState ; aiprov:ladderPosition 5 ;
-    rdfs:label "human-confirmed"@en ;
-    rdfs:comment "A HUMAN checked that the source supports the claim (targeted spot-check, not necessarily a full read). Human-only: an AI agent must never grant this rung."@en .
-verif:human-read      a aiprov:VerificationState ; aiprov:ladderPosition 6 ;
-    rdfs:label "human-read"@en ;
-    skos:altLabel "lit-read"@en ;
-    rdfs:comment "A HUMAN has read the source in full. Top of the ladder; consolidates the former lit-read rung. Human-only: an AI agent must never grant this rung."@en .
+verif:human-verified  a aiprov:VerificationState ; aiprov:ladderPosition 5 ;
+    rdfs:label "human-verified"@en ;
+    skos:altLabel "human-confirmed"@en, "human-read"@en, "lit-read"@en ;
+    rdfs:comment "A registered HUMAN checked that the source supports the claim. How thoroughly is recorded on the promotion as aiprov:checkDepth (spot-check or full-read). Replaces the former rungs human-confirmed and human-read (issue 48). Human-only: an AI agent must never grant this rung."@en .
+aiprov:checkDepth     a owl:DatatypeProperty ; rdfs:domain aiprov:AuditPass ; rdfs:range xsd:string ;
+    rdfs:comment "Depth of a human check on a promotion to human-verified: spot-check or full-read. Required on every new promotion to that rung; legacy rung names imply it (human-confirmed: spot-check, human-read and lit-read: full-read)."@en .
 
-# --- Canonical rung IRIs (issue 11): the same seven rungs in the vocabulary namespace, independent of the project base.
+# --- Canonical rung IRIs (issue 11): the same rungs in the vocabulary namespace, independent of the project base.
 aiprov:canonicalRungs   a owl:DatatypeProperty ; rdfs:range xsd:boolean ;
     rdfs:comment "True on a graph whose new records use the canonical rung IRIs (aiprov:rung-<name>) instead of <base>verification/<name>. Opt-in until the next minor release; both forms mean the same rung (owl:sameAs)."@en .
 aiprov:rung-unverified a aiprov:VerificationState ; aiprov:ladderPosition 0 ; rdfs:label "unverified"@en ; owl:sameAs verif:unverified .
@@ -317,8 +316,7 @@ aiprov:rung-needs-research a aiprov:VerificationState ; aiprov:ladderPosition 1 
 aiprov:rung-reference-resolved a aiprov:VerificationState ; aiprov:ladderPosition 2 ; rdfs:label "reference-resolved"@en ; owl:sameAs verif:reference-resolved .
 aiprov:rung-ai-confirmed a aiprov:VerificationState ; aiprov:ladderPosition 3 ; rdfs:label "ai-confirmed"@en ; owl:sameAs verif:ai-confirmed .
 aiprov:rung-source-vendored a aiprov:VerificationState ; aiprov:ladderPosition 4 ; rdfs:label "source-vendored"@en ; owl:sameAs verif:source-vendored .
-aiprov:rung-human-confirmed a aiprov:VerificationState ; aiprov:ladderPosition 5 ; rdfs:label "human-confirmed"@en ; owl:sameAs verif:human-confirmed .
-aiprov:rung-human-read a aiprov:VerificationState ; aiprov:ladderPosition 6 ; rdfs:label "human-read"@en ; owl:sameAs verif:human-read .
+aiprov:rung-human-verified a aiprov:VerificationState ; aiprov:ladderPosition 5 ; rdfs:label "human-verified"@en ; owl:sameAs verif:human-verified .
 
 aiprov:contradicts    a owl:ObjectProperty ;
     rdfs:domain aiprov:Claim ; rdfs:range aiprov:Claim .

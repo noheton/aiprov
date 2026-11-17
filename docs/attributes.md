@@ -101,12 +101,11 @@ and write, so fair2r graphs consolidate onto this ladder automatically.
 | 2 | reference-resolved | The reference EXISTS: DOI/URL resolved in a registry, metadata captured. Says nothing about content. | retrieved, lit-retrieved |
 | 3 | ai-confirmed | An AI checked the source CONTENT supports the claim. Highest rung an AI may grant. | ai-checked |
 | 4 | source-vendored | Deprecated since 0.3.0 (issue 10): record the stored copy with `aiprov:vendoredFile` instead; kept for reading older graphs | — |
-| 5 | human-confirmed | A HUMAN spot-checked that the source supports the claim. Human-only. | — |
-| 6 | human-read | A HUMAN read the source in full. Top of the ladder. Human-only. | lit-read |
+| 5 | human-verified | A registered HUMAN checked that the source supports the claim; depth is recorded on the promotion as `aiprov:checkDepth` (`spot-check` or `full-read`). Human-only. | human-confirmed, human-read, lit-read |
 
 The offence the validator hunts is who GRANTED a rung, not who authored the
-claim: an AI-authored claim may legitimately sit at human-read if a human
-promoted it. Promotion activities by AI agents to rungs 5-6 are hard
+claim: an AI-authored claim may legitimately sit at human-verified if a human
+promoted it. Promotion activities by AI agents to rung 5 are hard
 failures; human-only rungs without any recorded human promotion activity
 are warnings (legitimate in legacy or hand-curated graphs).
 
