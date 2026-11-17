@@ -753,6 +753,9 @@ def _add_premises(g: Graph, a, c) -> None:
                  f'a composite claim cannot rank higher than its premises allow')
 
 
+REASON_SOURCES = ("owner-stated", "agent-stated", "derived")
+
+
 def cmd_claim(a) -> None:
     g = load()
     a.state = _clean_state(a.state)
@@ -765,6 +768,15 @@ def cmd_claim(a) -> None:
     g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
     g.add((c, AIPROV.verificationState, _rung_iri(g, a.base, a.state)))
     _add_premises(g, a, c)
+    rf, rs = getattr(a, "reason_for", None), getattr(a, "reason_source", None)
+    if rf or rs:
+        if not (rf and rs):
+            sys.exit("--reason-for and --reason-source go together")
+        act = ns(a.base, "activity")[rf]
+        if (act, None, None) not in g:
+            sys.exit(f"--reason-for: activity {rf} is not in the graph")
+        g.add((c, AIPROV.reasonSource, Literal(rs)))
+        g.add((act, PROV.wasInfluencedBy, c))
     save(g)
     print(f"claim:{a.id} added (state {a.state})")
 
@@ -1446,6 +1458,12 @@ def validate_graph(g: Graph) -> int:
     oldrung = [(n_,) for n_, st_ in g.subject_objects(AIPROV.verificationState)
                if rung_name(st_) == "source-vendored"]
     print(f"[{'WARN' if oldrung else ' OK '}] nodes at the deprecated rung source-vendored (run `provlog migrate`): {len(oldrung)}")
+    badreason = []
+    for act_, c_ in sorted(g.subject_objects(PROV.wasInfluencedBy), key=lambda t: (str(t[0]), str(t[1]))):
+        if (c_, RDF.type, AIPROV.Claim) in g and str(g.value(c_, AIPROV.reasonSource) or "") not in REASON_SOURCES:
+            badreason.append((f"{c_}: reason of {act_} lacks a valid reasonSource",))
+    print(f"[{'FAIL' if badreason else ' OK '}] reason claims without a valid reasonSource: {len(badreason)}")
+    fail += len(badreason)
     badomit = []
     for n_, v_ in sorted(g.subject_objects(AIPROV.omittedCount), key=lambda t: (str(t[0]), str(t[1]))):
         if not (isinstance(v_, Literal) and v_.datatype == XSD.integer and isinstance(v_.toPython(), int)
@@ -1640,7 +1658,8 @@ def validate_graph(g: Graph) -> int:
                        ("human-only rung granted by a role stand-in", standin_rungs),
                        ("omitted count that is not a non-negative integer", badomit),
                        ("vendored file without path or hash", badvend),
-                       ("node at the deprecated rung source-vendored", oldrung)):
+                       ("node at the deprecated rung source-vendored", oldrung),
+                       ("reason claim without a valid reasonSource", badreason)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
     return fail
@@ -2300,6 +2319,8 @@ def main() -> None:
                    help="id of a claim this claim rests on (repeatable; makes the claim composite)")
     s.add_argument("--composition", metavar="all|any|atleast:N",
                    help="how the premises combine: all (AND, default), any (OR), atleast:N (k of n)")
+    s.add_argument("--reason-for", dest="reason_for", metavar="ACTIVITY", help="the claim is the stated reason of this activity (prov:wasInfluencedBy)")
+    s.add_argument("--reason-source", dest="reason_source", choices=REASON_SOURCES, help="where the reason comes from; required with --reason-for")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
 

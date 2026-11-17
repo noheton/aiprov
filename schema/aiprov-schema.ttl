@@ -259,6 +259,8 @@ aiprov:contentHash      a owl:DatatypeProperty ; rdfs:range xsd:string ;
 aiprov:gitCommit        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Commit hash binding the entity to repository state."@en .
 aiprov:filePath         a owl:DatatypeProperty ; rdfs:range xsd:string .
+aiprov:reasonSource     a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:string ;
+    rdfs:comment "Where the stated reason of an activity comes from: owner-stated, agent-stated (a post-hoc self-report, not a measurement of the internal cause) or derived (from rules or files). Required on a claim that an activity prov:wasInfluencedBy (issue 51)."@en .
 aiprov:vendoredFile     a owl:ObjectProperty ; rdfs:domain aiprov:Source ; rdfs:range prov:Entity ;
     rdfs:comment "The stored copy of a source: an entity with aiprov:filePath and aiprov:contentHash (sha256). Says that these bytes were kept, not who checked what; the rung of the source is independent of it (issue 10)."@en .
 aiprov:vendoredAt       a owl:DatatypeProperty ; rdfs:domain aiprov:Source ; rdfs:range xsd:dateTime ;
