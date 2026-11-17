@@ -93,6 +93,8 @@ def cmd_init(a) -> None:
     GRAPH.write_text(text, encoding="utf-8")
     g = load()  # parse check
     stamp_version(g, a.base, SCHEMA_VERSION)
+    if getattr(a, "canonical_rungs", False):
+        _set_canonical(g, a.base)
     save(g)
     print(f"Seeded {GRAPH} ({len(g)} triples, base {a.base}, schema {SCHEMA_VERSION})")
 
@@ -667,7 +669,7 @@ def _parse_composition(value: str) -> tuple[str, int]:
 
 def _own_rank(g: Graph, c) -> int:
     '''Ladder position of the state a claim is stated at; REFUTED for contested.'''
-    names = [canon_rung(str(s).rsplit('/', 1)[-1]) for s in g.objects(c, AIPROV.verificationState)]
+    names = [rung_name(s) for s in g.objects(c, AIPROV.verificationState)]
     if 'contested' in names:
         return REFUTED
     return max([LADDER.index(n) for n in names if n in LADDER], default=0)
@@ -761,7 +763,7 @@ def cmd_claim(a) -> None:
     g.add((c, RDFS.label, Literal(a.text, lang="en")))
     g.add((c, PROV.wasGeneratedBy, ns(a.base, "activity")[a.parent]))
     g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
-    g.add((c, AIPROV.verificationState, ns(a.base, "verification")[a.state]))
+    g.add((c, AIPROV.verificationState, _rung_iri(g, a.base, a.state)))
     _add_premises(g, a, c)
     save(g)
     print(f"claim:{a.id} added (state {a.state})")
@@ -1234,7 +1236,7 @@ def _step_vendored_property(g: Graph) -> int:
     deprecated = sum(_deprecate(g, n) for n in rungs)
     pos = LADDER.index("source-vendored")
     for node in sorted({n for n, st in g.subject_objects(AIPROV.verificationState)
-                        if str(st).rsplit("/", 1)[-1] == "source-vendored"}, key=str):
+                        if rung_name(st) == "source-vendored"}, key=str):
         base = str(next(iter(g.objects(node, AIPROV.verificationState)))).rsplit("verification/", 1)[0]
         best = -1
         for act in g.subjects(PROV.used, node):
@@ -1307,6 +1309,8 @@ def cmd_migrate(a) -> None:
         for t in _vocabulary(a.base):
             g.add(t)
     stamp_version(g, a.base, to)
+    if getattr(a, "canonical_rungs", False):
+        _set_canonical(g, a.base)
     after = set(g)
     added, removed = after - before, before - after
     if not added and not removed:
@@ -1440,7 +1444,7 @@ def validate_graph(g: Graph) -> int:
     print(f"[{'FAIL' if badvend else ' OK '}] vendored files without path or hash: {len(badvend)}")
     fail += len(badvend)
     oldrung = [(n_,) for n_, st_ in g.subject_objects(AIPROV.verificationState)
-               if str(st_).rsplit("/", 1)[-1] == "source-vendored"]
+               if rung_name(st_) == "source-vendored"]
     print(f"[{'WARN' if oldrung else ' OK '}] nodes at the deprecated rung source-vendored (run `provlog migrate`): {len(oldrung)}")
     badomit = []
     for n_, v_ in sorted(g.subject_objects(AIPROV.omittedCount), key=lambda t: (str(t[0]), str(t[1]))):
@@ -1698,7 +1702,7 @@ def cmd_report(a) -> None:
             ?c a aiprov:Claim ; aiprov:verificationState ?s } GROUP BY ?s"""
     agg = {}
     for st, n in g.query(q):
-        r = canon_rung(str(st).rsplit("/", 1)[-1])
+        r = rung_name(st)
         agg[r] = agg.get(r, 0) + int(n)
     order = lambda r: LADDER.index(r) if r in LADDER else 99
     for r in sorted(agg, key=order):
@@ -1803,6 +1807,25 @@ def canon_rung(name: str) -> str:
     return RUNG_ALIASES.get(name, name)
 
 
+def rung_name(node) -> str:
+    """The rung a state IRI stands for, in either form: <base>verification/<name> or aiprov:rung-<name> (issue 11)."""
+    t = str(node)
+    return canon_rung(t.rsplit("#rung-", 1)[-1] if "#rung-" in t else t.rsplit("/", 1)[-1])
+
+
+def _canonical(g: Graph) -> bool:
+    return (None, AIPROV.canonicalRungs, Literal(True)) in g
+
+
+def _rung_iri(g: Graph, base: str, state: str):
+    return AIPROV["rung-" + state] if _canonical(g) else ns(base, "verification")[state]
+
+
+def _set_canonical(g: Graph, base: str) -> None:
+    node = next(iter(g.subjects(AIPROV.schemaVersion, None)), URIRef(base + "graph"))
+    g.add((node, AIPROV.canonicalRungs, Literal(True)))
+
+
 def _fetch_doi(doi: str) -> dict | None:
     """Resolve a DOI via Crossref, falling back to OpenAlex. Open APIs, no key."""
     import json as _json
@@ -1835,7 +1858,7 @@ def _set_state(g: Graph, base: str, node, state: str) -> None:
     state = canon_rung(state)
     for old in list(g.objects(node, AIPROV.verificationState)):
         g.remove((node, AIPROV.verificationState, old))
-    g.add((node, AIPROV.verificationState, ns(base, "verification")[state]))
+    g.add((node, AIPROV.verificationState, _rung_iri(g, base, state)))
 
 
 def _http_json(url: str):
@@ -2009,7 +2032,7 @@ def cmd_promote(a) -> None:
         sys.exit(f"no source or claim with id '{a.id}' in graph")
     cur = "unverified"
     for st in g.objects(node, AIPROV.verificationState):
-        cur = canon_rung(str(st).rsplit("/", 1)[-1])
+        cur = rung_name(st)
     a.to = canon_rung(a.to)
     if a.to not in LADDER:
         sys.exit(f"unknown rung '{a.to}'; ladder: {' -> '.join(LADDER)}")
@@ -2041,7 +2064,7 @@ def cmd_promote(a) -> None:
 
 
 def _rung_rank(state) -> int:
-    name = canon_rung(str(state).rsplit("/", 1)[-1])
+    name = rung_name(state)
     return LADDER.index(name) if name in LADDER else -1
 
 
@@ -2188,6 +2211,7 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("init"); s.add_argument("--force", action="store_true")
+    s.add_argument("--canonical-rungs", dest="canonical_rungs", action="store_true", help="new records use the canonical rung IRIs of the vocabulary (issue 11)")
 
     s = sub.add_parser("agent")
     s.add_argument("--id", required=True); s.add_argument("--type", choices=["ai", "human", "tool", "role"], required=True)
@@ -2327,6 +2351,7 @@ def main() -> None:
     s.add_argument("--dry-run", action="store_true", help="print what would change; write nothing")
     s.add_argument("--to", metavar="VERSION", help=f"target version (default {SCHEMA_VERSION})")
     s.add_argument("--agent", help="registered agent that ran the migration")
+    s.add_argument("--canonical-rungs", dest="canonical_rungs", action="store_true", help="new records use the canonical rung IRIs; existing records keep theirs (issue 11)")
 
     s = sub.add_parser("merge", help="union shard graphs into the main graph")
     s.add_argument("--from", dest="from_", nargs="+", required=True, metavar="SHARD.ttl")

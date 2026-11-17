@@ -109,8 +109,8 @@ def extract(path: pathlib.Path) -> dict:
             "parent": local(g.value(s, PROV.wasGeneratedBy) or ""),
             "agent": local(g.value(s, PROV.wasAttributedTo) or ""),
             "state": RUNG_ALIASES.get(
-                (lambda x: x)(local(val(s, "verificationState") or "unverified")),
-                local(val(s, "verificationState") or "unverified"))})
+                (lambda x: x)(local(val(s, "verificationState") or "unverified").removeprefix("rung-")),
+                local(val(s, "verificationState") or "unverified").removeprefix("rung-"))})
     claims.sort(key=lambda c: c["id"])
     refusals = []
     for s in subjects_of("Refusal"):
