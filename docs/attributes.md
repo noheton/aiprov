@@ -209,3 +209,12 @@ each.
 **Disclosure.** A bare content hash of a small or guessable file can be confirmed by anyone who can guess the content, so
 the hash of restricted material is itself a weak disclosure. `--external-hash` is optional; whether to publish it is for the
 owner of the restricted graph to decide.
+
+## Reasons of activities
+
+A reason for an activity is its own claim: `provlog claim --parent <activity> --reason-source owner-stated|agent-stated|derived [--reason-ref ID]`. The claim is linked to the activity by `prov:wasInfluencedBy`, starts at the rung given by `--state` (default `unverified`) and goes through the normal ladder.
+
+- `aiprov:reasonSource` is **self-declared**, not verified: `owner-stated` does not mean the owner confirmed it. An agent-stated reason is a post-hoc account, not a measurement of the internal cause.
+- `aiprov:reasonRef` names the issue, commit or transcript the reason relies on, instead of copying chat content into the graph. `owner-stated` on a claim by an AI agent needs `--reason-ref`.
+- `validate` fails when a claim that influences an activity has no valid `reasonSource`.
+- Meaning between claims (equivalence, supports) is not part of this change.
