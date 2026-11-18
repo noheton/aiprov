@@ -86,6 +86,25 @@ than k remain (effective rung `refuted`). Human-only rungs stay human-only; the 
 `claim` and `promote` refuse a rung above the effective rung. `validate` fails on a premise that is not a claim, a cycle and
 `minPremises` above the number of premises; it warns on a composite without premises and on a claim stated above its effective
 rung (for example premises added to an already promoted claim). `report` shows own and effective rung and the limiting premises.
+## Novelty claims (`aiprov:claimKind`, `aiprov:DelimitationRecord`)
+A claim may carry `aiprov:claimKind` (open vocabulary, for example `novelty`, `empirical`, `definitional`,
+`methodological`); it is a plain annotation, not a rung. A claim of kind `novelty` rests on an absence ("no prior work
+does X"), so its evidence is the search, recorded with `provlog delimitation`:
+
+| Property | Meaning |
+|---|---|
+| aiprov:delimits | the novelty claim the record belongs to |
+| aiprov:searchProtocol | → `aiprov:SearchProtocol` with `searchQuery`, `searchSource`, `searchedOn` (date), `resultSetHash` (sha256 of the reviewed result set) |
+| aiprov:nearestWorks | → `aiprov:NearestWork` with `workRef` (DOI or reference) and `difference` (one line on what differs) |
+| aiprov:similarityHint | optional embedding model and version; exploratory, never an input to a rung |
+
+Two states, no scale: a novelty claim is *delimitation documented* when a record exists and *not documented*
+otherwise. `validate` and `report` print the counts. A novelty claim at `ai-confirmed` or above needs a record
+(`validate` fails without one). The schema has no numeric novelty or originality attribute, and `validate` fails one.
+
+**Limitation.** A record shows that a search was made and against what; it does not show that the claim is new.
+Coverage is incomplete (databases, languages, grey literature, work not yet published), and an embedding similarity is
+not a measure of originality.
 
 ## Verification ladder
 
@@ -209,3 +228,12 @@ each.
 **Disclosure.** A bare content hash of a small or guessable file can be confirmed by anyone who can guess the content, so
 the hash of restricted material is itself a weak disclosure. `--external-hash` is optional; whether to publish it is for the
 owner of the restricted graph to decide.
+
+## Reasons of activities
+
+A reason for an activity is its own claim: `provlog claim --parent <activity> --reason-source owner-stated|agent-stated|derived [--reason-ref ID]`. The claim is linked to the activity by `prov:wasInfluencedBy`, starts at the rung given by `--state` (default `unverified`) and goes through the normal ladder.
+
+- `aiprov:reasonSource` is **self-declared**, not verified: `owner-stated` does not mean the owner confirmed it. An agent-stated reason is a post-hoc account, not a measurement of the internal cause.
+- `aiprov:reasonRef` names the issue, commit or transcript the reason relies on, instead of copying chat content into the graph. `owner-stated` on a claim by an AI agent needs `--reason-ref`.
+- `validate` fails when a claim that influences an activity has no valid `reasonSource`.
+- Meaning between claims (equivalence, supports) is not part of this change.
