@@ -472,6 +472,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-external-references-validate-37>,
         <https://w3id.org/aiprov/prov/activity/2026-11-07-rebase-external-references-37>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-version-commit-25>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps-review>,
         <https://w3id.org/aiprov/prov/activity/merge-command>,
@@ -501,9 +502,11 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:b02de20685965f88435160b13cf93187d6433c09a55a1bdf5ef2435108327248",
         "sha256:e59174e4c293d5cfc9a073f8f7a07297eb30e1bb377b0b789d81c8411a052a7b",
         "sha256:f6379d80b29bac6c8d553aa5c853087fc903251eae22073961ca062a318cf959",
-        "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a" ;
+        "sha256:f68f23173a5b734160b49ebd12caca7d6db2c5c8c548cdb1414b88ef7fa3246a",
+        "sha256:fc18214ea43a8fd1b7c6014bab3c8a711060135a120d23f54a9eee0d6050929c" ;
     aiprov:filePath "CHANGELOG.md" ;
-    aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
+    aiprov:gitCommit "00c7f1a",
+        "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "1562fed",
         "1ddf1a3",
@@ -620,6 +623,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-canonical-rungs-11>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-version-commit-25>,
         <https://w3id.org/aiprov/prov/activity/orchestration-extension>,
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:16854fccbdb489f9ebb3403cc562ad8aea5018bf23ee4d00814a25b998479366",
@@ -640,10 +644,12 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:c529738145a2299b23ab824a8bdd45b2efc58e4712fdb139a197660b77e60a8e",
         "sha256:c5b84a596e0fd81ff2b976b54f868805fadef11c006b5ff5af0d18c8f4f4a15f",
         "sha256:ec131abe68a739f336203984bf2a0a432cd1b1d13e9403a3b081418318fc0806",
+        "sha256:ef2c59cff064708b75e44834ced2a6c0b564ab3105bba06f27054df62dfe3e85",
         "sha256:fb701d0984b0f38dc20b8ae355d87e5a28a6170b8e509c535cc30340a4401f55" ;
     aiprov:filePath "schema/aiprov-schema.ttl",
         "src/aiprov/aiprov-schema.ttl" ;
-    aiprov:gitCommit "090fc8a",
+    aiprov:gitCommit "00c7f1a",
+        "090fc8a",
         "3a88ea441dea512e278215e48b6ec15bb4c8f88c",
         "545e24ed12f5fdc9ed7840c8880f03fbc34b4429",
         "56c0fcb",
@@ -858,7 +864,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/2026-11-10-role-standin-omitted-count>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-canonical-rungs-11>,
         <https://w3id.org/aiprov/prov/activity/2026-11-17-vendored-property-10>,
-
+        <https://w3id.org/aiprov/prov/activity/2026-11-17-version-commit-25>,
         <https://w3id.org/aiprov/prov/activity/2026-11-05-delimitation-limitation-16>,
         <https://w3id.org/aiprov/prov/activity/fix-extract-dashboard-import>,
         <https://w3id.org/aiprov/prov/activity/fix-human-only-steps>,
@@ -870,6 +876,7 @@ aiprov:verificationState a owl:ObjectProperty ;
         <https://w3id.org/aiprov/prov/activity/work-span-vs-record-time> ;
     aiprov:contentHash "sha256:053d812409063d971f28810ab238c232c509f4723a322a36ca51d62eeeff30df",
         "sha256:11faa29af4e7625f19cbb7ac4ad0f5773c267d1a49fc769e8b6977d849daa3f8",
+        "sha256:179608b0eede8947d1fd5f042d73f8f7301fd44fe9ef7da209709958f82a5876",
         "sha256:18478084d855cdc53c59b6d072cf4f83dcf315c16fa5e1107a3e5cad0915ebd4",
         "sha256:37fdbaed9a06ffbab67e337b84e02d948341a775db069d2f7a5ed6df47da9c74",
         "sha256:4a44840b70ebe1c0fc646dd5d6818a4b942c0ae1162d9c91e9130cf87b7035bf",
@@ -898,7 +905,8 @@ aiprov:verificationState a owl:ObjectProperty ;
         "sha256:eaba3d06f512a97df424a233522944bfe0751eba86e83d0f632fafec08d38ba6",
         "sha256:f7550aa453f935bab37df94449cdce612785d29ed346b01224ad6475e3758a2f" ;
     aiprov:filePath "src/aiprov/provlog.py" ;
-    aiprov:gitCommit "04918ce298b60d3286e7f2348b92648f811d2560",
+    aiprov:gitCommit "00c7f1a",
+        "04918ce298b60d3286e7f2348b92648f811d2560",
         "07d9604",
         "090fc8a",
         "1562fed",
@@ -1134,6 +1142,13 @@ aiprov:verificationState a owl:ObjectProperty ;
     aiprov:filePath "tests/test_vendored_property.py" ;
     aiprov:gitCommit "fbddc41" .
 
+<https://w3id.org/aiprov/prov/entity/test_version_commit-py> a aiprov:Artefact ;
+    prov:wasAttributedTo agent:claude-sonnet-5-5 ;
+    prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-11-17-version-commit-25> ;
+    aiprov:contentHash "sha256:c6e15037c3d6e7c9f7df1d7de167e452f0ee2a1181d2c2a869cc8edbeeab6084" ;
+    aiprov:filePath "tests/test_version_commit.py" ;
+    aiprov:gitCommit "00c7f1a" .
+
 <https://w3id.org/aiprov/prov/entity/unregistered-agent-ttl> a aiprov:Artefact ;
     prov:wasAttributedTo agent:claude-opus-5-5 ;
     prov:wasGeneratedBy <https://w3id.org/aiprov/prov/activity/2026-10-30-fix-21-unregistered-agents> ;
@@ -1335,6 +1350,12 @@ aiprov:Contribution a owl:Class ;
     prov:endedAtTime "2026-11-05T04:08:10.826846+01:00"^^xsd:dateTime ;
     prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
     aiprov:recordedAtTime "2026-11-05T04:08:10.826882+01:00"^^xsd:dateTime .
+
+<https://w3id.org/aiprov/prov/activity/2026-11-17-version-commit-25> a aiprov:AuthoringPass ;
+    rdfs:label "provlog --version with commit, validate header, validatorVersion on promotions (#25)"@en ;
+    prov:endedAtTime "2026-11-17T12:04:00.098257+01:00"^^xsd:dateTime ;
+    prov:wasAssociatedWith agent:claude-sonnet-5-5 ;
+    aiprov:recordedAtTime "2026-11-17T12:04:00.098294+01:00"^^xsd:dateTime .
 
 <https://w3id.org/aiprov/prov/activity/merge-command> a aiprov:AuthoringPass ;
     rdfs:label "provlog merge for sharded logging (author's decision: shards + merge, option a); validate_graph refactor; tests (refs #2)"@en ;

@@ -442,3 +442,11 @@ aiprov:chainHead        a owl:DatatypeProperty ; rdfs:domain aiprov:TelemetryCha
     rdfs:comment "sha256:<hex> head of the chain after aiprov:chainLength records. Each line of the file hashes the line before it, so a changed, removed or reordered record changes the head."@en .
 aiprov:chainLength      a owl:DatatypeProperty ; rdfs:domain aiprov:TelemetryChain ; rdfs:range xsd:integer ;
     rdfs:comment "Number of records the head covers. The file may have grown since; `provlog bulk verify --anchor` checks that the first records still match."@en .
+
+aiprov:validatorVersion a owl:DatatypeProperty ;
+    rdfs:label "validator version"@en ; rdfs:domain aiprov:AuditPass ; rdfs:range xsd:string ;
+    rdfs:comment "Package version of the tool that granted a promotion, so the step names the rules it was granted under."@en .
+
+aiprov:validatorCommit a owl:DatatypeProperty ;
+    rdfs:label "validator commit"@en ; rdfs:domain aiprov:AuditPass ; rdfs:range xsd:string ;
+    rdfs:comment "Git commit of the tool that granted a promotion; the literal \"unknown\" when the install does not record one."@en .
