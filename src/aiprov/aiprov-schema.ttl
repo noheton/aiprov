@@ -259,6 +259,19 @@ aiprov:contentHash      a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "sha256 of the artefact bytes at generation time."@en .
 aiprov:gitCommit        a owl:DatatypeProperty ; rdfs:range xsd:string ;
     rdfs:comment "Commit hash binding the entity to repository state."@en .
+aiprov:HistoryRewrite   a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:comment "A rewrite of repository history (git filter-repo and the like): uses the old head and a hashed commit map, generates the new head (issue 58)."@en .
+aiprov:RepositoryImport a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:comment "A repository re-founded from a snapshot of another: its root commit is derived from a source commit (issue 58)."@en .
+aiprov:CommitMap        a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:comment "The old-to-new commit map of a rewrite. Only its sha256 and size are recorded; the file stays outside the repository."@en .
+aiprov:rewrittenAs      a owl:ObjectProperty ; rdfs:subPropertyOf prov:alternateOf ;
+    rdfs:comment "The old commit is now this commit after a history rewrite."@en .
+aiprov:removedPathPattern a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:domain aiprov:HistoryRewrite .
+aiprov:serverCleanup    a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:domain aiprov:HistoryRewrite ;
+    rdfs:comment "Whether a server-side cleanup was run: yes, no or unknown."@en .
+aiprov:mapEntries       a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:domain aiprov:CommitMap .
+aiprov:sourceRepository a owl:ObjectProperty ; rdfs:domain aiprov:RepositoryImport .
 aiprov:filePath         a owl:DatatypeProperty ; rdfs:range xsd:string .
 aiprov:vendoredFile     a owl:ObjectProperty ; rdfs:domain aiprov:Source ; rdfs:range prov:Entity ;
     rdfs:comment "The stored copy of a source: an entity with aiprov:filePath and aiprov:contentHash (sha256). Says that these bytes were kept, not who checked what; the rung of the source is independent of it (issue 10)."@en .

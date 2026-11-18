@@ -127,3 +127,10 @@ Everything of 0.2.0-rc.1, plus:
 - First release archived on Zenodo, together with 0.1.0 under one concept DOI.
 
 Not in 0.2.0: the open proposals and bugs (#8 to #17, #21 to #25), planned for 0.3.0.
+
+## Unreleased
+- History rewrite and repository import (#58): `provlog rewrite` records an `aiprov:HistoryRewrite` (old head, new head, the
+  `git filter-repo` commit map as a hashed `aiprov:CommitMap` entity, removed path patterns, server-side cleanup) and links every
+  commit the graph references with `aiprov:rewrittenAs`; `provlog import` records an `aiprov:RepositoryImport` whose root commit
+  `prov:wasDerivedFrom` the source commit. `validate` fails a rewrite without a hashed map and self-links. The map file itself and its
+  path never enter the graph.

@@ -1795,7 +1795,111 @@ def validate_graph(g: Graph) -> int:
                        ("node at the deprecated rung source-vendored", oldrung)):
         for row in rows:
             print("   ↳", kind + ":", row[0])
+    # History rewrites: the commit map must be hashed, links must point somewhere else, and the head must be linked.
+    badrw = []
+    for act in g.subjects(RDF.type, AIPROV.HistoryRewrite):
+        maps = [m for m in g.objects(act, PROV.used) if (m, RDF.type, AIPROV.CommitMap) in g]
+        if not maps or not any((m, AIPROV.contentHash, None) in g for m in maps):
+            badrw.append((f"{act} has no hashed commit map",))
+    for o, n in g.subject_objects(AIPROV.rewrittenAs):
+        if o == n:
+            badrw.append((f"{o} is rewritten as itself",))
+    print(f"[{'FAIL' if badrw else ' OK '}] history rewrites without hashed commit map or with self-links: {len(badrw)}")
+    fail += len(badrw)
+    for row in badrw:
+        print("   ↳", row[0])
     return fail
+
+
+def _commit_node(base: str, h: str) -> URIRef:
+    if not re.fullmatch(r"[0-9a-f]{7,64}", h):
+        sys.exit(f"'{h}' is not a commit hash (7-64 hex digits)")
+    return ns(base, "commit")[h]
+
+
+def _read_commit_map(path: str) -> dict:
+    """Read a git filter-repo commit map: 'old new' per line, header line 'old new' skipped."""
+    m = {}
+    for line in pathlib.Path(path).read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) != 2 or parts[0] == "old":
+            continue
+        if set(parts[1]) == {"0"}:  # commit dropped by the rewrite: nothing to link to
+            continue
+        m[parts[0]] = parts[1]
+    return m
+
+
+def _referenced_commits(g: Graph) -> set:
+    return {str(o) for _, _, o in g.triples((None, AIPROV.gitCommit, None))}
+
+
+def cmd_rewrite(a) -> None:
+    """Record a history rewrite: the activity, the hashed commit map, one rewrittenAs link per referenced commit."""
+    g = load()
+    act = ns(a.base, "activity")[a.id]
+    if (act, RDF.type, None) in g:
+        sys.exit(f"activity {a.id} is already logged; the graph is append-only, use a new id")
+    if (ns(a.base, "agent")[a.agent], RDF.type, None) not in g:
+        sys.exit(f"agent {a.agent} is not registered")
+    mp = pathlib.Path(a.map)
+    if not mp.is_file():
+        sys.exit(f"--map: {a.map} is not a file")
+    cmap = _read_commit_map(a.map)
+    ref = _referenced_commits(g)
+    # commits referenced by the graph may be abbreviated: match by prefix
+    links = {}
+    for old, new in cmap.items():
+        for r in ref:
+            if old.startswith(r) or r.startswith(old):
+                links[r] = new
+    g.add((act, RDF.type, AIPROV.HistoryRewrite))
+    g.add((act, RDFS.label, Literal(a.reason or "History rewrite", lang="en")))
+    g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
+    g.add((act, AIPROV.recordedAtTime, now()))
+    old_h, new_h = _commit_node(a.base, a.old_head), _commit_node(a.base, a.new_head)
+    g.add((act, PROV.used, old_h))
+    g.add((act, PROV.generated, new_h))
+    g.add((new_h, PROV.wasGeneratedBy, act))
+    if a.tool:
+        g.add((act, AIPROV.usedTool, Literal(a.tool)))
+    for pat in a.removed_pattern or []:
+        g.add((act, AIPROV.removedPathPattern, Literal(pat)))
+    if a.server_cleanup:
+        g.add((act, AIPROV.serverCleanup, Literal(a.server_cleanup)))
+    # the map itself stays outside the repository: only its hash and size are recorded, never a path
+    me = ns(a.base, "entity")["commit-map-" + a.id]
+    g.add((me, RDF.type, AIPROV.CommitMap))
+    g.add((me, AIPROV.contentHash, Literal("sha256:" + hashlib.sha256(mp.read_bytes()).hexdigest())))
+    g.add((me, AIPROV.mapEntries, Literal(len(cmap), datatype=XSD.integer)))
+    g.add((act, PROV.used, me))
+    for r, new in links.items():
+        g.add((_commit_node(a.base, r), AIPROV.rewrittenAs, _commit_node(a.base, new)))
+    save(g)
+    print(f"rewrite {a.id}: {len(links)} referenced commit(s) linked, {len(cmap)} map entries hashed")
+
+
+def cmd_import(a) -> None:
+    """Record that a repository was re-founded from a snapshot of another one."""
+    g = load()
+    act = ns(a.base, "activity")[a.id]
+    if (act, RDF.type, None) in g:
+        sys.exit(f"activity {a.id} is already logged; the graph is append-only, use a new id")
+    if (ns(a.base, "agent")[a.agent], RDF.type, None) not in g:
+        sys.exit(f"agent {a.agent} is not registered")
+    root, src = _commit_node(a.base, a.root_commit), _commit_node(a.base, a.source_commit)
+    g.add((act, RDF.type, AIPROV.RepositoryImport))
+    g.add((act, RDFS.label, Literal(a.reason or "Repository import", lang="en")))
+    g.add((act, PROV.wasAssociatedWith, ns(a.base, "agent")[a.agent]))
+    g.add((act, AIPROV.recordedAtTime, now()))
+    g.add((act, PROV.used, src))
+    g.add((act, PROV.generated, root))
+    g.add((root, PROV.wasGeneratedBy, act))
+    g.add((root, PROV.wasDerivedFrom, src))
+    if a.source_repository:
+        g.add((act, AIPROV.sourceRepository, URIRef(a.source_repository)))
+    save(g)
+    print(f"import {a.id}: {a.root_commit} derived from {a.source_commit}")
 
 
 def cmd_validate(a) -> None:
@@ -2515,6 +2619,18 @@ def main() -> None:
     s.add_argument("--decided-at", dest="decided_at", help="decide: when it was decided (ISO 8601); default now")
     s.add_argument("--old", help="supersede: the decision that --id replaces")
 
+    s = sub.add_parser("rewrite", help="record a history rewrite with its commit map (hash only) and link rewritten commits")
+    s.add_argument("--id", required=True); s.add_argument("--agent", required=True)
+    s.add_argument("--map", required=True, help="commit map of git filter-repo (old new per line); only its sha256 is stored")
+    s.add_argument("--old-head", dest="old_head", required=True); s.add_argument("--new-head", dest="new_head", required=True)
+    s.add_argument("--tool", help="for example 'git-filter-repo 2.45'")
+    s.add_argument("--reason"); s.add_argument("--removed-pattern", dest="removed_pattern", action="append", help="path pattern removed; repeatable")
+    s.add_argument("--server-cleanup", dest="server_cleanup", help="whether a server-side cleanup was run: yes, no or unknown")
+    s = sub.add_parser("import", help="record that a repository was re-founded from a snapshot of another")
+    s.add_argument("--id", required=True); s.add_argument("--agent", required=True)
+    s.add_argument("--root-commit", dest="root_commit", required=True); s.add_argument("--source-commit", dest="source_commit", required=True)
+    s.add_argument("--source-repository", dest="source_repository"); s.add_argument("--reason")
+
     s = sub.add_parser("bulk", help="bulk telemetry tier: a hash-chained JSONL file, its head anchored in the graph")
     s.add_argument("action", choices=["append", "verify", "anchor"])
     s.add_argument("--file", required=True, help="the JSONL file of the chain")
@@ -2576,7 +2692,7 @@ def main() -> None:
     if a.cmd == "bulk" and a.action == "anchor" and not (a.id and a.agent):
         p.error("bulk anchor needs --id and --agent")
     {"init": cmd_init, "agent": cmd_agent, "harness": cmd_harness, "log": cmd_log,
-     "claim": cmd_claim, "delimitation": cmd_delimitation, "message": cmd_message, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
+     "claim": cmd_claim, "delimitation": cmd_delimitation, "message": cmd_message, "rewrite": cmd_rewrite, "import": cmd_import, "decision": cmd_decision, "bulk": cmd_bulk, "validate": cmd_validate, "merge": cmd_merge, "report": cmd_report,
      "extract": cmd_extract, "migrate": cmd_migrate, "source": cmd_source, "promote": cmd_promote, "search": cmd_search}[a.cmd](a)
 
 
