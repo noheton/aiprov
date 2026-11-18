@@ -767,6 +767,15 @@ def cmd_claim(a) -> None:
     g.add((c, PROV.wasAttributedTo, ns(a.base, "agent")[a.agent]))
     g.add((c, AIPROV.verificationState, _rung_iri(g, a.base, a.state)))
     _add_premises(g, a, c)
+    rs = getattr(a, "reason_source", None)
+    if rs:
+        ref = getattr(a, "reason_ref", None)
+        if rs == "owner-stated" and not ref and (ns(a.base, "agent")[a.agent], RDF.type, AIPROV.AIAgent) in g:
+            sys.exit("--reason-source owner-stated by an AI agent needs --reason-ref (issue, commit or transcript identifier)")
+        g.add((c, AIPROV.reasonSource, Literal(rs)))
+        if ref:
+            g.add((c, AIPROV.reasonRef, Literal(ref)))
+        g.add((ns(a.base, "activity")[a.parent], PROV.wasInfluencedBy, c))
     if a.kind:
         g.add((c, AIPROV.claimKind, Literal(_clean_state(a.kind))))
     if a.kind and a.kind.lower() == "novelty" and canon_rung(a.state) in LADDER and LADDER.index(canon_rung(a.state)) >= LADDER.index("ai-confirmed"):
@@ -1478,6 +1487,13 @@ def validate_graph(g: Graph) -> int:
     unattr = list(g.query(q2))
     print(f"[{'FAIL' if unattr else ' OK '}] unattributed claims: {len(unattr)}")
     fail += len(unattr)
+    q_r1 = """SELECT ?c WHERE { ?a prov:wasInfluencedBy ?c . ?c a aiprov:Claim .
+            FILTER NOT EXISTS { ?c aiprov:reasonSource ?r } }"""
+    q_r2 = """SELECT ?c WHERE { ?c aiprov:reasonSource ?r .
+            FILTER(STR(?r) NOT IN ("owner-stated", "agent-stated", "derived")) }"""
+    badr = list(g.query(q_r1)) + list(g.query(q_r2))
+    print(f"[{'FAIL' if badr else ' OK '}] reason claims without a valid reasonSource: {len(badr)}")
+    fail += len(badr)
     # Human-only rungs: the offence is WHO GRANTED the rung, not who authored
     # the claim. Promotions are AuditPass activities labelled "... -> <rung>";
     # an AI agent associated with such a promotion is a hard failure.
@@ -2450,6 +2466,10 @@ def main() -> None:
                                   "a novelty claim needs a delimitation record from ai-confirmed upward")
     s.add_argument("--record-refusals", dest="record_refusals", action="store_true",
                    help="write a refused human-only step to the graph as an aiprov:Refusal (default: the graph stays unchanged)")
+    s.add_argument("--reason-source", dest="reason_source", choices=["owner-stated", "agent-stated", "derived"],
+                   help="make this claim the reason of its parent activity; the source is self-declared, not verified")
+    s.add_argument("--reason-ref", dest="reason_ref", metavar="ID",
+                   help="issue, commit or transcript identifier the reason relies on (instead of copying chat content)")
 
     s = sub.add_parser("delimitation", help="record the search behind a novelty claim (queries, sources, nearest works)")
     s.add_argument("--id", required=True); s.add_argument("--claim", required=True, help="id of a claim of kind novelty")

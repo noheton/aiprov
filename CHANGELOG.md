@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Reasons of activities as claims: `claim --reason-source --reason-ref`, `aiprov:reasonSource`, `aiprov:reasonRef`, validator check (#51).
+
 ## 0.1.0 — 2026-10-23
 Archived on Zenodo: 10.5281/zenodo.23651334 (concept 10.5281/zenodo.23651333).
 First packaged release. Content identical to the aiprov skill bundle generalised from F(AI)²R:

@@ -364,6 +364,13 @@ aiprov:difference       a owl:DatatypeProperty ; rdfs:domain aiprov:NearestWork 
 aiprov:similarityHint   a owl:DatatypeProperty ; rdfs:domain aiprov:DelimitationRecord ; rdfs:range xsd:string ;
     rdfs:comment "Optional embedding model and version used to find near works. Exploratory; never an input to a rung or a measure of originality."@en .
 
+#--- Reasons of activities ---------------------------------------------------
+
+aiprov:reasonSource     a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:string ;
+    rdfs:comment 'Marks a claim as the stated reason of its parent activity (linked by prov:wasInfluencedBy). Values: owner-stated, agent-stated, derived. Self-declared, not verified: a narrated reason is a post-hoc account, not a measurement.'@en .
+aiprov:reasonRef        a owl:DatatypeProperty ; rdfs:domain aiprov:Claim ; rdfs:range xsd:string ;
+    rdfs:comment 'Identifier (issue, commit, transcript) a reason relies on, instead of copied chat content.'@en .
+
 #--- Schema version and migration ---------------------------------------------
 
 aiprov:schemaVersion    a owl:DatatypeProperty ; rdfs:range xsd:string ;
